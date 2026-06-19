@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DataTable, type DataColumn } from "@/components/DataTable";
 import { formatCompetencia } from "@/lib/dashboard-data";
 
 export type RateioDgRow = {
@@ -19,10 +20,43 @@ const kwh = (n: number) =>
 const pct = (n: number) =>
   `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 
+const columns: DataColumn<RateioDgRow>[] = [
+  {
+    key: "competencia",
+    header: "Competência",
+    value: (r) => r.competencia,
+    exportValue: (r) => formatCompetencia(r.competencia),
+    render: (r) => formatCompetencia(r.competencia),
+  },
+  { key: "usina", header: "Usina", value: (r) => r.usinaNome ?? "" },
+  { key: "uc", header: "UC", value: (r) => r.installation },
+  { key: "cliente", header: "Cliente", value: (r) => r.ownerName ?? "" },
+  {
+    key: "cota",
+    header: "Cota",
+    align: "right",
+    value: (r) => r.percentual,
+    render: (r) => pct(r.percentual),
+  },
+  {
+    key: "consumo",
+    header: "Consumo",
+    align: "right",
+    value: (r) => r.consumoKwh,
+    render: (r) => kwh(r.consumoKwh),
+  },
+  {
+    key: "creditos",
+    header: "Créditos acum.",
+    align: "right",
+    value: (r) => r.creditosAcumulados,
+    render: (r) => kwh(r.creditosAcumulados),
+  },
+];
+
 export function RateioDgTable({ rows }: { rows: RateioDgRow[] }) {
   const [competencia, setCompetencia] = useState("");
   const [usina, setUsina] = useState("");
-  const [busca, setBusca] = useState("");
 
   const competencias = useMemo(
     () => [...new Set(rows.map((r) => r.competencia).filter(Boolean))].sort().reverse(),
@@ -38,32 +72,23 @@ export function RateioDgTable({ rows }: { rows: RateioDgRow[] }) {
       rows.filter(
         (r) =>
           (!competencia || r.competencia === competencia) &&
-          (!usina || r.usinaNome === usina) &&
-          (!busca ||
-            r.installation.toLowerCase().includes(busca.toLowerCase()) ||
-            (r.ownerName ?? "").toLowerCase().includes(busca.toLowerCase())),
+          (!usina || r.usinaNome === usina),
       ),
-    [rows, competencia, usina, busca],
+    [rows, competencia, usina],
   );
-
-  const somaConsumo = filtradas.reduce((s, r) => s + r.consumoKwh, 0);
 
   return (
     <section className="panel">
       <div className="panel-header">
         <div>
           <h2>Rateio por unidade consumidora</h2>
-          <p>
-            {filtradas.length} de {rows.length} cota(s) — dados reais do Digital
-            Grid, somente leitura.
-          </p>
+          <p>Dados reais do Digital Grid. Ordene as colunas e exporte Excel/PDF.</p>
         </div>
-        <span>{kwh(somaConsumo)} de consumo</span>
       </div>
 
       <div
         className="form-grid"
-        style={{ gridTemplateColumns: "repeat(3, 1fr)", marginBottom: 16 }}
+        style={{ gridTemplateColumns: "repeat(2, minmax(0,1fr))", marginBottom: 16 }}
       >
         <label className="form-field">
           <span>Competência</span>
@@ -87,51 +112,16 @@ export function RateioDgTable({ rows }: { rows: RateioDgRow[] }) {
             ))}
           </select>
         </label>
-        <label className="form-field">
-          <span>UC ou cliente</span>
-          <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar UC ou cliente"
-          />
-        </label>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Competência</th>
-              <th>Usina</th>
-              <th>UC</th>
-              <th>Cliente</th>
-              <th style={{ textAlign: "right" }}>Cota</th>
-              <th style={{ textAlign: "right" }}>Consumo</th>
-              <th style={{ textAlign: "right" }}>Créditos acum.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtradas.map((r) => (
-              <tr key={r.id}>
-                <td>{formatCompetencia(r.competencia)}</td>
-                <td>{r.usinaNome ?? "-"}</td>
-                <td>{r.installation || "-"}</td>
-                <td>{r.ownerName ?? "-"}</td>
-                <td style={{ textAlign: "right" }}>{pct(r.percentual)}</td>
-                <td style={{ textAlign: "right" }}>{kwh(r.consumoKwh)}</td>
-                <td style={{ textAlign: "right" }}>{kwh(r.creditosAcumulados)}</td>
-              </tr>
-            ))}
-            {filtradas.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", color: "var(--muted)" }}>
-                  Nenhuma cota para os filtros selecionados.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={filtradas}
+        rowKey={(r) => r.id}
+        fileName="rateio"
+        initialSort={{ key: "competencia", dir: "desc" }}
+        emptyMessage="Nenhuma cota para os filtros selecionados."
+      />
     </section>
   );
 }

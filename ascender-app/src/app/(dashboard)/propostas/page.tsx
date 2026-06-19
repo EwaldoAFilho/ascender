@@ -139,6 +139,15 @@ export default async function PropostasPage() {
               {p.status}
             </span>,
           ],
+          sortValues: [
+            p.clienteNome ?? "-",
+            p.unidadeCodigo ?? "-",
+            p.consumoEstimadoKwh,
+            p.tarifaDistribuidora,
+            p.tarifaAscender,
+            economiaMes(p),
+            p.status,
+          ],
           values: {
             clienteId: p.clienteId ?? "",
             unidadeConsumidoraId: p.unidadeConsumidoraId ?? "",

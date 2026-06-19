@@ -94,6 +94,15 @@ export default async function ContratosCadastroPage() {
           `${c.percentualDesconto}%`,
           c.status,
         ],
+        sortValues: [
+          c.clienteNome ?? "-",
+          c.unidadeCodigo ?? "-",
+          c.usinaNome ?? "-",
+          c.tarifaDistribuidora,
+          c.tarifaAscender,
+          c.percentualDesconto,
+          c.status,
+        ],
         values: {
           clienteId: c.clienteId ?? "",
           unidadeConsumidoraId: c.unidadeConsumidoraId ?? "",

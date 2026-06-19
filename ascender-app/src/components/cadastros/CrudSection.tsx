@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { DataTable, type DataColumn } from "@/components/DataTable";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -36,6 +37,8 @@ export type CrudField =
 export type CrudRow = {
   id: string;
   cells: ReactNode[];
+  /** Valores por coluna para ordenar/exportar (default: a célula, quando texto). */
+  sortValues?: (string | number)[];
   values: Record<string, string>;
 };
 
@@ -115,6 +118,46 @@ export function CrudSection({
     }
   }
 
+  const dataColumns: DataColumn<CrudRow>[] = [
+    ...columns.map((header, i) => ({
+      key: `c${i}`,
+      header,
+      value: (row: CrudRow): string | number => {
+        const sv = row.sortValues?.[i];
+        if (sv !== undefined) return sv;
+        const cell = row.cells[i];
+        return typeof cell === "string" || typeof cell === "number" ? cell : "";
+      },
+      render: (row: CrudRow) => row.cells[i],
+    })),
+    {
+      key: "acoes",
+      header: "Ações",
+      sortable: false,
+      exportable: false,
+      value: () => "",
+      render: (row: CrudRow) => (
+        <div className="table-actions">
+          <button
+            type="button"
+            className="btn-link"
+            onClick={() => openEdit(row)}
+          >
+            <Pencil size={14} /> Editar
+          </button>
+          <button
+            type="button"
+            className="btn-link danger"
+            onClick={() => handleDelete(row.id)}
+            disabled={busy}
+          >
+            <Trash2 size={14} /> Excluir
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <section className="panel">
@@ -127,57 +170,13 @@ export function CrudSection({
             <Plus size={16} /> Adicionar {singular}
           </button>
         </div>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                {columns.map((col) => (
-                  <th key={col}>{col}</th>
-                ))}
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length + 1}
-                    style={{ color: "var(--muted)" }}
-                  >
-                    Nenhum registro ainda. Clique em “Adicionar {singular}”.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((row) => (
-                  <tr key={row.id}>
-                    {row.cells.map((cell, index) => (
-                      <td key={index}>{cell}</td>
-                    ))}
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          className="btn-link"
-                          onClick={() => openEdit(row)}
-                        >
-                          <Pencil size={14} /> Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-link danger"
-                          onClick={() => handleDelete(row.id)}
-                          disabled={busy}
-                        >
-                          <Trash2 size={14} /> Excluir
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={dataColumns}
+          rows={rows}
+          rowKey={(r) => r.id}
+          fileName={singular}
+          emptyMessage={`Nenhum registro ainda. Clique em "Adicionar ${singular}".`}
+        />
       </section>
 
       {open ? (

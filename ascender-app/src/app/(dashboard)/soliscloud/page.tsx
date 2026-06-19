@@ -2,6 +2,7 @@
 
 import { AlarmsByStation } from "@/components/AlarmsByStation";
 import { BarList } from "@/components/BarList";
+import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState, ErrorState, PanelSkeleton } from "@/components/states";
 import {
   useAlarms,
@@ -10,6 +11,7 @@ import {
   useStations,
 } from "@/hooks/useSolis";
 import { numberFormatter } from "@/lib/dashboard-data";
+import type { Collector, InverterTelemetry } from "@/types/soliscloud";
 
 const loadingStyle = { color: "var(--muted)", margin: 0 } as const;
 
@@ -30,15 +32,75 @@ export default function SolisCloudPage() {
   const inverterList = inverters.data ?? [];
   const alarmList = alarms.data ?? [];
   const collectorData = collectors.data;
-  const collectorList = [...(collectorData?.coletores ?? [])].sort(
-    (a, b) => (collectorRank[a.state] ?? 9) - (collectorRank[b.state] ?? 9),
-  );
+  const coletores = collectorData?.coletores ?? [];
   const stationNameById = new Map(
     stationList.map((s) => [s.stationId, s.stationName ?? s.stationId]),
   );
   const usinasComAtivo = new Set(
     alarmList.filter((a) => a.status !== "resolvido").map((a) => a.plantId),
   ).size;
+
+  const inverterColumns: DataColumn<InverterTelemetry>[] = [
+    { key: "serial", header: "Serial", value: (i) => i.serialNumber },
+    {
+      key: "estacao",
+      header: "Estação",
+      value: (i) => stationNameById.get(i.plantId) ?? i.plantId,
+    },
+    {
+      key: "pot",
+      header: "Potência",
+      align: "right",
+      value: (i) => i.currentPowerKw,
+      render: (i) => `${numberFormatter.format(i.currentPowerKw)} kW`,
+    },
+    {
+      key: "hoje",
+      header: "Hoje",
+      align: "right",
+      value: (i) => i.todayEnergyKwh,
+      render: (i) => `${numberFormatter.format(i.todayEnergyKwh)} kWh`,
+    },
+    {
+      key: "total",
+      header: "Total",
+      align: "right",
+      value: (i) => i.totalEnergyKwh,
+      render: (i) => `${numberFormatter.format(i.totalEnergyKwh)} kWh`,
+    },
+    {
+      key: "status",
+      header: "Status",
+      value: (i) => i.state,
+      render: (i) => <span className={`status status-${i.state}`}>{i.state}</span>,
+    },
+  ];
+
+  const coletorColumns: DataColumn<Collector>[] = [
+    { key: "sn", header: "Serial (SN)", value: (c) => c.sn },
+    {
+      key: "estacao",
+      header: "Estação",
+      value: (c) => stationNameById.get(c.plantId) ?? c.plantId,
+    },
+    { key: "modelo", header: "Modelo", value: (c) => c.model ?? "—" },
+    {
+      key: "updated",
+      header: "Última comunicação",
+      value: (c) => c.updateTime || "—",
+    },
+    {
+      key: "status",
+      header: "Status",
+      value: (c) => collectorRank[c.state] ?? 9,
+      exportValue: (c) => collectorStateLabel[c.state] ?? c.state,
+      render: (c) => (
+        <span className={`status status-${c.state}`}>
+          {collectorStateLabel[c.state] ?? c.state}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -111,37 +173,15 @@ export default function SolisCloudPage() {
           <p style={loadingStyle}>Carregando coletores…</p>
         ) : collectors.isError ? (
           <ErrorState error={collectors.error} onRetry={() => collectors.refetch()} />
-        ) : collectorList.length === 0 ? (
-          <EmptyState message="Nenhum coletor retornado pela SolisCloud." />
         ) : (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Serial (SN)</th>
-                  <th>Estação</th>
-                  <th>Modelo</th>
-                  <th>Última comunicação</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {collectorList.map((c) => (
-                  <tr key={c.sn}>
-                    <td>{c.sn}</td>
-                    <td>{stationNameById.get(c.plantId) ?? c.plantId}</td>
-                    <td>{c.model ?? "—"}</td>
-                    <td>{c.updateTime || "—"}</td>
-                    <td>
-                      <span className={`status status-${c.state}`}>
-                        {collectorStateLabel[c.state] ?? c.state}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={coletorColumns}
+            rows={coletores}
+            rowKey={(c) => c.sn}
+            fileName="coletores"
+            initialSort={{ key: "status", dir: "asc" }}
+            emptyMessage="Nenhum coletor retornado pela SolisCloud."
+          />
         )}
       </section>
 
@@ -212,41 +252,14 @@ export default function SolisCloudPage() {
           <p style={loadingStyle}>Carregando inversores…</p>
         ) : inverters.isError ? (
           <ErrorState error={inverters.error} onRetry={() => inverters.refetch()} />
-        ) : inverterList.length === 0 ? (
-          <EmptyState message="Nenhum inversor retornado." />
         ) : (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Serial</th>
-                  <th>Estacao</th>
-                  <th>Potencia</th>
-                  <th>Hoje</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inverterList.map((inverter) => (
-                  <tr key={inverter.id}>
-                    <td>{inverter.serialNumber}</td>
-                    <td>
-                      {stationNameById.get(inverter.plantId) ?? inverter.plantId}
-                    </td>
-                    <td>{numberFormatter.format(inverter.currentPowerKw)} kW</td>
-                    <td>{numberFormatter.format(inverter.todayEnergyKwh)} kWh</td>
-                    <td>{numberFormatter.format(inverter.totalEnergyKwh)} kWh</td>
-                    <td>
-                      <span className={`status status-${inverter.state}`}>
-                        {inverter.state}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={inverterColumns}
+            rows={inverterList}
+            rowKey={(i) => i.id}
+            fileName="inversores"
+            emptyMessage="Nenhum inversor retornado."
+          />
         )}
       </section>
     </>

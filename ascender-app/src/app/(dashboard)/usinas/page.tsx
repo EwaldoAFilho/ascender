@@ -1,4 +1,5 @@
 import { BarList } from "@/components/BarList";
+import { UsinasTable } from "@/components/UsinasTable";
 import { getUsinasComTelemetria } from "@/lib/cadastros/queries";
 import { numberFormatter } from "@/lib/dashboard-data";
 
@@ -63,77 +64,7 @@ export default async function UsinasPage() {
         />
       </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Usinas monitoradas</h2>
-            <p>Cadastro cruzado com a telemetria real da SolisCloud.</p>
-          </div>
-          <span>
-            {vinculadas.length}/{linhas.length} vinculadas
-          </span>
-        </div>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Usina</th>
-                <th>Distribuidora</th>
-                <th>SolisCloud</th>
-                <th>Potência</th>
-                <th>Agora</th>
-                <th>Mês real</th>
-                <th>Esperado</th>
-                <th>Aderência</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {linhas.map((l) => (
-                <tr key={l.id}>
-                  <td>{l.nome}</td>
-                  <td>{l.distribuidoraNome ?? "-"}</td>
-                  <td>
-                    {l.vinculada ? (
-                      (l.estacaoNome ?? "vinculada")
-                    ) : (
-                      <span style={{ color: "var(--muted)" }}>
-                        não vinculada
-                      </span>
-                    )}
-                  </td>
-                  <td>{l.potenciaKwp} kWp</td>
-                  <td>
-                    {l.potenciaAgoraKw != null
-                      ? `${numberFormatter.format(l.potenciaAgoraKw)} kW`
-                      : "-"}
-                  </td>
-                  <td>
-                    {l.realizadoMesKwh != null
-                      ? `${numberFormatter.format(l.realizadoMesKwh)} kWh`
-                      : "-"}
-                  </td>
-                  <td>
-                    {l.esperadoMesKwh
-                      ? `${numberFormatter.format(l.esperadoMesKwh)} kWh`
-                      : "-"}
-                  </td>
-                  <td>
-                    {l.aderenciaPct != null
-                      ? `${numberFormatter.format(l.aderenciaPct)}%`
-                      : "-"}
-                  </td>
-                  <td>
-                    <span className={`status status-${l.statusReal ?? l.status}`}>
-                      {l.statusReal ?? l.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <UsinasTable linhas={linhas} />
     </>
   );
 }

@@ -81,6 +81,14 @@ export default async function UsinasCadastroPage() {
           u.stationIdSoliscloud ?? "-",
           u.status,
         ],
+        sortValues: [
+          u.nome,
+          u.distribuidoraNome ?? "-",
+          u.potenciaKwp,
+          u.geracaoEsperadaKwhMes,
+          u.stationIdSoliscloud ?? "-",
+          u.status,
+        ],
         values: {
           nome: u.nome,
           distribuidoraId: u.distribuidoraId ?? "",

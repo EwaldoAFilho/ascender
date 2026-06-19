@@ -44,6 +44,7 @@ export default async function UsuariosPage() {
             {u.ativo ? "ativo" : "inativo"}
           </span>,
         ],
+        sortValues: [u.nome, u.email, u.ativo ? "ativo" : "inativo"],
         values: {
           nome: u.nome,
           email: u.email,

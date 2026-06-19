@@ -51,6 +51,12 @@ export function formatCompetencia(competencia: string | null | undefined): strin
   return m ? `${m[2]}/${m[1]}` : competencia || "-";
 }
 
+// Exibe uma data "AAAA-MM-DD" como "DD/MM/AAAA" (dia/mês/ano).
+export function formatData(data: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(data ?? "");
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : data || "—";
+}
+
 export const modules: Module[] = [
   {
     id: "executivo",

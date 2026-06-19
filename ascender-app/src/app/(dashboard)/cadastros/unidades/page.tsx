@@ -56,6 +56,12 @@ export default async function UnidadesCadastroPage() {
           u.distribuidoraNome ?? "-",
           `${numberFormatter.format(u.consumoMedioKwh)} kWh`,
         ],
+        sortValues: [
+          u.codigoInstalacao,
+          u.clienteNome ?? "-",
+          u.distribuidoraNome ?? "-",
+          u.consumoMedioKwh,
+        ],
         values: {
           clienteId: u.clienteId ?? "",
           codigoInstalacao: u.codigoInstalacao,

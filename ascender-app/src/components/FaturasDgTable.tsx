@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatCompetencia, moneyFormatter } from "@/lib/dashboard-data";
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import {
+  formatCompetencia,
+  formatData,
+  moneyFormatter,
+} from "@/lib/dashboard-data";
 
 export type FaturaDgRow = {
   id: string;
@@ -28,10 +33,74 @@ function statusClass(status: string): string {
 const kwh = (n: number) =>
   `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} kWh`;
 
+const columns: DataColumn<FaturaDgRow>[] = [
+  {
+    key: "competencia",
+    header: "Competência",
+    value: (r) => r.competencia,
+    exportValue: (r) => formatCompetencia(r.competencia),
+    render: (r) => formatCompetencia(r.competencia),
+  },
+  {
+    key: "installation",
+    header: "Instalação",
+    value: (r) => r.installationNumber ?? "",
+  },
+  {
+    key: "classe",
+    header: "Classe",
+    value: (r) => r.installationClass ?? "",
+  },
+  {
+    key: "consumo",
+    header: "Consumo",
+    align: "right",
+    value: (r) => r.consumoKwh,
+    render: (r) => kwh(r.consumoKwh),
+  },
+  {
+    key: "valor",
+    header: "Valor",
+    align: "right",
+    value: (r) => r.valorTotal,
+    render: (r) => moneyFormatter.format(r.valorTotal),
+  },
+  {
+    key: "pago",
+    header: "Pago",
+    align: "right",
+    value: (r) => r.valorPago,
+    render: (r) => moneyFormatter.format(r.valorPago),
+  },
+  {
+    key: "economia",
+    header: "Economia",
+    align: "right",
+    value: (r) => r.economia,
+    render: (r) => moneyFormatter.format(r.economia),
+  },
+  {
+    key: "vencimento",
+    header: "Vencimento",
+    value: (r) => r.vencimento ?? "",
+    exportValue: (r) => formatData(r.vencimento),
+    render: (r) => formatData(r.vencimento),
+  },
+  {
+    key: "status",
+    header: "Status",
+    value: (r) => r.paymentStatus,
+    render: (r) => (
+      <span className={`status ${statusClass(r.paymentStatus)}`}>
+        {r.paymentStatus || "-"}
+      </span>
+    ),
+  },
+];
+
 export function FaturasDgTable({ rows }: { rows: FaturaDgRow[] }) {
   const [competencia, setCompetencia] = useState("");
   const [status, setStatus] = useState("");
-  const [busca, setBusca] = useState("");
 
   const competencias = useMemo(
     () => [...new Set(rows.map((r) => r.competencia).filter(Boolean))].sort().reverse(),
@@ -47,11 +116,9 @@ export function FaturasDgTable({ rows }: { rows: FaturaDgRow[] }) {
       rows.filter(
         (r) =>
           (!competencia || r.competencia === competencia) &&
-          (!status || r.paymentStatus === status) &&
-          (!busca ||
-            (r.installationNumber ?? "").toLowerCase().includes(busca.toLowerCase())),
+          (!status || r.paymentStatus === status),
       ),
-    [rows, competencia, status, busca],
+    [rows, competencia, status],
   );
 
   return (
@@ -59,16 +126,13 @@ export function FaturasDgTable({ rows }: { rows: FaturaDgRow[] }) {
       <div className="panel-header">
         <div>
           <h2>Faturas (Digital Grid)</h2>
-          <p>
-            {filtradas.length} de {rows.length} fatura(s) — dados reais, somente
-            leitura.
-          </p>
+          <p>Dados reais, somente leitura. Ordene as colunas e exporte Excel/PDF.</p>
         </div>
       </div>
 
       <div
         className="form-grid"
-        style={{ gridTemplateColumns: "repeat(3, 1fr)", marginBottom: 16 }}
+        style={{ gridTemplateColumns: "repeat(2, minmax(0,1fr))", marginBottom: 16 }}
       >
         <label className="form-field">
           <span>Competência</span>
@@ -92,65 +156,16 @@ export function FaturasDgTable({ rows }: { rows: FaturaDgRow[] }) {
             ))}
           </select>
         </label>
-        <label className="form-field">
-          <span>Instalação (UC)</span>
-          <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar código da UC"
-          />
-        </label>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Competência</th>
-              <th>Instalação</th>
-              <th>Classe</th>
-              <th style={{ textAlign: "right" }}>Consumo</th>
-              <th style={{ textAlign: "right" }}>Valor</th>
-              <th style={{ textAlign: "right" }}>Pago</th>
-              <th style={{ textAlign: "right" }}>Economia</th>
-              <th>Vencimento</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtradas.map((r) => (
-              <tr key={r.id}>
-                <td>{formatCompetencia(r.competencia)}</td>
-                <td>{r.installationNumber ?? "-"}</td>
-                <td>{r.installationClass ?? "-"}</td>
-                <td style={{ textAlign: "right" }}>{kwh(r.consumoKwh)}</td>
-                <td style={{ textAlign: "right" }}>
-                  {moneyFormatter.format(r.valorTotal)}
-                </td>
-                <td style={{ textAlign: "right" }}>
-                  {moneyFormatter.format(r.valorPago)}
-                </td>
-                <td style={{ textAlign: "right" }}>
-                  {moneyFormatter.format(r.economia)}
-                </td>
-                <td>{r.vencimento ?? "-"}</td>
-                <td>
-                  <span className={`status ${statusClass(r.paymentStatus)}`}>
-                    {r.paymentStatus || "-"}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {filtradas.length === 0 ? (
-              <tr>
-                <td colSpan={9} style={{ textAlign: "center", color: "var(--muted)" }}>
-                  Nenhuma fatura para os filtros selecionados.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={filtradas}
+        rowKey={(r) => r.id}
+        fileName="faturas"
+        initialSort={{ key: "competencia", dir: "desc" }}
+        emptyMessage="Nenhuma fatura para os filtros selecionados."
+      />
     </section>
   );
 }
