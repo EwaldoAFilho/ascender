@@ -1118,3 +1118,281 @@ th {
   color: var(--heading);
   background: var(--surface-soft);
 }
+
+/* ===== Cockpit / PowerRing / Frota / Aderência (Início e Executivo) ===== */
+.cockpit {
+  display: grid;
+  gap: 24px;
+  background: var(--hero-bg);
+  color: var(--hero-text);
+  border: 1px solid rgba(245, 183, 0, 0.18);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+@media (min-width: 761px) {
+  .cockpit {
+    grid-template-columns: minmax(200px, 280px) 1fr;
+    align-items: center;
+  }
+}
+.cockpit-aside {
+  display: grid;
+  gap: 16px;
+}
+.cockpit-aside .eyebrow {
+  color: var(--brand-yellow);
+}
+.cockpit-aside h2 {
+  color: var(--hero-text);
+  margin: 2px 0 0;
+}
+.cockpit-readouts {
+  display: grid;
+  gap: 10px;
+}
+.readout {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+.readout:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.readout span {
+  color: var(--hero-muted);
+}
+.readout strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--hero-text);
+}
+.cockpit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.power-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+}
+.power-ring svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ring-track {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+.ring-fill {
+  stroke: url(#ringGrad);
+  transition: stroke-dashoffset 0.6s ease;
+}
+.ring-fill.is-ok {
+  stroke: var(--success);
+}
+.ring-fill.is-warn {
+  stroke: var(--warning);
+}
+.ring-fill.is-bad {
+  stroke: var(--danger);
+}
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.ring-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--hero-text);
+}
+.ring-unit {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--hero-muted);
+}
+.ring-sub {
+  position: absolute;
+  bottom: -6px;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--hero-muted);
+  text-align: center;
+  max-width: 90%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .power-ring.is-live::after {
+    content: "";
+    position: absolute;
+    inset: 6%;
+    border-radius: 999px;
+    background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+    animation: ringPulse 2.6s ease-in-out infinite;
+    z-index: -1;
+  }
+}
+@keyframes ringPulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+.station-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+  margin-bottom: 16px;
+}
+@media (min-width: 641px) {
+  .station-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1101px) {
+  .station-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.station-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+.station-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.station-card-head strong {
+  font-size: 0.95rem;
+  color: var(--heading);
+}
+.station-card .now {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--heading);
+  font-variant-numeric: tabular-nums;
+}
+.station-card small {
+  color: var(--muted);
+}
+
+.signal-row {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+  margin-bottom: 16px;
+}
+@media (min-width: 761px) {
+  .signal-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.signal {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  display: grid;
+  gap: 4px;
+}
+.signal .lbl {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.signal .val {
+  font-size: 1.7rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--heading);
+  line-height: 1.1;
+}
+.signal .hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.adherence-list {
+  display: grid;
+  gap: 14px;
+}
+.adherence-row {
+  display: grid;
+  gap: 6px;
+}
+.adherence-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.adherence-top strong {
+  color: var(--heading);
+  font-size: 0.95rem;
+}
+.adherence-top span {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: var(--heading);
+}
+.adherence-row .dual-bar {
+  position: relative;
+  height: 12px;
+  background: var(--bar-track);
+  border-radius: 999px;
+}
+.adherence-row .dual-bar .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-yellow), var(--brand-gold));
+}
+.adherence-row.is-ok .fill {
+  background: var(--success);
+}
+.adherence-row.is-bad .fill {
+  background: var(--danger);
+}
+.adherence-row.is-muted .fill {
+  background: var(--muted);
+}
+.adherence-row .dual-bar .target {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--heading);
+  opacity: 0.55;
+}
+.adherence-row small {
+  color: var(--muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-yellow);
+  outline-offset: 2px;
+}
