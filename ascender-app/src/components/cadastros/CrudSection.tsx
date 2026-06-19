@@ -12,7 +12,7 @@ export type CrudField =
   | {
       name: string;
       label: string;
-      type: "text" | "number" | "date";
+      type: "text" | "number" | "date" | "password";
       required?: boolean;
       placeholder?: string;
       step?: string;

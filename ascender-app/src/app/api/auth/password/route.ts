@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { setPassword, verifyPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
+import { setUserPassword, verifyUserPassword } from "@/lib/auth/users";
 
 export const runtime = "nodejs";
 
@@ -12,7 +12,7 @@ const bodySchema = z.object({
 
 export async function PUT(request: Request) {
   const session = await getSession();
-  if (!session.authenticated) {
+  if (!session.authenticated || !session.userId) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
@@ -24,7 +24,10 @@ export async function PUT(request: Request) {
     );
   }
 
-  const currentOk = await verifyPassword(parsed.data.currentPassword);
+  const currentOk = await verifyUserPassword(
+    session.userId,
+    parsed.data.currentPassword,
+  );
   if (!currentOk) {
     return NextResponse.json(
       { error: "Senha atual incorreta." },
@@ -32,6 +35,6 @@ export async function PUT(request: Request) {
     );
   }
 
-  await setPassword(parsed.data.newPassword);
+  await setUserPassword(session.userId, parsed.data.newPassword);
   return NextResponse.json({ ok: true });
 }

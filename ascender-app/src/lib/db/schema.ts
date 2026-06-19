@@ -43,6 +43,21 @@ export const appSettings = pgTable("app_settings", {
     .defaultNow(),
 });
 
+// Usuários da aplicação (multiusuário; todos com acesso total nesta fase).
+export const usuarios = pgTable("usuarios", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nome: text("nome").notNull(),
+  email: text("email").notNull().unique(),
+  senhaHash: text("senha_hash").notNull(),
+  ativo: boolean("ativo").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ===== Cadastros-mestre (alimentados manualmente; base do modelo relacional) =====
 
 export const distribuidoras = pgTable("distribuidoras", {
@@ -286,6 +301,7 @@ export const propostas = pgTable("propostas", {
 
 export type IntegrationCredential = typeof integrationCredentials.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
+export type Usuario = typeof usuarios.$inferSelect;
 export type Distribuidora = typeof distribuidoras.$inferSelect;
 export type Cliente = typeof clientes.$inferSelect;
 export type UnidadeConsumidora = typeof unidadesConsumidoras.$inferSelect;

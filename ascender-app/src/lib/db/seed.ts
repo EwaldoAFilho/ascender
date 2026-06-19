@@ -1,48 +1,43 @@
 import "dotenv/config";
 import { hash } from "@node-rs/argon2";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { getDb } from "./index";
-import { appSettings } from "./schema";
+import { usuarios } from "./schema";
 
-// Seed idempotente do login único compartilhado.
-// - login_email: sempre sincronizado com LOGIN_EMAIL.
-// - login_password_hash: criado apenas se ainda não existir (não sobrescreve
-//   uma senha trocada depois pela aplicação).
+// Seed idempotente do usuário administrador inicial.
+// Cria o admin a partir de LOGIN_EMAIL/LOGIN_PASSWORD apenas se ainda NÃO houver
+// nenhum usuário cadastrado (não sobrescreve usuários/senhas geridos na app).
 async function main() {
   const db = getDb();
-  const email = process.env.LOGIN_EMAIL?.trim() || "admin@ascender.com.br";
+  const email = (
+    process.env.LOGIN_EMAIL?.trim() || "admin@ascender.com.br"
+  ).toLowerCase();
   const password = process.env.LOGIN_PASSWORD;
 
-  await db
-    .insert(appSettings)
-    .values({ key: "login_email", value: email })
-    .onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value: email, updatedAt: new Date() },
-    });
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(usuarios);
 
-  const existing = await db
-    .select()
-    .from(appSettings)
-    .where(eq(appSettings.key, "login_password_hash"));
-
-  if (existing.length > 0) {
-    console.log("[seed] Hash de senha já existe — mantido.");
+  if (n > 0) {
+    console.log(`[seed] Já existem ${n} usuário(s) — seed do admin pulado.`);
     return;
   }
 
   if (!password) {
     console.warn(
-      "[seed] LOGIN_PASSWORD não definido — senha não criada. Defina e rode novamente.",
+      "[seed] LOGIN_PASSWORD não definido — admin não criado. Defina e rode novamente.",
     );
     return;
   }
 
-  const passwordHash = await hash(password);
-  await db
-    .insert(appSettings)
-    .values({ key: "login_password_hash", value: passwordHash });
-  console.log(`[seed] Login criado para ${email}.`);
+  const senhaHash = await hash(password);
+  await db.insert(usuarios).values({
+    nome: "Administrador",
+    email,
+    senhaHash,
+    ativo: true,
+  });
+  console.log(`[seed] Usuário administrador criado: ${email}.`);
 }
 
 main()
