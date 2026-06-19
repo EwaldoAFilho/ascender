@@ -68,6 +68,7 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 
 ### SolisCloud (técnico — geração/telemetria)
 - Assinatura HMAC-SHA1 no servidor (`src/lib/soliscloud/`). **Content-Type deve ser `application/json` SEM `;charset`** (com charset → 403 "wrong sign"). URL base precisa de `https://`.
+- **Rate limit por conta** → todas as chamadas passam por uma **fila global** (`client.ts`, `reserveSlot`) que espaça o início de chamadas concorrentes (~600 ms) + **retry com backoff** em erros transitórios (rede, HTTP 429/5xx). Sem isso, abrir a tela (4 chamadas paralelas: estações/inversores/alarmes/coletores) estourava o limite e a **1ª carga falhava** (só passava no reload, com cache quente). Cache em memória (TTL 5 min, `ttlCache.ts`); cache hits não entram na fila. ⚠️ **A fila é por processo**: o `app` e o serviço `sync` (cron) têm filas independentes — se um dia colidirem com frequência, mover cache+fila para Redis (ver seção 9).
 - Unidades: `stationDay.power` em W (÷1000→kW); `inverterList.etotal` em MWh (usar etotalStr); `stationMonth/Year.energy/money` já vêm em base kWh/BRL (NÃO converter).
 - Telas: SolisCloud (telemetria, inversores, alarmes, **monitor de coletores/dataloggers** via `collectorList`), Geração (curvas), Usinas (realizado×esperado).
 
@@ -84,6 +85,7 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 
 - **DataTable** (`src/components/DataTable.tsx`): ordenação por coluna, busca, paginação e **exportação Excel/PDF** (xlsx + jspdf, import dinâmico). Usado nas tabelas de dados e no `CrudSection` (cadastros).
 - **Dashboards Início/Executivo** redesenhados (skill frontend-design): **PowerRing** (anel SVG amarelo→ouro) — potência/capacidade no Início, **aderência** no Executivo. Aderência usa **meta proporcional aos dias** do mês corrente (`getUsinasComTelemetria`).
+- **SummaryStrip** (`src/components/SummaryStrip.tsx`): faixa de métricas (`.metric`/`.metric-row`) com **tom de saúde** (ok/warn/bad = verde/âmbar/vermelho). Usada em **SolisCloud** e **Usinas** (KPIs no topo) e em cada **Cadastro** (resumo). **Cadastros** tem hub `/cadastros` com cards+contadores (`getCadastrosResumo`) e abas (`registry-tabs`, com aba "Visão geral"); SolisCloud memoiza derivados/colunas (skill Vercel).
 - Tema claro/escuro via variáveis CSS em `src/app/globals.css` (azul `--brand-blue` + amarelo/ouro solar). Datas exibidas DD/MM/AAAA, competências MM/AAAA (armazenadas AAAA-MM).
 
 ## 9. O que falta / próximos (opcional)
@@ -92,3 +94,4 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 - Importador de planilha Excel (dados que só vivem na planilha operacional).
 - Parser de contas para outras distribuidoras.
 - Edição manual dos campos extraídos de contas (correção do que o parser não pegar).
+- **Fila/cache da SolisCloud em Redis** — só se houver múltiplas réplicas do `app` ou se o `app` e o `sync` (filas por processo, ver seção 7) passarem a colidir no rate limit com frequência. Hoje o retry com backoff cobre o encontro raro.
