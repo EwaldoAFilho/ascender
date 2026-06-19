@@ -1,9 +1,9 @@
 # Caddy — HTTPS automático (Let's Encrypt) + proxy reverso para o app.
-# Troque "seu-dominio.com" pelo seu domínio (com registro A apontando para a VPS).
 # Usado pelo docker-compose.prod.yml. O Caddy alcança o app pela rede do compose
 # (serviço "app" escutando na porta 3000 dentro do container).
+# Para trocar/adicionar domínio, altere a linha do domínio abaixo.
 
-seu-dominio.com {
+gestao.ascenderenergiasolar.com {
     reverse_proxy app:3000
 
     encode gzip
