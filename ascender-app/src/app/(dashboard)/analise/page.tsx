@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsivePie } from "@nivo/pie";
-import { Gauge, Sun, X, Zap } from "lucide-react";
-import { KpiCard } from "@/components/KpiCard";
+import { X } from "lucide-react";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { EmptyState, ErrorState } from "@/components/states";
 import { useStations } from "@/hooks/useSolis";
 import { numberFormatter } from "@/lib/dashboard-data";
@@ -91,6 +91,25 @@ export default function AnalisePage() {
   const periodoLabel =
     PERIODOS.find((p) => p.id === period)?.label.toLowerCase() ?? "";
 
+  const kpis: SummaryItem[] = [
+    {
+      label: sel ? `Geração — ${selected}` : "Geração no período",
+      value: `${numberFormatter.format(geracao)} kWh`,
+      hint: periodoLabel,
+      tone: "ok",
+    },
+    {
+      label: "Potência agora",
+      value: `${numberFormatter.format(potencia)} kW`,
+      hint: sel ? "da usina filtrada" : "soma das usinas",
+    },
+    {
+      label: "Usinas",
+      value: String(sel ? 1 : list.length),
+      hint: sel ? "filtrada" : "no portfólio",
+    },
+  ];
+
   return (
     <>
       <section className="panel">
@@ -142,28 +161,7 @@ export default function AnalisePage() {
         ) : null}
       </section>
 
-      <section className="kpi-grid compact-kpis">
-        <KpiCard
-          title={sel ? `Geração — ${selected}` : "Geração no período"}
-          value={`${numberFormatter.format(geracao)} kWh`}
-          detail={periodoLabel}
-          icon={Sun}
-          tone="success"
-        />
-        <KpiCard
-          title="Potência agora"
-          value={`${numberFormatter.format(potencia)} kW`}
-          detail={sel ? "da usina filtrada" : "soma das usinas"}
-          icon={Zap}
-          tone="success"
-        />
-        <KpiCard
-          title="Usinas"
-          value={String(sel ? 1 : list.length)}
-          detail={sel ? "filtrada" : "no portfólio"}
-          icon={Gauge}
-        />
-      </section>
+      <SummaryStrip items={kpis} />
 
       <section className="dashboard-grid">
         <section className="panel">

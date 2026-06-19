@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GenerationChart } from "@/components/GenerationChart";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { ErrorState } from "@/components/states";
 import { useGeneration, useStations } from "@/hooks/useSolis";
 import type { GenerationPeriod } from "@/lib/api/soliscloud";
@@ -34,6 +35,31 @@ export default function GeracaoPage() {
       : period === "month"
         ? "geração diária do mês (kWh)"
         : "geração mensal do ano (kWh)";
+
+  const indicadores: SummaryItem[] = [];
+  if (gen.data) {
+    if (gen.data.unit === "kW" && gen.data.peakKw != null) {
+      indicadores.push({
+        label: "Pico do dia",
+        value: `${numberFormatter.format(gen.data.peakKw)} kW`,
+      });
+    }
+    if (gen.data.totalKwh != null) {
+      indicadores.push({
+        label: "Total no período",
+        value: `${numberFormatter.format(gen.data.totalKwh)} kWh`,
+        tone: "ok",
+      });
+    }
+    if (gen.data.totalMoney != null) {
+      indicadores.push({
+        label: "Receita estimada",
+        value: moneyFormatter.format(gen.data.totalMoney),
+        hint: "estimada pela SolisCloud",
+        tone: "ok",
+      });
+    }
+  }
 
   return (
     <>
@@ -104,28 +130,11 @@ export default function GeracaoPage() {
         ) : (
           <>
             <GenerationChart series={gen.data} />
-            <div className="summary-list" style={{ marginTop: 14 }}>
-              {gen.data.unit === "kW" && gen.data.peakKw != null ? (
-                <div>
-                  <span>Pico do dia</span>
-                  <strong>{numberFormatter.format(gen.data.peakKw)} kW</strong>
-                </div>
-              ) : null}
-              {gen.data.totalKwh != null ? (
-                <div>
-                  <span>Total no período</span>
-                  <strong>
-                    {numberFormatter.format(gen.data.totalKwh)} kWh
-                  </strong>
-                </div>
-              ) : null}
-              {gen.data.totalMoney != null ? (
-                <div>
-                  <span>Receita estimada (SolisCloud)</span>
-                  <strong>{moneyFormatter.format(gen.data.totalMoney)}</strong>
-                </div>
-              ) : null}
-            </div>
+            {indicadores.length > 0 ? (
+              <div style={{ marginTop: 14 }}>
+                <SummaryStrip items={indicadores} />
+              </div>
+            ) : null}
           </>
         )}
       </section>
