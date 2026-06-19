@@ -36,71 +36,75 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        background: "var(--hero-bg)",
-        padding: "24px",
-      }}
-    >
-      <section className="panel" style={{ width: "100%", maxWidth: "400px" }}>
-        <div style={{ textAlign: "center", marginBottom: "10px" }}>
+    <div className="login-shell">
+      <section className="login-hero">
+        <div className="login-brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/brand/logo-black.jpeg"
-            alt="ASCENDER"
-            style={{
-              height: 80,
-              width: 80,
-              objectFit: "cover",
-              borderRadius: 8,
-            }}
-          />
+          <img src="/brand/logo-black.jpeg" alt="ASCENDER Energia Solar" />
         </div>
-        <p className="eyebrow" style={{ textAlign: "center" }}>
-          ASCENDER Solar Tech
-        </p>
-        <h2 style={{ textAlign: "center", marginBottom: 18 }}>
-          Acesso ao sistema
-        </h2>
-        <form
-          onSubmit={handleSubmit}
-          className="form-grid"
-          style={{ gridTemplateColumns: "1fr" }}
-        >
-          <label className="form-field">
-            <span>E-mail</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="username"
-              required
-            />
-          </label>
-          <label className="form-field">
-            <span>Senha</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password"
-              required
-            />
-          </label>
-          {error ? (
-            <p style={{ color: "var(--danger)", fontWeight: 800, margin: 0 }}>
-              {error}
+
+        <div className="login-hero-bottom">
+          <div className="login-hero-copy">
+            <p className="eyebrow">Plataforma de gestão solar</p>
+            <h1>
+              Energia que <em>ascende</em>.
+            </h1>
+            <p className="lead">
+              Acompanhe geração, financeiro e clientes das usinas da ASCENDER —
+              com dados reais da SolisCloud e do Digital Grid, em um só lugar.
             </p>
-          ) : null}
-          <div className="form-actions">
-            <button type="submit" disabled={loading}>
+          </div>
+
+          <div className="login-points">
+            <span>Geração em tempo real</span>
+            <span>Financeiro integrado</span>
+            <span>Multiusuário</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="login-form-side">
+        <div className="login-card">
+          <h2>Entrar</h2>
+          <p className="sub">Acesse o painel da ASCENDER.</p>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <label className="login-field">
+              <span>E-mail</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="username"
+                placeholder="voce@ascenderenergiasolar.com"
+                required
+              />
+            </label>
+            <label className="login-field">
+              <span>Senha</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                required
+              />
+            </label>
+
+            {error ? (
+              <p className="login-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <button type="submit" className="login-submit" disabled={loading}>
               {loading ? "Entrando…" : "Entrar"}
             </button>
-          </div>
-        </form>
+          </form>
+
+          <p className="login-foot">ASCENDER Energia Solar · Brasília-DF</p>
+        </div>
       </section>
     </div>
   );
