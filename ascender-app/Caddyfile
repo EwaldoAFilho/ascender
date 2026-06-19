@@ -1,0 +1,16 @@
+# Caddy — HTTPS automático (Let's Encrypt) + proxy reverso para o app.
+# Troque "seu-dominio.com" pelo seu domínio (com registro A apontando para a VPS).
+# Usado pelo docker-compose.prod.yml. O Caddy alcança o app pela rede do compose
+# (serviço "app" escutando na porta 3000 dentro do container).
+
+seu-dominio.com {
+    reverse_proxy app:3000
+
+    encode gzip
+    header {
+        # Hardening básico de cabeçalhos
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}

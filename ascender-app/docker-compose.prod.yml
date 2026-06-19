@@ -1,0 +1,36 @@
+# Override de produção com HTTPS via Caddy (use quando tiver um domínio).
+#
+# Fase atual (só IP / HTTP): use apenas o compose base —
+#   docker compose up -d --build
+#
+# Quando tiver domínio (registro A apontando para a VPS):
+#   1) edite o Caddyfile (troque "seu-dominio.com")
+#   2) no .env: APP_BASE_URL=https://seu-dominio.com   (ativa o cookie seguro)
+#   3) suba com os dois arquivos:
+#        docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Aqui o Caddy publica 80/443, obtém TLS automático (Let's Encrypt) e faz proxy
+# para o app pela rede interna do compose. A porta do app deixa de ser pública
+# (fica só em 127.0.0.1 para debug local).
+
+services:
+  app:
+    ports:
+      - "127.0.0.1:${APP_PORT:-3005}:3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
