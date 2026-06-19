@@ -1,4 +1,4 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   clientes,
@@ -176,6 +176,62 @@ export async function getResumoFaturas() {
     .filter((r) => r.status === "pago")
     .reduce((s, r) => s + (r.valorBoleto ?? 0), 0);
   return { total, pago, emAberto: total - pago, qtd: rows.length };
+}
+
+// ===== Resumo dos cadastros (contadores para o hub /cadastros) =====
+
+export type CadastrosResumo = {
+  usinas: { total: number; kwp: number; comSolis: number; comDg: number };
+  clientes: { total: number; ativos: number };
+  unidades: { total: number };
+  contratos: { total: number; ativos: number };
+  distribuidoras: { total: number };
+};
+
+/**
+ * Contagens agregadas para a página inicial de Cadastros. Cinco selects
+ * paralelos, cada um já agregado no banco (não traz linhas). Os agregados do
+ * Postgres podem voltar como string no driver — daí o Number(...).
+ */
+export async function getCadastrosResumo(): Promise<CadastrosResumo> {
+  const db = getDb();
+  const [u, c, uc, ct, d] = await Promise.all([
+    db
+      .select({
+        total: count(),
+        kwp: sql<number>`coalesce(sum(${usinas.potenciaKwp}), 0)`,
+        comSolis: sql<number>`count(${usinas.stationIdSoliscloud})`,
+        comDg: sql<number>`count(${usinas.codigoDigitalGrid})`,
+      })
+      .from(usinas),
+    db
+      .select({
+        total: count(),
+        ativos: sql<number>`count(*) filter (where ${clientes.status} = 'ativo')`,
+      })
+      .from(clientes),
+    db.select({ total: count() }).from(unidadesConsumidoras),
+    db
+      .select({
+        total: count(),
+        ativos: sql<number>`count(*) filter (where ${contratos.status} = 'ativo')`,
+      })
+      .from(contratos),
+    db.select({ total: count() }).from(distribuidoras),
+  ]);
+
+  return {
+    usinas: {
+      total: Number(u[0].total),
+      kwp: Number(u[0].kwp),
+      comSolis: Number(u[0].comSolis),
+      comDg: Number(u[0].comDg),
+    },
+    clientes: { total: Number(c[0].total), ativos: Number(c[0].ativos) },
+    unidades: { total: Number(uc[0].total) },
+    contratos: { total: Number(ct[0].total), ativos: Number(ct[0].ativos) },
+    distribuidoras: { total: Number(d[0].total) },
+  };
 }
 
 // ===== Opções para selects (FKs) =====

@@ -513,7 +513,8 @@ h2 {
   background: var(--surface);
 }
 
-.registry-tabs button {
+.registry-tabs button,
+.registry-tabs a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -524,11 +525,14 @@ h2 {
   background: transparent;
   color: var(--muted);
   font-weight: 900;
+  text-decoration: none;
   cursor: pointer;
 }
 
 .registry-tabs button:hover,
-.registry-tabs button.active {
+.registry-tabs a:hover,
+.registry-tabs button.active,
+.registry-tabs a.active {
   border-color: rgba(245, 183, 0, 0.55);
   background: rgba(245, 183, 0, 0.12);
   color: var(--heading);
@@ -1390,6 +1394,138 @@ th {
 }
 .adherence-row small {
   color: var(--muted);
+}
+
+/* ===== Faixa de métricas (SummaryStrip) — cadastros e SolisCloud ===== */
+.metric-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-bottom: 14px;
+}
+.metric {
+  display: grid;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.metric .m-lbl {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.metric .m-val {
+  color: var(--heading);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.metric .m-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.metric.is-ok {
+  border-left-color: var(--success);
+}
+.metric.is-ok .m-val {
+  color: var(--success);
+}
+.metric.is-warn {
+  border-left-color: var(--warning);
+}
+.metric.is-warn .m-val {
+  color: var(--warning);
+}
+.metric.is-bad {
+  border-left-color: var(--danger);
+}
+.metric.is-bad .m-val {
+  color: var(--danger);
+}
+
+/* ===== Hub de cadastros (cards de entrada) ===== */
+.registry-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+  margin-bottom: 14px;
+}
+@media (min-width: 641px) {
+  .registry-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1101px) {
+  .registry-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.registry-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.registry-card:hover {
+  border-color: rgba(245, 183, 0, 0.5);
+  box-shadow: var(--shadow);
+}
+.registry-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.registry-card-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--brand-yellow);
+}
+.registry-card-title {
+  color: var(--heading);
+  font-weight: 800;
+  font-size: 1rem;
+}
+.registry-card-value {
+  margin-top: 4px;
+  color: var(--heading);
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.registry-card-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.registry-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: var(--brand-gold);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.registry-card.is-accent {
+  border-color: rgba(245, 183, 0, 0.4);
+  background: linear-gradient(180deg, var(--accent-soft), var(--surface) 60%);
 }
 
 :focus-visible {

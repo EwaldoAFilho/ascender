@@ -1,17 +1,20 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Building2,
   Cable,
   FileText,
   GitCompareArrows,
+  LayoutGrid,
   Sun,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
-const tabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
+const tabs: Array<{ href: string; label: string; icon: LucideIcon; exact?: boolean }> = [
+  { href: "/cadastros", label: "Visão geral", icon: LayoutGrid, exact: true },
   { href: "/cadastros/usinas", label: "Usinas", icon: Sun },
   { href: "/cadastros/clientes", label: "Clientes", icon: Users },
   { href: "/cadastros/unidades", label: "UCs", icon: Building2 },
@@ -26,23 +29,27 @@ export default function CadastrosLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
 
   return (
     <>
-      <section className="registry-tabs" aria-label="Cadastros">
-        {tabs.map((tab) => (
-          <button
-            key={tab.href}
-            className={pathname === tab.href ? "active" : ""}
-            type="button"
-            onClick={() => router.push(tab.href)}
-          >
-            <tab.icon size={17} />
-            {tab.label}
-          </button>
-        ))}
-      </section>
+      <nav className="registry-tabs" aria-label="Tipos de cadastro">
+        {tabs.map((tab) => {
+          const active = tab.exact
+            ? pathname === tab.href
+            : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={active ? "active" : ""}
+              aria-current={active ? "page" : undefined}
+            >
+              <tab.icon size={17} />
+              {tab.label}
+            </Link>
+          );
+        })}
+      </nav>
       {children}
     </>
   );

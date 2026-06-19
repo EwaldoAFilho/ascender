@@ -1,9 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { AlarmsByStation } from "@/components/AlarmsByStation";
 import { BarList } from "@/components/BarList";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState, ErrorState, PanelSkeleton } from "@/components/states";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   useAlarms,
   useCollectors,
@@ -28,87 +30,163 @@ export default function SolisCloudPage() {
   const alarms = useAlarms();
   const collectors = useCollectors();
 
-  const stationList = stations.data ?? [];
-  const inverterList = inverters.data ?? [];
-  const alarmList = alarms.data ?? [];
+  const stationList = useMemo(() => stations.data ?? [], [stations.data]);
+  const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
+  const alarmList = useMemo(() => alarms.data ?? [], [alarms.data]);
   const collectorData = collectors.data;
   const coletores = collectorData?.coletores ?? [];
-  const stationNameById = new Map(
-    stationList.map((s) => [s.stationId, s.stationName ?? s.stationId]),
-  );
-  const usinasComAtivo = new Set(
-    alarmList.filter((a) => a.status !== "resolvido").map((a) => a.plantId),
-  ).size;
 
-  const inverterColumns: DataColumn<InverterTelemetry>[] = [
-    { key: "serial", header: "Serial", value: (i) => i.serialNumber },
-    {
-      key: "estacao",
-      header: "Estação",
-      value: (i) => stationNameById.get(i.plantId) ?? i.plantId,
-    },
-    {
-      key: "pot",
-      header: "Potência",
-      align: "right",
-      value: (i) => i.currentPowerKw,
-      render: (i) => `${numberFormatter.format(i.currentPowerKw)} kW`,
-    },
-    {
-      key: "hoje",
-      header: "Hoje",
-      align: "right",
-      value: (i) => i.todayEnergyKwh,
-      render: (i) => `${numberFormatter.format(i.todayEnergyKwh)} kWh`,
-    },
-    {
-      key: "total",
-      header: "Total",
-      align: "right",
-      value: (i) => i.totalEnergyKwh,
-      render: (i) => `${numberFormatter.format(i.totalEnergyKwh)} kWh`,
-    },
-    {
-      key: "status",
-      header: "Status",
-      value: (i) => i.state,
-      render: (i) => <span className={`status status-${i.state}`}>{i.state}</span>,
-    },
-  ];
-
-  const coletorColumns: DataColumn<Collector>[] = [
-    { key: "sn", header: "Serial (SN)", value: (c) => c.sn },
-    {
-      key: "estacao",
-      header: "Estação",
-      value: (c) => stationNameById.get(c.plantId) ?? c.plantId,
-    },
-    { key: "modelo", header: "Modelo", value: (c) => c.model ?? "—" },
-    {
-      key: "updated",
-      header: "Última comunicação",
-      value: (c) => c.updateTime || "—",
-    },
-    {
-      key: "status",
-      header: "Status",
-      value: (c) => collectorRank[c.state] ?? 9,
-      exportValue: (c) => collectorStateLabel[c.state] ?? c.state,
-      render: (c) => (
-        <span className={`status status-${c.state}`}>
-          {collectorStateLabel[c.state] ?? c.state}
-        </span>
+  const stationNameById = useMemo(
+    () =>
+      new Map(
+        stationList.map((s) => [s.stationId, s.stationName ?? s.stationId]),
       ),
+    [stationList],
+  );
+
+  const usinasComAtivo = useMemo(
+    () =>
+      new Set(
+        alarmList
+          .filter((a) => a.status !== "resolvido")
+          .map((a) => a.plantId),
+      ).size,
+    [alarmList],
+  );
+
+  const potenciaAgora = useMemo(
+    () => stationList.reduce((s, t) => s + t.currentPowerKw, 0),
+    [stationList],
+  );
+  const energiaHoje = useMemo(
+    () => stationList.reduce((s, t) => s + t.dayEnergyKwh, 0),
+    [stationList],
+  );
+  const energiaMes = useMemo(
+    () => stationList.reduce((s, t) => s + t.monthEnergyKwh, 0),
+    [stationList],
+  );
+
+  // Faixa de saúde da frota — verde quando tudo certo, vermelho/âmbar quando
+  // há datalogger mudo ou usina em alerta. É o primeiro olhar da operação.
+  const kpis: SummaryItem[] = [
+    {
+      label: "Potência agora",
+      value: stations.isSuccess ? `${numberFormatter.format(potenciaAgora)} kW` : "—",
+      hint: `${stationList.length} usina(s)`,
+    },
+    {
+      label: "Energia hoje",
+      value: stations.isSuccess ? `${numberFormatter.format(energiaHoje)} kWh` : "—",
+      hint: "geração do dia",
+    },
+    {
+      label: "Energia no mês",
+      value: stations.isSuccess ? `${numberFormatter.format(energiaMes)} kWh` : "—",
+      hint: "acumulado",
+    },
+    {
+      label: "Comunicação",
+      value:
+        collectors.isSuccess && collectorData
+          ? `${collectorData.resumo.online}/${collectorData.resumo.total}`
+          : "—",
+      hint: collectorData?.resumo.offline
+        ? `${collectorData.resumo.offline} coletor(es) offline`
+        : "coletores online",
+      tone: collectorData
+        ? collectorData.resumo.offline > 0
+          ? "bad"
+          : "ok"
+        : "default",
+    },
+    {
+      label: "Alarmes ativos",
+      value: alarms.isSuccess ? String(usinasComAtivo) : "—",
+      hint: "usinas com alerta",
+      tone: !alarms.isSuccess ? "default" : usinasComAtivo > 0 ? "warn" : "ok",
     },
   ];
+
+  const inverterColumns = useMemo<DataColumn<InverterTelemetry>[]>(
+    () => [
+      { key: "serial", header: "Serial", value: (i) => i.serialNumber },
+      {
+        key: "estacao",
+        header: "Estação",
+        value: (i) => stationNameById.get(i.plantId) ?? i.plantId,
+      },
+      {
+        key: "pot",
+        header: "Potência",
+        align: "right",
+        value: (i) => i.currentPowerKw,
+        render: (i) => `${numberFormatter.format(i.currentPowerKw)} kW`,
+      },
+      {
+        key: "hoje",
+        header: "Hoje",
+        align: "right",
+        value: (i) => i.todayEnergyKwh,
+        render: (i) => `${numberFormatter.format(i.todayEnergyKwh)} kWh`,
+      },
+      {
+        key: "total",
+        header: "Total",
+        align: "right",
+        value: (i) => i.totalEnergyKwh,
+        render: (i) => `${numberFormatter.format(i.totalEnergyKwh)} kWh`,
+      },
+      {
+        key: "status",
+        header: "Status",
+        value: (i) => i.state,
+        render: (i) => (
+          <span className={`status status-${i.state}`}>{i.state}</span>
+        ),
+      },
+    ],
+    [stationNameById],
+  );
+
+  const coletorColumns = useMemo<DataColumn<Collector>[]>(
+    () => [
+      { key: "sn", header: "Serial (SN)", value: (c) => c.sn },
+      {
+        key: "estacao",
+        header: "Estação",
+        value: (c) => stationNameById.get(c.plantId) ?? c.plantId,
+      },
+      { key: "modelo", header: "Modelo", value: (c) => c.model ?? "—" },
+      {
+        key: "updated",
+        header: "Última comunicação",
+        value: (c) => c.updateTime || "—",
+      },
+      {
+        key: "status",
+        header: "Status",
+        value: (c) => collectorRank[c.state] ?? 9,
+        exportValue: (c) => collectorStateLabel[c.state] ?? c.state,
+        render: (c) => (
+          <span className={`status status-${c.state}`}>
+            {collectorStateLabel[c.state] ?? c.state}
+          </span>
+        ),
+      },
+    ],
+    [stationNameById],
+  );
 
   return (
     <>
+      <SummaryStrip items={kpis} />
+
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Telemetria por estacao</h2>
-            <p>Dados reais da API SolisCloud (atualiza a cada ~5 min).</p>
+            <h2>Telemetria por estação</h2>
+            <p>Dados reais da SolisCloud, atualizados a cada ~5 min.</p>
           </div>
           <span>{stations.isSuccess ? `${stationList.length} usina(s)` : "—"}</span>
         </div>
@@ -117,7 +195,7 @@ export default function SolisCloudPage() {
         ) : stations.isError ? (
           <ErrorState error={stations.error} onRetry={() => stations.refetch()} />
         ) : stationList.length === 0 ? (
-          <EmptyState message="Nenhuma estacao retornada pela SolisCloud." />
+          <EmptyState message="Nenhuma estação retornada pela SolisCloud." />
         ) : (
           <div className="telemetry-grid">
             {stationList.map((telemetry) => (
@@ -138,7 +216,7 @@ export default function SolisCloudPage() {
                     <dd>{numberFormatter.format(telemetry.dayEnergyKwh)} kWh</dd>
                   </div>
                   <div>
-                    <dt>Mes</dt>
+                    <dt>Mês</dt>
                     <dd>{numberFormatter.format(telemetry.monthEnergyKwh)} kWh</dd>
                   </div>
                   <div>
@@ -149,7 +227,7 @@ export default function SolisCloudPage() {
                 <small>
                   {telemetry.updateTime
                     ? `Atualizado em ${telemetry.updateTime}`
-                    : "Sem data de atualizacao"}
+                    : "Sem data de atualização"}
                 </small>
               </article>
             ))}
@@ -161,7 +239,7 @@ export default function SolisCloudPage() {
         <div className="panel-header">
           <div>
             <h2>Comunicação dos coletores</h2>
-            <p>Status dos dataloggers (O&M). Coletor offline = usina sem envio de dados.</p>
+            <p>Status dos dataloggers (O&amp;M). Coletor offline = usina sem enviar dados.</p>
           </div>
           <span>
             {collectors.isSuccess && collectorData
@@ -187,16 +265,16 @@ export default function SolisCloudPage() {
 
       <section className="dashboard-grid">
         {stations.isPending ? (
-          <PanelSkeleton title="Energia hoje por usina" />
+          <PanelSkeleton title="Energia de hoje por usina" />
         ) : stations.isError ? (
           <ErrorState
-            title="Energia hoje por usina"
+            title="Energia de hoje por usina"
             error={stations.error}
             onRetry={() => stations.refetch()}
           />
         ) : (
           <BarList
-            title="Energia hoje por usina"
+            title="Energia de hoje por usina"
             rows={stationList.map((t) => ({
               label: t.stationName ?? t.stationId,
               value: t.dayEnergyKwh,

@@ -1,5 +1,6 @@
 import { CrudSection } from "@/components/cadastros/CrudSection";
 import { ImportarUsinasSolis } from "@/components/cadastros/ImportarUsinasSolis";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteUsina, saveUsina } from "@/lib/cadastros/actions";
 import {
   listUsinas,
@@ -17,8 +18,35 @@ export default async function UsinasCadastroPage() {
     opcoesEstacoesSolis(),
   ]);
 
+  const totalKwp = rows.reduce((s, u) => s + u.potenciaKwp, 0);
+  const naSolis = rows.filter((u) => u.stationIdSoliscloud).length;
+  const noDg = rows.filter((u) => u.codigoDigitalGrid).length;
+  const tomSolis: SummaryItem["tone"] =
+    rows.length === 0 ? "default" : naSolis === rows.length ? "ok" : "warn";
+
+  const resumo: SummaryItem[] = [
+    { label: "Usinas", value: numberFormatter.format(rows.length), hint: "cadastradas" },
+    {
+      label: "Potência do parque",
+      value: `${numberFormatter.format(totalKwp)} kWp`,
+      hint: "soma das potências",
+    },
+    {
+      label: "Na SolisCloud",
+      value: `${naSolis}/${rows.length}`,
+      hint: "vinculadas por Station ID",
+      tone: tomSolis,
+    },
+    {
+      label: "No Digital Grid",
+      value: `${noDg}/${rows.length}`,
+      hint: "com código DG",
+    },
+  ];
+
   return (
     <>
+      <SummaryStrip items={resumo} />
       <ImportarUsinasSolis />
       <CrudSection
       singular="usina"
