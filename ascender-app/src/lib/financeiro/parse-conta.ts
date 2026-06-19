@@ -78,9 +78,15 @@ function parseCompetencia(t: string): {
   // Numérico: "REF:MÊS/ANO 05/2026"
   let m = /REF:?\s*M[ÊE]S\s*\/?\s*ANO\s*\n?\s*(\d{2})\/(\d{4})/i.exec(t);
   if (m) return { mes: Number(m[1]), ano: Number(m[2]), competencia: `${m[2]}-${m[1]}` };
-  // Textual: "REF:MÊS/ANO ABR/2026" ou apenas "ABR/2026" (ano com 4 dígitos)
+  // Textual, em ordem de confiança:
+  //  1) rótulo explícito "REF:MÊS/ANO ABR/2026"
+  //  2) cabeçalho: "ABR/2026 159,24 23/04/2026" (mês + valor + vencimento)
+  //  3) cabeçalho: "23/04/2026 159,24 ABR/2026"
+  //  4) último recurso: primeiro MMM/AAAA do texto
   m =
     /REF:?\s*M[ÊE]S\s*\/?\s*ANO\s*\n?\s*([A-Za-z]{3})\/(\d{4})/i.exec(t) ??
+    /([A-Za-z]{3})\/(\d{4})\s+[\d.,]+\s+\d{2}\/\d{2}\/\d{4}/.exec(t) ??
+    /\d{2}\/\d{2}\/\d{4}\s+[\d.,]+\s+([A-Za-z]{3})\/(\d{4})/.exec(t) ??
     /\b([A-Za-z]{3})\/(\d{4})\b/.exec(t);
   if (m) {
     const mm = MESES[m[1].toUpperCase()];
@@ -99,7 +105,7 @@ function parseLeituras(t: string): {
   let anterior = capAny(t, [/LEITURA ANTERIOR\s*(\d{2}\/\d{2}\/\d{4})/i]);
   let atual = capAny(t, [/LEITURA ATUAL\s*(\d{2}\/\d{2}\/\d{4})/i]);
   let proxima = capAny(t, [/PR[ÓO]XIMA LEITURA\s*(\d{2}\/\d{2}\/\d{4})/i]);
-  let dias = capAny(t, [/N[°º]?\s*DE DIAS\s*(\d+)/i]);
+  let dias = capAny(t, [/N[°º.]?\s*DE DIAS\s*(\d+)/i]);
 
   // Layout B — três datas + nº de dias na mesma linha, sem rótulos
   if (!atual) {
@@ -120,6 +126,25 @@ function parseLeituras(t: string): {
     proxima: isoDate(proxima),
     dias: dias ? Number(dias) : null,
   };
+}
+
+// Nome do cliente — junta uma 2ª linha de continuação quando o nome não tem
+// sufixo societário na 1ª linha (ex.: "...ENERGETICAS" + "SUSTENTAVEIS ASES").
+function extractCliente(t: string): string | null {
+  const m =
+    /NOME DO CLIENTE:?\s*\n?\s*([A-Z0-9À-Ú][^\n]+)/i.exec(t) ??
+    /^[ \t]*(CONS[ÓO]RCIO[^\n]+|[A-ZÀ-Ú][^\n]*(?:LTDA|ASES|S\.?A\.?|EIRELI|ME)\b[^\n]*)/im.exec(t);
+  if (!m || !m[1]) return null;
+  let nome = m[1].trim();
+  const temSufixo = /\b(LTDA|S\.?A\.?|ASES|EIRELI|ME|EPP)\b/i.test(nome);
+  if (!temSufixo) {
+    const resto = t.slice(m.index + m[0].length);
+    const cont = /\n\s*([A-ZÀ-Ú][A-ZÀ-Ú .]{2,40})(?:\n|$)/.exec(resto)?.[1]?.trim();
+    const ehRotulo =
+      /^(CNPJ|CPF|ENDERE|INSCRI|CLASSIF|TIPO|C[ÓO]DIGO|RUA|AV|QUADRA|SMAS|SETOR|SCS|SBS)/i;
+    if (cont && !ehRotulo.test(cont)) nome = `${nome} ${cont}`;
+  }
+  return nome;
 }
 
 export function parseContaNeoenergia(raw: string): ContaParsed {
@@ -162,10 +187,7 @@ export function parseContaNeoenergia(raw: string): ContaParsed {
     competencia: comp.competencia,
     ano: comp.ano,
     mes: comp.mes,
-    cliente: capAny(t, [
-      /NOME DO CLIENTE:?\s*\n?\s*([A-Z0-9À-Ú][^\n]+)/i,
-      /^\s*(CONS[ÓO]RCIO[^\n]+|[A-ZÀ-Ú][^\n]*(?:LTDA|ASES|S\.?A\.?|EIRELI|ME)\b[^\n]*)/im,
-    ]),
+    cliente: extractCliente(t),
     vencimento: isoDate(
       capAny(t, [
         /VENCIMENTO\s*\n?\s*(\d{2}\/\d{2}\/\d{4})/i,
@@ -199,10 +221,10 @@ export function parseContaNeoenergia(raw: string): ContaParsed {
     sceeCreditosKwh: sceeA ? ptNum(sceeA[2]) : null,
     sceeSaldoProximoKwh: sceeA ? ptNum(sceeA[3]) : null,
     // SCEE B
-    sceeSaldoAnteriorKwh: ptNum(capAny(t, [/SALDO ANTERIOR\D*([\d.,]+)/i])),
-    sceeTransfKwh: ptNum(capAny(t, [/TRANSF\s*\(CRED-?DEB\)\D*([\d.,]+)/i])),
-    sceeInjetadoKwh: ptNum(capAny(t, [/INJETADO\D*([\d.,]+)/i])),
-    sceeCompensadoKwh: ptNum(capAny(t, [/COMPENSADO\D*([\d.,]+)/i])),
-    sceeSaldoAtualKwh: ptNum(capAny(t, [/SALDO ATUAL\D*([\d.,]+)/i])),
+    sceeSaldoAnteriorKwh: ptNum(capAny(t, [/SALDO ANTERIOR[^\d-]*(-?[\d.,]+)/i])),
+    sceeTransfKwh: ptNum(capAny(t, [/TRANSF\s*\(CRED-?DEB\)[^\d-]*(-?[\d.,]+)/i])),
+    sceeInjetadoKwh: ptNum(capAny(t, [/INJETADO[^\d-]*(-?[\d.,]+)/i])),
+    sceeCompensadoKwh: ptNum(capAny(t, [/COMPENSADO[^\d-]*(-?[\d.,]+)/i])),
+    sceeSaldoAtualKwh: ptNum(capAny(t, [/SALDO ATUAL[^\d-]*(-?[\d.,]+)/i])),
   };
 }
