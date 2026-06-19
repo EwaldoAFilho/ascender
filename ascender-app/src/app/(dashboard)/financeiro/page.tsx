@@ -1,11 +1,5 @@
-import {
-  BadgeDollarSign,
-  PiggyBank,
-  ReceiptText,
-  ShieldCheck,
-} from "lucide-react";
 import { FaturasDgTable, type FaturaDgRow } from "@/components/FaturasDgTable";
-import { KpiCard } from "@/components/KpiCard";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   getUltimaSyncFaturasDg,
   listFaturasDg,
@@ -39,6 +33,35 @@ export default async function FinanceiroPage() {
   const totalPago = faturas.reduce((s, f) => s + f.valorPago, 0);
   const economia = faturas.reduce((s, f) => s + f.economia, 0);
   const emAberto = totalFaturado - totalPago;
+  const taxaReceb = totalFaturado > 0 ? (totalPago / totalFaturado) * 100 : 0;
+
+  const kpis: SummaryItem[] = [
+    {
+      label: "Total faturado",
+      value: moneyFormatter.format(totalFaturado),
+      hint: `${faturas.length} fatura(s) · Digital Grid`,
+    },
+    {
+      label: "Recebido",
+      value: moneyFormatter.format(totalPago),
+      hint: `${taxaReceb.toFixed(0)}% do faturado`,
+      tone: "ok",
+    },
+    {
+      label: "Em aberto",
+      value: moneyFormatter.format(Math.max(0, emAberto)),
+      hint: `${Math.max(0, 100 - taxaReceb).toFixed(0)}% do faturado`,
+      // Semáforo pela taxa de recebimento, não pelo valor absoluto: quase sempre
+      // há algo a vencer, então só vira âmbar/vermelho se a inadimplência pesar.
+      tone: taxaReceb >= 95 ? "default" : taxaReceb >= 80 ? "warn" : "bad",
+    },
+    {
+      label: "Economia gerada",
+      value: moneyFormatter.format(economia),
+      hint: "para os clientes",
+      tone: "ok",
+    },
+  ];
 
   const rows: FaturaDgRow[] = faturas.map((f) => ({
     id: f.id,
@@ -56,35 +79,7 @@ export default async function FinanceiroPage() {
 
   return (
     <>
-      <section className="kpi-grid">
-        <KpiCard
-          title="Total faturado"
-          value={moneyFormatter.format(totalFaturado)}
-          detail={`${faturas.length} fatura(s) — Digital Grid`}
-          icon={ReceiptText}
-        />
-        <KpiCard
-          title="Recebido"
-          value={moneyFormatter.format(totalPago)}
-          detail="Pagamentos confirmados"
-          icon={ShieldCheck}
-          tone="success"
-        />
-        <KpiCard
-          title="Em aberto"
-          value={moneyFormatter.format(emAberto > 0 ? emAberto : 0)}
-          detail="Faturado menos recebido"
-          icon={BadgeDollarSign}
-          tone="warning"
-        />
-        <KpiCard
-          title="Economia gerada"
-          value={moneyFormatter.format(economia)}
-          detail="Para os clientes"
-          icon={PiggyBank}
-          tone="success"
-        />
-      </section>
+      <SummaryStrip items={kpis} />
 
       {faturas.length === 0 ? (
         <section className="panel">

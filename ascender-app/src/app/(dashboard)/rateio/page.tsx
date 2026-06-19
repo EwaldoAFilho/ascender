@@ -1,6 +1,5 @@
-import { Factory, Network, Users } from "lucide-react";
 import { RateioDgTable, type RateioDgRow } from "@/components/RateioDgTable";
-import { KpiCard } from "@/components/KpiCard";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   getUltimaSyncRateioDg,
   listRateioDg,
@@ -30,7 +29,31 @@ export default async function RateioPage() {
 
   const competencias = new Set(rateios.map((r) => r.competencia).filter(Boolean));
   const usinas = new Set(rateios.map((r) => r.usinaNome).filter(Boolean));
+  const ucs = new Set(rateios.map((r) => r.installation).filter(Boolean));
   const totalConsumo = rateios.reduce((s, r) => s + r.consumoKwh, 0);
+
+  const kpis: SummaryItem[] = [
+    {
+      label: "Cotas de rateio",
+      value: numberFormatter.format(rateios.length),
+      hint: `${competencias.size} competência(s)`,
+    },
+    {
+      label: "Usinas geradoras",
+      value: numberFormatter.format(usinas.size),
+      hint: "com cotas no período",
+    },
+    {
+      label: "UCs atendidas",
+      value: numberFormatter.format(ucs.size),
+      hint: "unidades no rateio",
+    },
+    {
+      label: "Consumo rateado",
+      value: `${numberFormatter.format(totalConsumo)} kWh`,
+      hint: "somatório das UCs",
+    },
+  ];
 
   const rows: RateioDgRow[] = rateios.map((r) => ({
     id: r.id,
@@ -45,28 +68,7 @@ export default async function RateioPage() {
 
   return (
     <>
-      <section className="kpi-grid compact-kpis">
-        <KpiCard
-          title="Cotas de rateio"
-          value={String(rateios.length)}
-          detail={`${competencias.size} competência(s)`}
-          icon={Network}
-          tone="success"
-        />
-        <KpiCard
-          title="Usinas com rateio"
-          value={String(usinas.size)}
-          detail="Geradores com cotas"
-          icon={Factory}
-        />
-        <KpiCard
-          title="Consumo rateado"
-          value={`${numberFormatter.format(totalConsumo)} kWh`}
-          detail="Somatório das UCs"
-          icon={Users}
-          tone="warning"
-        />
-      </section>
+      <SummaryStrip items={kpis} />
 
       {rateios.length === 0 ? (
         <section className="panel">
