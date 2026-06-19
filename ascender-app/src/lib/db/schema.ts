@@ -238,6 +238,45 @@ export const faturasDg = pgTable("faturas_dg", {
     .defaultNow(),
 });
 
+// Conta de energia (distribuidora) anexada a uma fatura do Digital Grid.
+// O PDF é guardado em base64 no banco; os campos são extraídos do PDF.
+export const contasEnergia = pgTable("contas_energia", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  faturaDgId: uuid("fatura_dg_id")
+    .notNull()
+    .unique()
+    .references(() => faturasDg.id, { onDelete: "cascade" }),
+  installationNumber: text("installation_number"),
+  competencia: text("competencia"), // "AAAA-MM"
+  arquivoNome: text("arquivo_nome"),
+  mimeType: text("mime_type").notNull().default("application/pdf"),
+  arquivoBase64: text("arquivo_base64"), // conteúdo do PDF (base64)
+  // ===== Campos extraídos do PDF =====
+  cliente: text("cliente"),
+  ano: integer("ano"),
+  mes: integer("mes"),
+  vencimento: text("vencimento"), // "AAAA-MM-DD"
+  valor: doublePrecision("valor"), // normalizado (R$)
+  notaFiscal: text("nota_fiscal"),
+  codigoBarras: text("codigo_barras"),
+  leituraAnteriorData: text("leitura_anterior_data"),
+  leituraData: text("leitura_data"),
+  leituraProximaData: text("leitura_proxima_data"),
+  numeroDias: integer("numero_dias"),
+  energiaKwh: doublePrecision("energia_kwh"),
+  tributos: jsonb("tributos"), // { pis, cofins, icms }
+  itensFatura: jsonb("itens_fatura"), // [{ descricao, valor }]
+  aviso: text("aviso"),
+  sceeExcedenteKwh: doublePrecision("scee_excedente_kwh"),
+  sceeCreditosKwh: doublePrecision("scee_creditos_kwh"),
+  sceeSaldoProximoKwh: doublePrecision("scee_saldo_proximo_kwh"),
+  textoExtraido: text("texto_extraido"),
+  criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // Rateio real sincronizado do Digital Grid (Billing API /estimated-quota, somente leitura).
 export const rateiosDg = pgTable(
   "rateios_dg",
@@ -310,5 +349,6 @@ export type Contrato = typeof contratos.$inferSelect;
 export type Fatura = typeof faturas.$inferSelect;
 export type FaturaDg = typeof faturasDg.$inferSelect;
 export type RateioDg = typeof rateiosDg.$inferSelect;
+export type ContaEnergia = typeof contasEnergia.$inferSelect;
 export type MedicaoGeracao = typeof medicoesGeracao.$inferSelect;
 export type Proposta = typeof propostas.$inferSelect;

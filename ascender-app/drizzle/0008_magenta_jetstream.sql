@@ -1,0 +1,33 @@
+CREATE TABLE "contas_energia" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"fatura_dg_id" uuid NOT NULL,
+	"installation_number" text,
+	"competencia" text,
+	"arquivo_nome" text,
+	"mime_type" text DEFAULT 'application/pdf' NOT NULL,
+	"arquivo_base64" text,
+	"cliente" text,
+	"ano" integer,
+	"mes" integer,
+	"vencimento" text,
+	"valor" double precision,
+	"nota_fiscal" text,
+	"codigo_barras" text,
+	"leitura_anterior_data" text,
+	"leitura_data" text,
+	"leitura_proxima_data" text,
+	"numero_dias" integer,
+	"energia_kwh" double precision,
+	"tributos" jsonb,
+	"itens_fatura" jsonb,
+	"aviso" text,
+	"scee_excedente_kwh" double precision,
+	"scee_creditos_kwh" double precision,
+	"scee_saldo_proximo_kwh" double precision,
+	"texto_extraido" text,
+	"criado_em" timestamp with time zone DEFAULT now() NOT NULL,
+	"atualizado_em" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "contas_energia_fatura_dg_id_unique" UNIQUE("fatura_dg_id")
+);
+--> statement-breakpoint
+ALTER TABLE "contas_energia" ADD CONSTRAINT "contas_energia_fatura_dg_id_faturas_dg_id_fk" FOREIGN KEY ("fatura_dg_id") REFERENCES "public"."faturas_dg"("id") ON DELETE cascade ON UPDATE no action;

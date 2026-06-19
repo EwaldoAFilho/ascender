@@ -10,6 +10,7 @@ import {
   getUltimaSyncFaturasDg,
   listFaturasDg,
 } from "@/lib/digitalgrid/queries";
+import { getFaturaIdsComConta } from "@/lib/financeiro/conta";
 import { moneyFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +29,10 @@ function formatDateTime(iso: string | null): string {
 }
 
 export default async function FinanceiroPage() {
-  const [faturas, ultimaSync] = await Promise.all([
+  const [faturas, ultimaSync, comConta] = await Promise.all([
     listFaturasDg(),
     getUltimaSyncFaturasDg(),
+    getFaturaIdsComConta(),
   ]);
 
   const totalFaturado = faturas.reduce((s, f) => s + f.valorTotal, 0);
@@ -96,7 +98,7 @@ export default async function FinanceiroPage() {
           </p>
         </section>
       ) : (
-        <FaturasDgTable rows={rows} />
+        <FaturasDgTable rows={rows} comConta={comConta} />
       )}
 
       <p style={{ marginTop: 12, color: "var(--muted)", fontSize: 13 }}>

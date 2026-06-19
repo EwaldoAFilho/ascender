@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FileText, Paperclip } from "lucide-react";
+import { ContaEnergiaModal } from "@/components/ContaEnergiaModal";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import {
   formatCompetencia,
@@ -98,9 +101,40 @@ const columns: DataColumn<FaturaDgRow>[] = [
   },
 ];
 
-export function FaturasDgTable({ rows }: { rows: FaturaDgRow[] }) {
+export function FaturasDgTable({
+  rows,
+  comConta = [],
+}: {
+  rows: FaturaDgRow[];
+  comConta?: string[];
+}) {
+  const router = useRouter();
   const [competencia, setCompetencia] = useState("");
   const [status, setStatus] = useState("");
+  const [contaFatura, setContaFatura] = useState<FaturaDgRow | null>(null);
+  const comContaSet = useMemo(() => new Set(comConta), [comConta]);
+
+  const contaColumn: DataColumn<FaturaDgRow> = {
+    key: "conta",
+    header: "Conta",
+    sortable: false,
+    exportable: false,
+    value: () => "",
+    render: (r) => {
+      const tem = comContaSet.has(r.id);
+      return (
+        <button
+          type="button"
+          className="btn-link"
+          onClick={() => setContaFatura(r)}
+          title={tem ? "Ver conta de energia" : "Anexar conta de energia"}
+        >
+          {tem ? <FileText size={15} /> : <Paperclip size={15} />}
+          {tem ? " Ver" : " Anexar"}
+        </button>
+      );
+    },
+  };
 
   const competencias = useMemo(
     () => [...new Set(rows.map((r) => r.competencia).filter(Boolean))].sort().reverse(),
@@ -159,13 +193,22 @@ export function FaturasDgTable({ rows }: { rows: FaturaDgRow[] }) {
       </div>
 
       <DataTable
-        columns={columns}
+        columns={[...columns, contaColumn]}
         rows={filtradas}
         rowKey={(r) => r.id}
         fileName="faturas"
         initialSort={{ key: "competencia", dir: "desc" }}
         emptyMessage="Nenhuma fatura para os filtros selecionados."
       />
+
+      {contaFatura ? (
+        <ContaEnergiaModal
+          faturaDgId={contaFatura.id}
+          titulo={`${contaFatura.installationNumber ?? "UC"} · ${formatCompetencia(contaFatura.competencia)}`}
+          onClose={() => setContaFatura(null)}
+          onChanged={() => router.refresh()}
+        />
+      ) : null}
     </section>
   );
 }

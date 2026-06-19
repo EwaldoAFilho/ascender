@@ -57,6 +57,13 @@
       "when": 1781890059412,
       "tag": "0007_goofy_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781897234619,
+      "tag": "0008_magenta_jetstream",
+      "breakpoints": true
     }
   ]
 }
