@@ -1,0 +1,464 @@
+[
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverterDetail",
+    "page": 5,
+    "chunk_id": "16f176bbc2f57a40",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\005-01-v1-api-inverterdetail.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/userStationList",
+    "page": 6,
+    "chunk_id": "beaeea1c0a0d2b70",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\006-01-v1-api-userstationlist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/userStationList",
+    "page": 6,
+    "chunk_id": "beaeea1c0a0d2b70",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\006-01-v1-api-userstationlist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverterList",
+    "page": 8,
+    "chunk_id": "f04e5f2e778961e7",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\008-01-v1-api-inverterlist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverterList",
+    "page": 8,
+    "chunk_id": "f04e5f2e778961e7",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\008-01-v1-api-inverterlist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverterDetail",
+    "page": 16,
+    "chunk_id": "e2f701c6c5c6d199",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\016-01-v1-api-inverterdetail.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverterDetailList",
+    "page": 26,
+    "chunk_id": "8f0dcae492d8d7c4",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\026-01-v1-api-inverterdetaillist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverterDetailList",
+    "page": 26,
+    "chunk_id": "8f0dcae492d8d7c4",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\026-01-v1-api-inverterdetaillist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverterDay",
+    "page": 35,
+    "chunk_id": "69ced579e9a40230",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\035-01-v1-api-inverterday.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverterDay",
+    "page": 35,
+    "chunk_id": "69ced579e9a40230",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\035-01-v1-api-inverterday.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverterMonth",
+    "page": 37,
+    "chunk_id": "e0726b2891f8d791",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\037-01-v1-api-invertermonth.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverterMonth",
+    "page": 37,
+    "chunk_id": "e0726b2891f8d791",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\037-01-v1-api-invertermonth.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverterYear",
+    "page": 40,
+    "chunk_id": "418d6f18e5599a92",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\040-01-v1-api-inverteryear.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverterYear",
+    "page": 40,
+    "chunk_id": "418d6f18e5599a92",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\040-01-v1-api-inverteryear.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/inverter/shelfTime",
+    "page": 44,
+    "chunk_id": "6b8f7746d5e60505",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\044-01-v1-api-inverter-shelftime.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/inverter/shelfTime",
+    "page": 44,
+    "chunk_id": "6b8f7746d5e60505",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\044-01-v1-api-inverter-shelftime.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/alarmList",
+    "page": 46,
+    "chunk_id": "71b941c86594157a",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\046-01-v1-api-alarmlist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/alarmList",
+    "page": 46,
+    "chunk_id": "71b941c86594157a",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\046-01-v1-api-alarmlist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/collectorList",
+    "page": 49,
+    "chunk_id": "4ed8e1b5a36e1cc0",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\049-01-v1-api-collectorlist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/collectorList",
+    "page": 49,
+    "chunk_id": "4ed8e1b5a36e1cc0",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\049-01-v1-api-collectorlist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/collectorDetail",
+    "page": 52,
+    "chunk_id": "0dcb3875dc5db9c1",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\052-01-v1-api-collectordetail.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/collectorDetail",
+    "page": 52,
+    "chunk_id": "0dcb3875dc5db9c1",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\052-01-v1-api-collectordetail.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/collector/day",
+    "page": 53,
+    "chunk_id": "b0fd503a179f817e",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\053-01-v1-api-collector-day.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/collector/day",
+    "page": 53,
+    "chunk_id": "b0fd503a179f817e",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\053-01-v1-api-collector-day.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/epmList",
+    "page": 56,
+    "chunk_id": "0ff564616b02b0e5",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\056-01-v1-api-epmlist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/epmList",
+    "page": 56,
+    "chunk_id": "0ff564616b02b0e5",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\056-01-v1-api-epmlist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/epmDetail",
+    "page": 59,
+    "chunk_id": "d2479e92b1e4f7d8",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\059-01-v1-api-epmdetail.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/epmDetail",
+    "page": 59,
+    "chunk_id": "d2479e92b1e4f7d8",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\059-01-v1-api-epmdetail.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/day",
+    "page": 62,
+    "chunk_id": "da2dc549c8540d7b",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\062-01-v1-api-day.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/day",
+    "page": 62,
+    "chunk_id": "da2dc549c8540d7b",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\062-01-v1-api-day.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/month",
+    "page": 64,
+    "chunk_id": "159fb4a0e860e218",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\064-01-v1-api-month.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/month",
+    "page": 64,
+    "chunk_id": "159fb4a0e860e218",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\064-01-v1-api-month.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/year",
+    "page": 65,
+    "chunk_id": "799ff957bb902b9b",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\065-01-v1-api-year.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/year",
+    "page": 65,
+    "chunk_id": "799ff957bb902b9b",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\065-01-v1-api-year.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/epm/all",
+    "page": 67,
+    "chunk_id": "97cb52d54e7ec53c",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\067-01-v1-api-epm-all.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/epm/all",
+    "page": 67,
+    "chunk_id": "97cb52d54e7ec53c",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\067-01-v1-api-epm-all.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/weatherList",
+    "page": 69,
+    "chunk_id": "3c481993d814db3b",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\069-01-v1-api-weatherlist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/weatherList",
+    "page": 69,
+    "chunk_id": "3c481993d814db3b",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\069-01-v1-api-weatherlist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/weatherDetail",
+    "page": 72,
+    "chunk_id": "85dcb0c27695fdc8",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\072-01-v1-api-weatherdetail.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/weatherDetail",
+    "page": 72,
+    "chunk_id": "85dcb0c27695fdc8",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\072-01-v1-api-weatherdetail.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationDetail",
+    "page": 80,
+    "chunk_id": "ddb044127fdeef26",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\080-01-v1-api-stationdetail.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationDetail",
+    "page": 80,
+    "chunk_id": "ddb044127fdeef26",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\080-01-v1-api-stationdetail.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "//solis-test.oss-eu-central-1.aliyuncs.com/STATION_default_us",
+    "page": 84,
+    "chunk_id": "110ce83733c61d8e",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\084-01-solis-test-oss-eu-central-1-aliyuncs-com-station-default-us.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "//solis-test.oss-eu-central-1.aliyuncs.com/STATION_default_user.png",
+    "page": 93,
+    "chunk_id": "49c4e089990a5db3",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\093-01-solis-test-oss-eu-central-1-aliyuncs-com-station-default-user-png.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/",
+    "page": 96,
+    "chunk_id": "1c7fba3a92c21182",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\096-01-v1-api.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/",
+    "page": 96,
+    "chunk_id": "1c7fba3a92c21182",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\096-01-v1-api.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationMonthEnergyList",
+    "page": 98,
+    "chunk_id": "f1f531f3d0ddeec9",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\098-01-v1-api-stationmonthenergylist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationMonthEnergyList",
+    "page": 98,
+    "chunk_id": "f1f531f3d0ddeec9",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\098-01-v1-api-stationmonthenergylist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationYearEnergyList",
+    "page": 100,
+    "chunk_id": "3fbc735b121c8bcc",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\100-01-v1-api-stationyearenergylist.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationYearEnergyList",
+    "page": 100,
+    "chunk_id": "3fbc735b121c8bcc",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\100-01-v1-api-stationyearenergylist.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationDay",
+    "page": 102,
+    "chunk_id": "c07754864c4c9bd9",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\102-01-v1-api-stationday.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationDay",
+    "page": 102,
+    "chunk_id": "c07754864c4c9bd9",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\102-01-v1-api-stationday.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationMonth",
+    "page": 105,
+    "chunk_id": "a6c38466420b4b54",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\105-01-v1-api-stationmonth.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationMonth",
+    "page": 105,
+    "chunk_id": "a6c38466420b4b54",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\105-01-v1-api-stationmonth.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationYear",
+    "page": 108,
+    "chunk_id": "7dfbef12a07fd950",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\108-01-v1-api-stationyear.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationYear",
+    "page": 108,
+    "chunk_id": "7dfbef12a07fd950",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\108-01-v1-api-stationyear.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationAll",
+    "page": 111,
+    "chunk_id": "58023ac38e2041fa",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\111-01-v1-api-stationall.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationAll",
+    "page": 111,
+    "chunk_id": "58023ac38e2041fa",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\111-01-v1-api-stationall.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/addStation",
+    "page": 113,
+    "chunk_id": "30b074fe3a4bbb44",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\113-01-v1-api-addstation.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/addStation",
+    "page": 113,
+    "chunk_id": "30b074fe3a4bbb44",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\113-01-v1-api-addstation.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/stationUpdate",
+    "page": 115,
+    "chunk_id": "94a19591288c20ed",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\115-01-v1-api-stationupdate.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/stationUpdate",
+    "page": 115,
+    "chunk_id": "94a19591288c20ed",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\115-01-v1-api-stationupdate.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/delCollector",
+    "page": 118,
+    "chunk_id": "c76fa6c44b864e86",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\118-01-v1-api-delcollector.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/delCollector",
+    "page": 118,
+    "chunk_id": "c76fa6c44b864e86",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\118-01-v1-api-delcollector.md"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/api/addDevice",
+    "page": 119,
+    "chunk_id": "f1c586dd5e1259c4",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\119-01-v1-api-adddevice.md"
+  },
+  {
+    "method": "UNKNOWN",
+    "path": "/v1/api/addDevice",
+    "page": 119,
+    "chunk_id": "f1c586dd5e1259c4",
+    "obsidian_note": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api\\chunks\\119-01-v1-api-adddevice.md"
+  }
+]

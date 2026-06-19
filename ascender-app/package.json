@@ -1,0 +1,46 @@
+{
+  "name": "ascender-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/lib/db/seed.ts",
+    "db:import-usinas": "tsx src/lib/db/import-usinas.ts",
+    "db:sync-geracao": "tsx src/lib/db/sync-geracao.ts",
+    "db:sync-faturas-dg": "tsx src/lib/db/sync-faturas-dg.ts",
+    "db:sync-rateio-dg": "tsx src/lib/db/sync-rateio-dg.ts",
+    "db:conciliar-dg": "tsx src/lib/db/conciliar-dg.ts",
+    "dg:preview": "tsx src/lib/db/dg-preview.ts"
+  },
+  "dependencies": {
+    "@nivo/bar": "^0.99.0",
+    "@nivo/core": "^0.99.0",
+    "@nivo/pie": "^0.99.0",
+    "@node-rs/argon2": "^2.0.2",
+    "@tanstack/react-query": "^5.101.0",
+    "drizzle-orm": "^0.45.2",
+    "iron-session": "^8.0.4",
+    "lucide-react": "^1.20.0",
+    "next": "^15.5.19",
+    "pg": "^8.21.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^3.8.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "dotenv": "^17.4.2",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

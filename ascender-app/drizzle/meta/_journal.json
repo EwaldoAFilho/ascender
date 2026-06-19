@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1781727838094,
+      "tag": "0000_breezy_zarda",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781731630149,
+      "tag": "0001_peaceful_khan",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781815080163,
+      "tag": "0002_numerous_mattie_franklin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781820176434,
+      "tag": "0003_abandoned_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781821980152,
+      "tag": "0004_absurd_mongoose",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781880786605,
+      "tag": "0005_previous_exiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781882037147,
+      "tag": "0006_strong_ego",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,3928 @@
+{
+  "source": "C:\\Users\\slaye\\Downloads\\CONTROLE DE USINAS_EWALDO.xlsx",
+  "generated_at": "2026-04-30T19:18:29",
+  "sheets": [
+    {
+      "name": "Extrato 25",
+      "max_row": 808,
+      "max_column": 12,
+      "empty": false,
+      "header_row_detected": 1,
+      "data_rows": 807,
+      "columns": [
+        {
+          "index": 1,
+          "name": "Dia",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 807,
+          "classification": "texto",
+          "samples": [
+            "=DAY(E2)",
+            "=DAY(E3)",
+            "=DAY(E4)",
+            "=DAY(E5)",
+            "=DAY(E6)",
+            "=DAY(E7)"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "Mês",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 807,
+          "classification": "data_periodo",
+          "samples": [
+            "=TEXT(E2,\"mmmm\")",
+            "=TEXT(E3,\"mmmm\")",
+            "=TEXT(E4,\"mmmm\")",
+            "=TEXT(E5,\"mmmm\")",
+            "=TEXT(E6,\"mmmm\")",
+            "=TEXT(E7,\"mmmm\")"
+          ]
+        },
+        {
+          "index": 3,
+          "name": "Periodo",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 1,
+          "classification": "categoria_status",
+          "samples": [
+            "=MONTH(DATE(2024,MATCH(Tabela2[[#This Row],[Mês]],{\"janeiro\";\"fevereiro\";\"março\";\"abril\";\"maio\";\"junho\";\"julho\";\"agosto\";\"setembro\";\"outubro\";\"novembro\";\"dezembro\"},0),1))"
+          ]
+        },
+        {
+          "index": 4,
+          "name": "Ano",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 807,
+          "classification": "data_periodo",
+          "samples": [
+            "=YEAR(E2)",
+            "=YEAR(E3)",
+            "=YEAR(E4)",
+            "=YEAR(E5)",
+            "=YEAR(E6)",
+            "=YEAR(E7)"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "Data",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 249,
+          "classification": "data_periodo",
+          "samples": [
+            "2024-03-14T00:00:00",
+            "2024-03-15T00:00:00",
+            "2024-04-08T00:00:00",
+            "2024-04-09T00:00:00",
+            "2024-04-10T00:00:00",
+            "2024-04-23T00:00:00"
+          ]
+        },
+        {
+          "index": 6,
+          "name": "Descrição",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 143,
+          "classification": "categoria_status",
+          "samples": [
+            "PIX RECEBIDO",
+            "ABERTURA",
+            "PIX ENVIADO",
+            "CR COB BLOQ COMP CONF RECEBIMENTO",
+            "PAGAMENTO DE BOLETO OUTROS BANCOS",
+            "TARIFA BAIXA OU DEVOL DE TITULO"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "Crédito (R$)",
+          "filled": 581,
+          "fill_rate": 0.72,
+          "distinct": 264,
+          "classification": "monetario",
+          "samples": [
+            911.29,
+            0,
+            1000,
+            1059.3,
+            1212.66,
+            1111.86
+          ]
+        },
+        {
+          "index": 8,
+          "name": "Débito (R$)",
+          "filled": 164,
+          "fill_rate": 0.2032,
+          "distinct": 90,
+          "classification": "monetario",
+          "samples": [
+            0,
+            494.9,
+            400,
+            392.46,
+            99.9,
+            2.79
+          ]
+        },
+        {
+          "index": 9,
+          "name": "Valor",
+          "filled": 807,
+          "fill_rate": 1.0,
+          "distinct": 318,
+          "classification": "monetario",
+          "samples": [
+            "=G2+(H2*-1)",
+            "=G3+(H3*-1)",
+            "=G4+(H4*-1)",
+            "=G5+(H5*-1)",
+            "=G6+(H6*-1)",
+            "=G7+(H7*-1)"
+          ]
+        },
+        {
+          "index": 10,
+          "name": "TIPO",
+          "filled": 255,
+          "fill_rate": 0.316,
+          "distinct": 2,
+          "classification": "categoria_status",
+          "samples": [
+            "RECEITA",
+            "DESPESA"
+          ]
+        },
+        {
+          "index": 11,
+          "name": "MOTIVO",
+          "filled": 796,
+          "fill_rate": 0.9864,
+          "distinct": 50,
+          "classification": "categoria_status",
+          "samples": [
+            "DESPESA ADMINISTRATIVA",
+            "ABERTURA",
+            "ALUGUEL TERRENO",
+            "PORKS",
+            "INTERNET",
+            "TARIFA BANCARIA"
+          ]
+        },
+        {
+          "index": 12,
+          "name": "DESCRIÇÃO2",
+          "filled": 608,
+          "fill_rate": 0.7534,
+          "distinct": 178,
+          "classification": "texto",
+          "samples": [
+            "REPOSIÇÃO DE VALORES",
+            "ABERTURA",
+            "LUZIA DOS SANTOS",
+            "NEOENERGIA",
+            "KAYROS LINK",
+            "TARIFA BANCARIA"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "Dia": "=DAY(E2)",
+          "Mês": "=TEXT(E2,\"mmmm\")",
+          "Periodo": "=MONTH(DATE(2024,MATCH(Tabela2[[#This Row],[Mês]],{\"janeiro\";\"fevereiro\";\"março\";\"abril\";\"maio\";\"junho\";\"julho\";\"agosto\";\"setembro\";\"outubro\";\"novembro\";\"dezembro\"},0),1))",
+          "Ano": "=YEAR(E2)",
+          "Data": "2024-03-14T00:00:00",
+          "Descrição": "PIX RECEBIDO",
+          "Crédito (R$)": 911.29,
+          "Débito (R$)": 0,
+          "Valor": "=G2+(H2*-1)",
+          "TIPO": "RECEITA",
+          "MOTIVO": "DESPESA ADMINISTRATIVA",
+          "DESCRIÇÃO2": "REPOSIÇÃO DE VALORES"
+        },
+        {
+          "Dia": "=DAY(E3)",
+          "Mês": "=TEXT(E3,\"mmmm\")",
+          "Periodo": "=MONTH(DATE(2024,MATCH(Tabela2[[#This Row],[Mês]],{\"janeiro\";\"fevereiro\";\"março\";\"abril\";\"maio\";\"junho\";\"julho\";\"agosto\";\"setembro\";\"outubro\";\"novembro\";\"dezembro\"},0),1))",
+          "Ano": "=YEAR(E3)",
+          "Data": "2024-03-14T00:00:00",
+          "Descrição": "ABERTURA",
+          "Crédito (R$)": 0,
+          "Débito (R$)": 0,
+          "Valor": "=G3+(H3*-1)",
+          "TIPO": "DESPESA",
+          "MOTIVO": "ABERTURA",
+          "DESCRIÇÃO2": "ABERTURA"
+        },
+        {
+          "Dia": "=DAY(E4)",
+          "Mês": "=TEXT(E4,\"mmmm\")",
+          "Periodo": "=MONTH(DATE(2024,MATCH(Tabela2[[#This Row],[Mês]],{\"janeiro\";\"fevereiro\";\"março\";\"abril\";\"maio\";\"junho\";\"julho\";\"agosto\";\"setembro\";\"outubro\";\"novembro\";\"dezembro\"},0),1))",
+          "Ano": "=YEAR(E4)",
+          "Data": "2024-03-15T00:00:00",
+          "Descrição": "PIX ENVIADO",
+          "Crédito (R$)": 0,
+          "Débito (R$)": 494.9,
+          "Valor": "=G4+(H4*-1)",
+          "TIPO": "DESPESA",
+          "MOTIVO": "DESPESA ADMINISTRATIVA",
+          "DESCRIÇÃO2": null
+        },
+        {
+          "Dia": "=DAY(E5)",
+          "Mês": "=TEXT(E5,\"mmmm\")",
+          "Periodo": "=MONTH(DATE(2024,MATCH(Tabela2[[#This Row],[Mês]],{\"janeiro\";\"fevereiro\";\"março\";\"abril\";\"maio\";\"junho\";\"julho\";\"agosto\";\"setembro\";\"outubro\";\"novembro\";\"dezembro\"},0),1))",
+          "Ano": "=YEAR(E5)",
+          "Data": "2024-04-08T00:00:00",
+          "Descrição": "PIX ENVIADO",
+          "Crédito (R$)": 0,
+          "Débito (R$)": 400,
+          "Valor": "=G5+(H5*-1)",
+          "TIPO": "DESPESA",
+          "MOTIVO": "ALUGUEL TERRENO",
+          "DESCRIÇÃO2": "LUZIA DOS SANTOS"
+        },
+        {
+          "Dia": "=DAY(E6)",
+          "Mês": "=TEXT(E6,\"mmmm\")",
+          "Periodo": "=MONTH(DATE(2024,MATCH(Tabela2[[#This Row],[Mês]],{\"janeiro\";\"fevereiro\";\"março\";\"abril\";\"maio\";\"junho\";\"julho\";\"agosto\";\"setembro\";\"outubro\";\"novembro\";\"dezembro\"},0),1))",
+          "Ano": "=YEAR(E6)",
+          "Data": "2024-04-09T00:00:00",
+          "Descrição": "PIX ENVIADO",
+          "Crédito (R$)": 0,
+          "Débito (R$)": 392.46,
+          "Valor": "=G6+(H6*-1)",
+          "TIPO": "DESPESA",
+          "MOTIVO": "DESPESA ADMINISTRATIVA",
+          "DESCRIÇÃO2": null
+        }
+      ]
+    },
+    {
+      "name": "Gastos Morumbi",
+      "max_row": 42,
+      "max_column": 12,
+      "empty": false,
+      "header_row_detected": 1,
+      "data_rows": 41,
+      "columns": [
+        {
+          "index": 1,
+          "name": "Dia",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 21,
+          "classification": "numero",
+          "samples": [
+            24,
+            20,
+            14,
+            6,
+            2,
+            17
+          ]
+        },
+        {
+          "index": 2,
+          "name": "Mês",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 6,
+          "classification": "data_periodo",
+          "samples": [
+            "janeiro",
+            "fevereiro",
+            "março",
+            "outubro",
+            "novembro",
+            "dezembro"
+          ]
+        },
+        {
+          "index": 3,
+          "name": "Coluna1",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 6,
+          "classification": "numero",
+          "samples": [
+            1,
+            2,
+            3,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "index": 4,
+          "name": "Ano",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 2,
+          "classification": "data_periodo",
+          "samples": [
+            2025,
+            2024
+          ]
+        },
+        {
+          "index": 5,
+          "name": "Data",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 25,
+          "classification": "data_periodo",
+          "samples": [
+            "24/01/2025",
+            "20/01/2025",
+            "14/01/2025",
+            "06/01/2025",
+            "02/01/2025",
+            "17/02/2025"
+          ]
+        },
+        {
+          "index": 6,
+          "name": "Descrição",
+          "filled": 40,
+          "fill_rate": 0.9756,
+          "distinct": 22,
+          "classification": "texto",
+          "samples": [
+            "PIX ENVIADO RAIMUNDO NONATO FERREIRA",
+            "PAGAMENTO CONTA LUZ EM CANAIS INTERNET NEOENERGIA BRASI",
+            "PIX ENVIADO KIWIFY",
+            "PIX ENVIADO METAL DESIGN FERRAGENS LT",
+            "PIX ENVIADO RAFAEL SANT ANNA DOS SANT",
+            "PIX ENVIADO JOSE VILSON PRIMO 5640919"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "Crédito (R$)",
+          "filled": 10,
+          "fill_rate": 0.2439,
+          "distinct": 10,
+          "classification": "monetario",
+          "samples": [
+            "- 100,00",
+            "- 467,54",
+            "- 180,00",
+            "- 35,00",
+            "- 178,00",
+            "- 87,69"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "Débito (R$)",
+          "filled": 2,
+          "fill_rate": 0.0488,
+          "distinct": 2,
+          "classification": "monetario",
+          "samples": [
+            1000,
+            0.2
+          ]
+        },
+        {
+          "index": 9,
+          "name": "Valor",
+          "filled": 41,
+          "fill_rate": 1.0,
+          "distinct": 41,
+          "classification": "monetario",
+          "samples": [
+            -1500,
+            -359,
+            -137,
+            -302.4,
+            -129.6,
+            -10000
+          ]
+        },
+        {
+          "index": 10,
+          "name": "TIPO",
+          "filled": 13,
+          "fill_rate": 0.3171,
+          "distinct": 1,
+          "classification": "categoria_status",
+          "samples": [
+            "DESPESA"
+          ]
+        },
+        {
+          "index": 11,
+          "name": "MOTIVO",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 1,
+          "classification": "categoria_status",
+          "samples": [
+            "USINA MORUMBI"
+          ]
+        },
+        {
+          "index": 12,
+          "name": "DESCRIÇÃO2",
+          "filled": 39,
+          "fill_rate": 0.9512,
+          "distinct": 21,
+          "classification": "texto",
+          "samples": [
+            "PORTÃO DA USINA",
+            "NEOENERGIA",
+            "MATRIAL BASICO",
+            "CERCAMENTO MORUMBI",
+            "MAO DE OBRA",
+            "MATERIAL ELETRICO"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "Dia": 24,
+          "Mês": "janeiro",
+          "Coluna1": 1,
+          "Ano": 2025,
+          "Data": "24/01/2025",
+          "Descrição": "PIX ENVIADO RAIMUNDO NONATO FERREIRA",
+          "Crédito (R$)": null,
+          "Débito (R$)": null,
+          "Valor": -1500,
+          "TIPO": null,
+          "MOTIVO": "USINA MORUMBI",
+          "DESCRIÇÃO2": "PORTÃO DA USINA"
+        },
+        {
+          "Dia": 20,
+          "Mês": "janeiro",
+          "Coluna1": 1,
+          "Ano": 2025,
+          "Data": "20/01/2025",
+          "Descrição": "PAGAMENTO CONTA LUZ EM CANAIS INTERNET NEOENERGIA BRASI",
+          "Crédito (R$)": null,
+          "Débito (R$)": null,
+          "Valor": -359,
+          "TIPO": null,
+          "MOTIVO": "USINA MORUMBI",
+          "DESCRIÇÃO2": "NEOENERGIA"
+        },
+        {
+          "Dia": 20,
+          "Mês": "janeiro",
+          "Coluna1": 1,
+          "Ano": 2025,
+          "Data": "20/01/2025",
+          "Descrição": "PIX ENVIADO KIWIFY",
+          "Crédito (R$)": null,
+          "Débito (R$)": null,
+          "Valor": -137,
+          "TIPO": null,
+          "MOTIVO": "USINA MORUMBI",
+          "DESCRIÇÃO2": "MATRIAL BASICO"
+        },
+        {
+          "Dia": 14,
+          "Mês": "janeiro",
+          "Coluna1": 1,
+          "Ano": 2025,
+          "Data": "14/01/2025",
+          "Descrição": "PIX ENVIADO METAL DESIGN FERRAGENS LT",
+          "Crédito (R$)": null,
+          "Débito (R$)": null,
+          "Valor": -302.4,
+          "TIPO": null,
+          "MOTIVO": "USINA MORUMBI",
+          "DESCRIÇÃO2": "CERCAMENTO MORUMBI"
+        },
+        {
+          "Dia": 14,
+          "Mês": "janeiro",
+          "Coluna1": 1,
+          "Ano": 2025,
+          "Data": "14/01/2025",
+          "Descrição": "PIX ENVIADO RAFAEL SANT ANNA DOS SANT",
+          "Crédito (R$)": null,
+          "Débito (R$)": null,
+          "Valor": -129.6,
+          "TIPO": null,
+          "MOTIVO": "USINA MORUMBI",
+          "DESCRIÇÃO2": "CERCAMENTO MORUMBI"
+        }
+      ]
+    },
+    {
+      "name": "Previsão Orç.",
+      "max_row": 43,
+      "max_column": 18,
+      "empty": false,
+      "header_row_detected": 2,
+      "data_rows": 30,
+      "columns": [
+        {
+          "index": 1,
+          "name": "NOME",
+          "filled": 28,
+          "fill_rate": 0.9333,
+          "distinct": 26,
+          "classification": "cadastro_pessoa_empresa",
+          "samples": [
+            "ANDREA FALCÃO",
+            "NATALIA JURY",
+            "GIOVANA",
+            "ELIANA",
+            "TIA ROSENICE",
+            "BAO CONSULTORIA"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "CHAVE PIX:",
+          "filled": 22,
+          "fill_rate": 0.7333,
+          "distinct": 13,
+          "classification": "texto",
+          "samples": [
+            "andreaduda@gmail.com",
+            "61991282943",
+            "pejury@gmail.com",
+            "09894632149",
+            "45999889991",
+            "DEBITO EM CONTA"
+          ]
+        },
+        {
+          "index": 3,
+          "name": "VALOR",
+          "filled": 12,
+          "fill_rate": 0.4,
+          "distinct": 12,
+          "classification": "monetario",
+          "samples": [
+            30000,
+            5000,
+            60000,
+            7000,
+            300000,
+            100000
+          ]
+        },
+        {
+          "index": 4,
+          "name": "0.02",
+          "filled": 9,
+          "fill_rate": 0.3,
+          "distinct": 9,
+          "classification": "texto",
+          "samples": [
+            "=C4*$D$3",
+            "=C5*$D$3",
+            "=C6*$D$3",
+            "=C7*0.02",
+            "=C8*0.02",
+            "=C9*$D$3"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "2024-11-01T00:00:00",
+          "filled": 8,
+          "fill_rate": 0.2667,
+          "distinct": 8,
+          "classification": "numero",
+          "samples": [
+            100,
+            9619.62,
+            50,
+            1000,
+            124.75,
+            10.18
+          ]
+        },
+        {
+          "index": 6,
+          "name": "2024-12-01T00:00:00",
+          "filled": 11,
+          "fill_rate": 0.3667,
+          "distinct": 11,
+          "classification": "texto",
+          "samples": [
+            "=D4",
+            "=D5",
+            9619.62,
+            50,
+            1000,
+            124.75
+          ]
+        },
+        {
+          "index": 7,
+          "name": "2025-01-01T00:00:00",
+          "filled": 16,
+          "fill_rate": 0.5333,
+          "distinct": 16,
+          "classification": "numero",
+          "samples": [
+            "=F4",
+            "=F5",
+            9619.62,
+            50,
+            1000,
+            87.36
+          ]
+        },
+        {
+          "index": 8,
+          "name": "2025-02-01T00:00:00",
+          "filled": 20,
+          "fill_rate": 0.6667,
+          "distinct": 20,
+          "classification": "numero",
+          "samples": [
+            "=G4",
+            "=G5",
+            1200,
+            2000,
+            1000,
+            96.21
+          ]
+        },
+        {
+          "index": 9,
+          "name": "2025-03-01T00:00:00",
+          "filled": 16,
+          "fill_rate": 0.5333,
+          "distinct": 16,
+          "classification": "numero",
+          "samples": [
+            "=H4",
+            "=H5",
+            1200,
+            2000,
+            1000,
+            599.99
+          ]
+        },
+        {
+          "index": 10,
+          "name": "2025-04-01T00:00:00",
+          "filled": 17,
+          "fill_rate": 0.5667,
+          "distinct": 17,
+          "classification": "numero",
+          "samples": [
+            "=I4",
+            "=I5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 11,
+          "name": "2025-05-01T00:00:00",
+          "filled": 18,
+          "fill_rate": 0.6,
+          "distinct": 18,
+          "classification": "numero",
+          "samples": [
+            "=J4",
+            "=J5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 12,
+          "name": "2025-06-01T00:00:00",
+          "filled": 18,
+          "fill_rate": 0.6,
+          "distinct": 18,
+          "classification": "numero",
+          "samples": [
+            "=K4",
+            "=K5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 13,
+          "name": "2025-07-01T00:00:00",
+          "filled": 18,
+          "fill_rate": 0.6,
+          "distinct": 18,
+          "classification": "numero",
+          "samples": [
+            "=L4",
+            "=L5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 14,
+          "name": "2025-08-01T00:00:00",
+          "filled": 17,
+          "fill_rate": 0.5667,
+          "distinct": 17,
+          "classification": "numero",
+          "samples": [
+            "=M4",
+            "=M5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 15,
+          "name": "2025-09-01T00:00:00",
+          "filled": 17,
+          "fill_rate": 0.5667,
+          "distinct": 17,
+          "classification": "numero",
+          "samples": [
+            "=N4",
+            "=N5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 16,
+          "name": "2025-10-01T00:00:00",
+          "filled": 17,
+          "fill_rate": 0.5667,
+          "distinct": 17,
+          "classification": "numero",
+          "samples": [
+            "=O4",
+            "=O5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 17,
+          "name": "2025-11-01T00:00:00",
+          "filled": 17,
+          "fill_rate": 0.5667,
+          "distinct": 17,
+          "classification": "numero",
+          "samples": [
+            "=P4",
+            "=P5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        },
+        {
+          "index": 18,
+          "name": "2025-12-01T00:00:00",
+          "filled": 17,
+          "fill_rate": 0.5667,
+          "distinct": 17,
+          "classification": "numero",
+          "samples": [
+            "=Q4",
+            "=Q5",
+            1200,
+            140,
+            6000,
+            2000
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "NOME": "ANDREA FALCÃO",
+          "CHAVE PIX:": "andreaduda@gmail.com",
+          "VALOR": 30000,
+          "0.02": "=C4*$D$3",
+          "2024-11-01T00:00:00": null,
+          "2024-12-01T00:00:00": "=D4",
+          "2025-01-01T00:00:00": "=F4",
+          "2025-02-01T00:00:00": "=G4",
+          "2025-03-01T00:00:00": "=H4",
+          "2025-04-01T00:00:00": "=I4",
+          "2025-05-01T00:00:00": "=J4",
+          "2025-06-01T00:00:00": "=K4",
+          "2025-07-01T00:00:00": "=L4",
+          "2025-08-01T00:00:00": "=M4",
+          "2025-09-01T00:00:00": "=N4",
+          "2025-10-01T00:00:00": "=O4",
+          "2025-11-01T00:00:00": "=P4",
+          "2025-12-01T00:00:00": "=Q4"
+        },
+        {
+          "NOME": "NATALIA JURY",
+          "CHAVE PIX:": "61991282943",
+          "VALOR": 5000,
+          "0.02": "=C5*$D$3",
+          "2024-11-01T00:00:00": 100,
+          "2024-12-01T00:00:00": "=D5",
+          "2025-01-01T00:00:00": "=F5",
+          "2025-02-01T00:00:00": "=G5",
+          "2025-03-01T00:00:00": "=H5",
+          "2025-04-01T00:00:00": "=I5",
+          "2025-05-01T00:00:00": "=J5",
+          "2025-06-01T00:00:00": "=K5",
+          "2025-07-01T00:00:00": "=L5",
+          "2025-08-01T00:00:00": "=M5",
+          "2025-09-01T00:00:00": "=N5",
+          "2025-10-01T00:00:00": "=O5",
+          "2025-11-01T00:00:00": "=P5",
+          "2025-12-01T00:00:00": "=Q5"
+        },
+        {
+          "NOME": "ANDREA FALCÃO",
+          "CHAVE PIX:": "andreaduda@gmail.com",
+          "VALOR": 60000,
+          "0.02": "=C6*$D$3",
+          "2024-11-01T00:00:00": null,
+          "2024-12-01T00:00:00": null,
+          "2025-01-01T00:00:00": null,
+          "2025-02-01T00:00:00": 1200,
+          "2025-03-01T00:00:00": 1200,
+          "2025-04-01T00:00:00": 1200,
+          "2025-05-01T00:00:00": 1200,
+          "2025-06-01T00:00:00": 1200,
+          "2025-07-01T00:00:00": 1200,
+          "2025-08-01T00:00:00": 1200,
+          "2025-09-01T00:00:00": 1200,
+          "2025-10-01T00:00:00": 1200,
+          "2025-11-01T00:00:00": 1200,
+          "2025-12-01T00:00:00": 1200
+        },
+        {
+          "NOME": "GIOVANA",
+          "CHAVE PIX:": "pejury@gmail.com",
+          "VALOR": 7000,
+          "0.02": "=C7*0.02",
+          "2024-11-01T00:00:00": null,
+          "2024-12-01T00:00:00": null,
+          "2025-01-01T00:00:00": null,
+          "2025-02-01T00:00:00": null,
+          "2025-03-01T00:00:00": null,
+          "2025-04-01T00:00:00": 140,
+          "2025-05-01T00:00:00": 140,
+          "2025-06-01T00:00:00": 140,
+          "2025-07-01T00:00:00": 140,
+          "2025-08-01T00:00:00": 140,
+          "2025-09-01T00:00:00": 140,
+          "2025-10-01T00:00:00": 140,
+          "2025-11-01T00:00:00": 140,
+          "2025-12-01T00:00:00": 140
+        },
+        {
+          "NOME": "ELIANA",
+          "CHAVE PIX:": "09894632149",
+          "VALOR": 300000,
+          "0.02": "=C8*0.02",
+          "2024-11-01T00:00:00": null,
+          "2024-12-01T00:00:00": null,
+          "2025-01-01T00:00:00": null,
+          "2025-02-01T00:00:00": null,
+          "2025-03-01T00:00:00": null,
+          "2025-04-01T00:00:00": 6000,
+          "2025-05-01T00:00:00": 6000,
+          "2025-06-01T00:00:00": 6000,
+          "2025-07-01T00:00:00": 6000,
+          "2025-08-01T00:00:00": 6000,
+          "2025-09-01T00:00:00": 6000,
+          "2025-10-01T00:00:00": 6000,
+          "2025-11-01T00:00:00": 6000,
+          "2025-12-01T00:00:00": 6000
+        }
+      ]
+    },
+    {
+      "name": "Usinas",
+      "max_row": 64,
+      "max_column": 19,
+      "empty": false,
+      "header_row_detected": 1,
+      "data_rows": 60,
+      "columns": [
+        {
+          "index": 1,
+          "name": "CLIENTE",
+          "filled": 53,
+          "fill_rate": 0.8833,
+          "distinct": 50,
+          "classification": "cadastro_pessoa_empresa",
+          "samples": [
+            "USINA 01",
+            "USINA VITOR",
+            "USINA MORUMBI",
+            "VIVENDAS DO CAMPO",
+            "ENCONTRO DAS AGUAS",
+            "IGREJA ADTAG"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "USINA",
+          "filled": 47,
+          "fill_rate": 0.7833,
+          "distinct": 6,
+          "classification": "cadastro_usina_ativo",
+          "samples": [
+            "USINA VITOR",
+            "ASCENDER",
+            "MORUMBI",
+            "IGREJA AGUAS CLARAS",
+            "ENCONTRO DAS ÁGUAS",
+            "VIVENDAS DO CAMPO"
+          ]
+        },
+        {
+          "index": 3,
+          "name": "CONSUMO",
+          "filled": 57,
+          "fill_rate": 0.95,
+          "distinct": 41,
+          "classification": "energia",
+          "samples": [
+            11435,
+            12807,
+            10374,
+            13254,
+            13239,
+            8000
+          ]
+        },
+        {
+          "index": 4,
+          "name": "SALDO",
+          "filled": 17,
+          "fill_rate": 0.2833,
+          "distinct": 15,
+          "classification": "numero",
+          "samples": [
+            19416,
+            12431,
+            7908,
+            140000,
+            4135,
+            4006
+          ]
+        },
+        {
+          "index": 5,
+          "name": "INJEÇÃO",
+          "filled": 1,
+          "fill_rate": 0.0167,
+          "distinct": 1,
+          "classification": "texto",
+          "samples": [
+            "=C9-C3"
+          ]
+        },
+        {
+          "index": 6,
+          "name": "RATEIO",
+          "filled": 47,
+          "fill_rate": 0.7833,
+          "distinct": 46,
+          "classification": "texto",
+          "samples": [
+            1,
+            "=C11/$C$25",
+            "=C12/$C$25",
+            "=C13/$C$25",
+            "=C14/$C$25",
+            "=C15/$C$25"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "PERCENTUAL",
+          "filled": 47,
+          "fill_rate": 0.7833,
+          "distinct": 9,
+          "classification": "numero",
+          "samples": [
+            0.22,
+            1,
+            0.25,
+            0.2,
+            0.15,
+            0.99
+          ]
+        },
+        {
+          "index": 8,
+          "name": "NEOENERGIA",
+          "filled": 21,
+          "fill_rate": 0.35,
+          "distinct": 21,
+          "classification": "energia",
+          "samples": [
+            4.62,
+            1937.8,
+            1262.34,
+            147.31,
+            43.77,
+            101.78
+          ]
+        },
+        {
+          "index": 9,
+          "name": "DIGITALGRID",
+          "filled": 20,
+          "fill_rate": 0.3333,
+          "distinct": 20,
+          "classification": "numero",
+          "samples": [
+            9859.82,
+            4936.06,
+            492.89,
+            313.04,
+            327.75,
+            2066.8
+          ]
+        },
+        {
+          "index": 10,
+          "name": "GANHO",
+          "filled": 48,
+          "fill_rate": 0.8,
+          "distinct": 48,
+          "classification": "texto",
+          "samples": [
+            "=I9-H9",
+            "=I11-H11",
+            "=I12-H12",
+            "=I13-H13",
+            "=I14-H14",
+            "=I15-H15"
+          ]
+        },
+        {
+          "index": 11,
+          "name": "NEOENERGIA (2)",
+          "filled": 24,
+          "fill_rate": 0.4,
+          "distinct": 24,
+          "classification": "energia",
+          "samples": [
+            4.62,
+            2109.61,
+            1405.28,
+            152.09,
+            154.27,
+            83.58
+          ]
+        },
+        {
+          "index": 12,
+          "name": "DIGITALGRID (2)",
+          "filled": 23,
+          "fill_rate": 0.3833,
+          "distinct": 23,
+          "classification": "texto",
+          "samples": [
+            9093.19,
+            4667.2,
+            362.69,
+            389.22,
+            324.8,
+            1865.36
+          ]
+        },
+        {
+          "index": 13,
+          "name": "GANHO (2)",
+          "filled": 51,
+          "fill_rate": 0.85,
+          "distinct": 51,
+          "classification": "texto",
+          "samples": [
+            "=L9-K9",
+            "=L11-K11",
+            "=L12-K12",
+            "=L13-K13",
+            "=L14-K14",
+            "=L15-K15"
+          ]
+        },
+        {
+          "index": 14,
+          "name": "NEOENERGIA (3)",
+          "filled": 27,
+          "fill_rate": 0.45,
+          "distinct": 26,
+          "classification": "energia",
+          "samples": [
+            93.06,
+            113.58,
+            2303.93,
+            1521.84,
+            148.36,
+            159.24
+          ]
+        },
+        {
+          "index": 15,
+          "name": "DIGITALGRID (3)",
+          "filled": 24,
+          "fill_rate": 0.4,
+          "distinct": 24,
+          "classification": "numero",
+          "samples": [
+            10600.23,
+            6021.82,
+            483.91,
+            450.54,
+            342.82,
+            176.24
+          ]
+        },
+        {
+          "index": 16,
+          "name": "GANHO (3)",
+          "filled": 51,
+          "fill_rate": 0.85,
+          "distinct": 51,
+          "classification": "texto",
+          "samples": [
+            "=O9-N9",
+            "=O11-N11",
+            "=O12-N12",
+            "=O13-N13",
+            "=O14-N14",
+            "=O15-N15"
+          ]
+        },
+        {
+          "index": 17,
+          "name": "NEOENERGIA (4)",
+          "filled": 23,
+          "fill_rate": 0.3833,
+          "distinct": 23,
+          "classification": "energia",
+          "samples": [
+            96.86,
+            2188.66,
+            1390.16,
+            147.54,
+            159.24,
+            82.85
+          ]
+        },
+        {
+          "index": 18,
+          "name": "DIGITALGRID (4)",
+          "filled": 22,
+          "fill_rate": 0.3667,
+          "distinct": 22,
+          "classification": "numero",
+          "samples": [
+            9706.24,
+            4932.53,
+            483.17,
+            376.55,
+            319.36,
+            170.18
+          ]
+        },
+        {
+          "index": 19,
+          "name": "GANHO (4)",
+          "filled": 52,
+          "fill_rate": 0.8667,
+          "distinct": 52,
+          "classification": "texto",
+          "samples": [
+            "=R2-Q2",
+            "=R9-Q9",
+            "=R11-Q11",
+            "=R12-Q12",
+            "=R13-Q13",
+            "=R14-Q14"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "CLIENTE": "USINA 01",
+          "USINA": null,
+          "CONSUMO": 11435,
+          "SALDO": null,
+          "INJEÇÃO": null,
+          "RATEIO": null,
+          "PERCENTUAL": 0.22,
+          "NEOENERGIA": 4.62,
+          "DIGITALGRID": null,
+          "GANHO": null,
+          "NEOENERGIA (2)": 4.62,
+          "DIGITALGRID (2)": null,
+          "GANHO (2)": null,
+          "NEOENERGIA (3)": 93.06,
+          "DIGITALGRID (3)": null,
+          "GANHO (3)": null,
+          "NEOENERGIA (4)": 96.86,
+          "DIGITALGRID (4)": null,
+          "GANHO (4)": "=R2-Q2"
+        },
+        {
+          "CLIENTE": "USINA VITOR",
+          "USINA": null,
+          "CONSUMO": 12807,
+          "SALDO": null,
+          "INJEÇÃO": null,
+          "RATEIO": null,
+          "PERCENTUAL": 1,
+          "NEOENERGIA": null,
+          "DIGITALGRID": null,
+          "GANHO": null,
+          "NEOENERGIA (2)": null,
+          "DIGITALGRID (2)": null,
+          "GANHO (2)": null,
+          "NEOENERGIA (3)": null,
+          "DIGITALGRID (3)": null,
+          "GANHO (3)": null,
+          "NEOENERGIA (4)": null,
+          "DIGITALGRID (4)": null,
+          "GANHO (4)": null
+        },
+        {
+          "CLIENTE": "USINA MORUMBI",
+          "USINA": null,
+          "CONSUMO": 10374,
+          "SALDO": null,
+          "INJEÇÃO": null,
+          "RATEIO": null,
+          "PERCENTUAL": null,
+          "NEOENERGIA": null,
+          "DIGITALGRID": null,
+          "GANHO": null,
+          "NEOENERGIA (2)": null,
+          "DIGITALGRID (2)": null,
+          "GANHO (2)": null,
+          "NEOENERGIA (3)": null,
+          "DIGITALGRID (3)": null,
+          "GANHO (3)": null,
+          "NEOENERGIA (4)": null,
+          "DIGITALGRID (4)": null,
+          "GANHO (4)": null
+        },
+        {
+          "CLIENTE": "VIVENDAS DO CAMPO",
+          "USINA": null,
+          "CONSUMO": 13254,
+          "SALDO": null,
+          "INJEÇÃO": null,
+          "RATEIO": null,
+          "PERCENTUAL": null,
+          "NEOENERGIA": null,
+          "DIGITALGRID": null,
+          "GANHO": null,
+          "NEOENERGIA (2)": null,
+          "DIGITALGRID (2)": null,
+          "GANHO (2)": null,
+          "NEOENERGIA (3)": 113.58,
+          "DIGITALGRID (3)": null,
+          "GANHO (3)": null,
+          "NEOENERGIA (4)": null,
+          "DIGITALGRID (4)": null,
+          "GANHO (4)": null
+        },
+        {
+          "CLIENTE": "ENCONTRO DAS AGUAS",
+          "USINA": null,
+          "CONSUMO": 13239,
+          "SALDO": null,
+          "INJEÇÃO": null,
+          "RATEIO": null,
+          "PERCENTUAL": null,
+          "NEOENERGIA": null,
+          "DIGITALGRID": null,
+          "GANHO": null,
+          "NEOENERGIA (2)": null,
+          "DIGITALGRID (2)": null,
+          "GANHO (2)": null,
+          "NEOENERGIA (3)": 113.58,
+          "DIGITALGRID (3)": null,
+          "GANHO (3)": null,
+          "NEOENERGIA (4)": null,
+          "DIGITALGRID (4)": null,
+          "GANHO (4)": null
+        }
+      ]
+    },
+    {
+      "name": "Rateio",
+      "max_row": 64,
+      "max_column": 12,
+      "empty": false,
+      "header_row_detected": 2,
+      "data_rows": 56,
+      "columns": [
+        {
+          "index": 1,
+          "name": "CLIENTE",
+          "filled": 52,
+          "fill_rate": 0.9286,
+          "distinct": 45,
+          "classification": "cadastro_pessoa_empresa",
+          "samples": [
+            "TT BURGER",
+            "CAROL ZAGAYA",
+            "HUGO FALCÃO",
+            "LUZIA DOS SANTOS",
+            "FABIANO CSB 09",
+            "FABIANO CSB 10"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "CONSUMO",
+          "filled": 46,
+          "fill_rate": 0.8214,
+          "distinct": 25,
+          "classification": "energia",
+          "samples": [
+            6550,
+            3100,
+            650,
+            220,
+            1500,
+            500
+          ]
+        },
+        {
+          "index": 3,
+          "name": "SALDO",
+          "filled": 31,
+          "fill_rate": 0.5536,
+          "distinct": 24,
+          "classification": "numero",
+          "samples": [
+            12431,
+            4135,
+            7908,
+            19,
+            4006,
+            32805
+          ]
+        },
+        {
+          "index": 4,
+          "name": "RATEIO",
+          "filled": 35,
+          "fill_rate": 0.625,
+          "distinct": 31,
+          "classification": "texto",
+          "samples": [
+            "=SUM(D18:D31)",
+            "RATEIO",
+            "=$C$1*E18",
+            "=$C$1*E19",
+            "=$C$1*E20",
+            "=$C$1*E22"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "RATEIO %",
+          "filled": 48,
+          "fill_rate": 0.8571,
+          "distinct": 22,
+          "classification": "texto",
+          "samples": [
+            "=B3/$C$1",
+            "=B4/$C$1",
+            "=B5/$C$1",
+            "=B6/$C$1",
+            "=B7/$C$1",
+            "=B8/$C$1"
+          ]
+        },
+        {
+          "index": 6,
+          "name": "DESCONTO",
+          "filled": 23,
+          "fill_rate": 0.4107,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            0.2,
+            0.25,
+            0.99,
+            0.15,
+            99,
+            "DESCONTO"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "PREVISÃO",
+          "filled": 21,
+          "fill_rate": 0.375,
+          "distinct": 17,
+          "classification": "texto",
+          "samples": [
+            "=B3-D3",
+            "=B4-D4",
+            "=B5-D5",
+            "=B6-D6",
+            "=B7-D7",
+            "=B8-D8"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "Coluna 8",
+          "filled": 11,
+          "fill_rate": 0.1964,
+          "distinct": 11,
+          "classification": "texto",
+          "samples": [
+            "=C3/G3",
+            "=C4/G4",
+            "=C5/G5",
+            "=C6/G6",
+            "=C10/G10",
+            "=C18/G18"
+          ]
+        },
+        {
+          "index": 9,
+          "name": "Coluna 9",
+          "filled": 15,
+          "fill_rate": 0.2679,
+          "distinct": 14,
+          "classification": "numero",
+          "samples": [
+            7523,
+            13830,
+            6471,
+            11548,
+            9006,
+            11605
+          ]
+        },
+        {
+          "index": 10,
+          "name": "Coluna 10",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 11,
+          "name": "Coluna 11",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 12,
+          "name": "Coluna 12",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        }
+      ],
+      "sample_rows": [
+        {
+          "CLIENTE": "TT BURGER",
+          "CONSUMO": 6550,
+          "SALDO": 12431,
+          "RATEIO": null,
+          "RATEIO %": "=B3/$C$1",
+          "DESCONTO": 0.2,
+          "PREVISÃO": "=B3-D3",
+          "Coluna 8": "=C3/G3",
+          "Coluna 9": null,
+          "Coluna 10": null,
+          "Coluna 11": null,
+          "Coluna 12": null
+        },
+        {
+          "CLIENTE": "CAROL ZAGAYA",
+          "CONSUMO": 3100,
+          "SALDO": 4135,
+          "RATEIO": null,
+          "RATEIO %": "=B4/$C$1",
+          "DESCONTO": 0.2,
+          "PREVISÃO": "=B4-D4",
+          "Coluna 8": "=C4/G4",
+          "Coluna 9": null,
+          "Coluna 10": null,
+          "Coluna 11": null,
+          "Coluna 12": null
+        },
+        {
+          "CLIENTE": "HUGO FALCÃO",
+          "CONSUMO": 650,
+          "SALDO": 7908,
+          "RATEIO": null,
+          "RATEIO %": "=B5/$C$1",
+          "DESCONTO": 0.25,
+          "PREVISÃO": "=B5-D5",
+          "Coluna 8": "=C5/G5",
+          "Coluna 9": null,
+          "Coluna 10": null,
+          "Coluna 11": null,
+          "Coluna 12": null
+        },
+        {
+          "CLIENTE": "LUZIA DOS SANTOS",
+          "CONSUMO": 220,
+          "SALDO": 19,
+          "RATEIO": null,
+          "RATEIO %": "=B6/$C$1",
+          "DESCONTO": 0.99,
+          "PREVISÃO": "=B6-D6",
+          "Coluna 8": "=C6/G6",
+          "Coluna 9": null,
+          "Coluna 10": null,
+          "Coluna 11": null,
+          "Coluna 12": null
+        },
+        {
+          "CLIENTE": "FABIANO CSB 09",
+          "CONSUMO": null,
+          "SALDO": null,
+          "RATEIO": null,
+          "RATEIO %": "=B7/$C$1",
+          "DESCONTO": 0.2,
+          "PREVISÃO": "=B7-D7",
+          "Coluna 8": null,
+          "Coluna 9": null,
+          "Coluna 10": null,
+          "Coluna 11": null,
+          "Coluna 12": null
+        }
+      ]
+    },
+    {
+      "name": "Dados",
+      "max_row": 52,
+      "max_column": 11,
+      "empty": false,
+      "header_row_detected": 1,
+      "data_rows": 51,
+      "columns": [
+        {
+          "index": 1,
+          "name": "CLIENTE",
+          "filled": 50,
+          "fill_rate": 0.9804,
+          "distinct": 48,
+          "classification": "cadastro_pessoa_empresa",
+          "samples": [
+            "USINA 01",
+            "USINA VITOR",
+            "USINA MORUMBI",
+            "VIVENDAS DO CAMPO",
+            "ENCONTRO DAS AGUAS",
+            "IGREJA ADTAG"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "CPF / CNPJ",
+          "filled": 45,
+          "fill_rate": 0.8824,
+          "distinct": 30,
+          "classification": "texto",
+          "samples": [
+            "58.719.289/0001-83",
+            "43.544.224/0001-77",
+            "54.070.332/0001-71",
+            "011.828.171-22",
+            "694.116.971-00",
+            "149.687.621-00"
+          ]
+        },
+        {
+          "index": 3,
+          "name": "RESPONSÁVEL",
+          "filled": 43,
+          "fill_rate": 0.8431,
+          "distinct": 24,
+          "classification": "texto",
+          "samples": [
+            "713.822.671-34",
+            "851.617.301-10",
+            "011.828.171-22",
+            "694.116.971-00",
+            "149.687.621-00",
+            "722.832.971-68"
+          ]
+        },
+        {
+          "index": 4,
+          "name": "SENHA",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 5,
+          "name": "COD INSTALAÇÃO PARC DE NEGOCIO",
+          "filled": 38,
+          "fill_rate": 0.7451,
+          "distinct": 38,
+          "classification": "cadastro_unidade_consumidora",
+          "samples": [
+            1357213,
+            743102,
+            845590,
+            32903,
+            16945,
+            160299
+          ]
+        },
+        {
+          "index": 6,
+          "name": "COD CLIENTE UNID CONSUMIDORA",
+          "filled": 47,
+          "fill_rate": 0.9216,
+          "distinct": 46,
+          "classification": "cadastro_pessoa_empresa",
+          "samples": [
+            "3.046.266-5",
+            "3.172.067-6",
+            "3.031.306-6",
+            431107101247,
+            "02457241-1",
+            "2.909.612-X"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "ENDEREÇO",
+          "filled": 15,
+          "fill_rate": 0.2941,
+          "distinct": 14,
+          "classification": "texto",
+          "samples": [
+            "SQNW 109 BL J SERVICO",
+            "CLS 202 BL A LJ 18",
+            "SQN 303 BL H AP 523",
+            "TERCEIRA AV AE 06 LT F P LJ 01",
+            "QN 206 CJ C LT 01 LJ 02",
+            "EST M DARMAS 11 MD B LT 15"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "CONSUMO",
+          "filled": 48,
+          "fill_rate": 0.9412,
+          "distinct": 35,
+          "classification": "energia",
+          "samples": [
+            11435,
+            12807,
+            10374,
+            13254,
+            13239,
+            8000
+          ]
+        },
+        {
+          "index": 9,
+          "name": "PERCENTUAL",
+          "filled": 43,
+          "fill_rate": 0.8431,
+          "distinct": 9,
+          "classification": "numero",
+          "samples": [
+            0.22,
+            1,
+            0.25,
+            0.2,
+            0.15,
+            0.99
+          ]
+        },
+        {
+          "index": 10,
+          "name": "Coluna 10",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 11,
+          "name": "Coluna 11",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        }
+      ],
+      "sample_rows": [
+        {
+          "CLIENTE": "USINA 01",
+          "CPF / CNPJ": "58.719.289/0001-83",
+          "RESPONSÁVEL": "713.822.671-34",
+          "SENHA": null,
+          "COD INSTALAÇÃO PARC DE NEGOCIO": 1357213,
+          "COD CLIENTE UNID CONSUMIDORA": "3.046.266-5",
+          "ENDEREÇO": null,
+          "CONSUMO": 11435,
+          "PERCENTUAL": 0.22,
+          "Coluna 10": null,
+          "Coluna 11": null
+        },
+        {
+          "CLIENTE": "USINA VITOR",
+          "CPF / CNPJ": "58.719.289/0001-83",
+          "RESPONSÁVEL": "713.822.671-34",
+          "SENHA": null,
+          "COD INSTALAÇÃO PARC DE NEGOCIO": 743102,
+          "COD CLIENTE UNID CONSUMIDORA": "3.172.067-6",
+          "ENDEREÇO": null,
+          "CONSUMO": 12807,
+          "PERCENTUAL": 1,
+          "Coluna 10": null,
+          "Coluna 11": null
+        },
+        {
+          "CLIENTE": "USINA MORUMBI",
+          "CPF / CNPJ": "58.719.289/0001-83",
+          "RESPONSÁVEL": "713.822.671-34",
+          "SENHA": null,
+          "COD INSTALAÇÃO PARC DE NEGOCIO": 845590,
+          "COD CLIENTE UNID CONSUMIDORA": "3.031.306-6",
+          "ENDEREÇO": null,
+          "CONSUMO": 10374,
+          "PERCENTUAL": null,
+          "Coluna 10": null,
+          "Coluna 11": null
+        },
+        {
+          "CLIENTE": "VIVENDAS DO CAMPO",
+          "CPF / CNPJ": "58.719.289/0001-83",
+          "RESPONSÁVEL": null,
+          "SENHA": null,
+          "COD INSTALAÇÃO PARC DE NEGOCIO": null,
+          "COD CLIENTE UNID CONSUMIDORA": 431107101247,
+          "ENDEREÇO": null,
+          "CONSUMO": 13254,
+          "PERCENTUAL": null,
+          "Coluna 10": null,
+          "Coluna 11": null
+        },
+        {
+          "CLIENTE": "ENCONTRO DAS AGUAS",
+          "CPF / CNPJ": null,
+          "RESPONSÁVEL": null,
+          "SENHA": null,
+          "COD INSTALAÇÃO PARC DE NEGOCIO": null,
+          "COD CLIENTE UNID CONSUMIDORA": null,
+          "ENDEREÇO": null,
+          "CONSUMO": 13239,
+          "PERCENTUAL": null,
+          "Coluna 10": null,
+          "Coluna 11": null
+        }
+      ]
+    },
+    {
+      "name": "CINARA",
+      "max_row": 60,
+      "max_column": 12,
+      "empty": false,
+      "header_row_detected": 18,
+      "data_rows": 30,
+      "columns": [
+        {
+          "index": 1,
+          "name": "Coluna 1",
+          "filled": 29,
+          "fill_rate": 0.9667,
+          "distinct": 15,
+          "classification": "texto",
+          "samples": [
+            "2026-04-01T00:00:00",
+            "2026-03-01T00:00:00",
+            "2026-02-01T00:00:00",
+            "2026-01-01T00:00:00",
+            "2025-12-01T00:00:00",
+            "2025-11-01T00:00:00"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "CASA 01",
+          "filled": 30,
+          "fill_rate": 1.0,
+          "distinct": 29,
+          "classification": "numero",
+          "samples": [
+            234,
+            222,
+            157,
+            229,
+            280,
+            265
+          ]
+        },
+        {
+          "index": 3,
+          "name": "CASA 02",
+          "filled": 30,
+          "fill_rate": 1.0,
+          "distinct": 28,
+          "classification": "numero",
+          "samples": [
+            158,
+            131,
+            168,
+            165,
+            169,
+            166
+          ]
+        },
+        {
+          "index": 4,
+          "name": "CASA 03",
+          "filled": 27,
+          "fill_rate": 0.9,
+          "distinct": 26,
+          "classification": "texto",
+          "samples": [
+            297,
+            314,
+            272,
+            381,
+            285,
+            301
+          ]
+        },
+        {
+          "index": 5,
+          "name": "CASA 04",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 15,
+          "classification": "numero",
+          "samples": [
+            227,
+            255,
+            208,
+            233,
+            259,
+            217
+          ]
+        },
+        {
+          "index": 6,
+          "name": "CASA 05",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 15,
+          "classification": "numero",
+          "samples": [
+            323,
+            330,
+            261,
+            313,
+            297,
+            285
+          ]
+        },
+        {
+          "index": 7,
+          "name": "CASA 06",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 12,
+          "classification": "numero",
+          "samples": [
+            359,
+            254,
+            332,
+            310,
+            312,
+            379
+          ]
+        },
+        {
+          "index": 8,
+          "name": "CASA 07",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 12,
+          "classification": "numero",
+          "samples": [
+            178,
+            207,
+            184,
+            206,
+            191,
+            203
+          ]
+        },
+        {
+          "index": 9,
+          "name": "CASA 08",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 15,
+          "classification": "numero",
+          "samples": [
+            253,
+            311,
+            230,
+            316,
+            312,
+            351
+          ]
+        },
+        {
+          "index": 10,
+          "name": "CASA 09",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 15,
+          "classification": "numero",
+          "samples": [
+            683,
+            797,
+            500,
+            639,
+            1102,
+            596
+          ]
+        },
+        {
+          "index": 11,
+          "name": "CASA 10",
+          "filled": 15,
+          "fill_rate": 0.5,
+          "distinct": 12,
+          "classification": "numero",
+          "samples": [
+            84,
+            81,
+            48,
+            30,
+            197,
+            41
+          ]
+        },
+        {
+          "index": 12,
+          "name": "Coluna 12",
+          "filled": 13,
+          "fill_rate": 0.4333,
+          "distinct": 13,
+          "classification": "texto",
+          "samples": [
+            "=SUM(B20:K20)",
+            "=SUM(B21:K21)",
+            "=SUM(B22:K22)",
+            "=SUM(B23:K23)",
+            "=SUM(B24:K24)",
+            "=SUM(B25:K25)"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "Coluna 1": "2026-04-01T00:00:00",
+          "CASA 01": 234,
+          "CASA 02": 158,
+          "CASA 03": 297,
+          "CASA 04": 227,
+          "CASA 05": 323,
+          "CASA 06": 359,
+          "CASA 07": 178,
+          "CASA 08": 253,
+          "CASA 09": 683,
+          "CASA 10": 84,
+          "Coluna 12": "=SUM(B20:K20)"
+        },
+        {
+          "Coluna 1": "2026-03-01T00:00:00",
+          "CASA 01": 222,
+          "CASA 02": 131,
+          "CASA 03": 314,
+          "CASA 04": 255,
+          "CASA 05": 330,
+          "CASA 06": 254,
+          "CASA 07": 207,
+          "CASA 08": 311,
+          "CASA 09": 797,
+          "CASA 10": 81,
+          "Coluna 12": "=SUM(B21:K21)"
+        },
+        {
+          "Coluna 1": "2026-02-01T00:00:00",
+          "CASA 01": 157,
+          "CASA 02": 168,
+          "CASA 03": 272,
+          "CASA 04": 208,
+          "CASA 05": 261,
+          "CASA 06": 332,
+          "CASA 07": 207,
+          "CASA 08": 230,
+          "CASA 09": 500,
+          "CASA 10": 48,
+          "Coluna 12": "=SUM(B22:K22)"
+        },
+        {
+          "Coluna 1": "2026-01-01T00:00:00",
+          "CASA 01": 229,
+          "CASA 02": 165,
+          "CASA 03": 381,
+          "CASA 04": 233,
+          "CASA 05": 313,
+          "CASA 06": 310,
+          "CASA 07": 184,
+          "CASA 08": 316,
+          "CASA 09": 639,
+          "CASA 10": 30,
+          "Coluna 12": "=SUM(B23:K23)"
+        },
+        {
+          "Coluna 1": "2025-12-01T00:00:00",
+          "CASA 01": 280,
+          "CASA 02": 169,
+          "CASA 03": 285,
+          "CASA 04": 259,
+          "CASA 05": 297,
+          "CASA 06": 312,
+          "CASA 07": 206,
+          "CASA 08": 312,
+          "CASA 09": 1102,
+          "CASA 10": 197,
+          "Coluna 12": "=SUM(B24:K24)"
+        }
+      ]
+    },
+    {
+      "name": "Historico",
+      "max_row": 16,
+      "max_column": 27,
+      "empty": false,
+      "header_row_detected": 1,
+      "data_rows": 14,
+      "columns": [
+        {
+          "index": 1,
+          "name": "CLIENTE",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 1,
+          "classification": "cadastro_pessoa_empresa",
+          "samples": [
+            "FERNANDO GUIMARAES"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "DATA",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "data_periodo",
+          "samples": [
+            "2026-04-01T00:00:00",
+            "2026-03-01T00:00:00",
+            "2026-02-01T00:00:00",
+            "2026-01-01T00:00:00",
+            "2025-12-01T00:00:00"
+          ]
+        },
+        {
+          "index": 3,
+          "name": "LEITURA ANTERIOR",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "numero",
+          "samples": [
+            88253,
+            89432,
+            90824,
+            92076,
+            93155
+          ]
+        },
+        {
+          "index": 4,
+          "name": "LEITUTRA ATUIAL",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "numero",
+          "samples": [
+            89432,
+            90824,
+            92076,
+            93155,
+            94445
+          ]
+        },
+        {
+          "index": 5,
+          "name": "CONSUMO",
+          "filled": 6,
+          "fill_rate": 0.4286,
+          "distinct": 6,
+          "classification": "energia",
+          "samples": [
+            1155,
+            1068,
+            1271,
+            1310,
+            1195,
+            "=AVERAGE(E3:E15)"
+          ]
+        },
+        {
+          "index": 6,
+          "name": "PARCELAMENTO",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            255.95,
+            403.13
+          ]
+        },
+        {
+          "index": 7,
+          "name": "FIO B",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "numero",
+          "samples": [
+            108.19,
+            100.89,
+            119.01,
+            113.34,
+            85.7
+          ]
+        },
+        {
+          "index": 8,
+          "name": "CIP",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            150.6,
+            144.56
+          ]
+        },
+        {
+          "index": 9,
+          "name": "TARIFA NEOENERGIA",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "monetario",
+          "samples": [
+            1.07,
+            0.9768639,
+            0.9682829,
+            0.9703436,
+            1.0189176
+          ]
+        },
+        {
+          "index": 10,
+          "name": "VALOR NEOENERGIA",
+          "filled": 6,
+          "fill_rate": 0.4286,
+          "distinct": 6,
+          "classification": "monetario",
+          "samples": [
+            "=E3*I3+F3+H3",
+            "=E4*I4+F4+H4",
+            "=E5*I5+F5+H5",
+            "=E6*I6+F6+H6",
+            "=E7*I7+F7+H7",
+            "=AVERAGE(J3:J15)"
+          ]
+        },
+        {
+          "index": 11,
+          "name": "CONTA NEOENERGIA",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 1,
+          "classification": "energia",
+          "samples": [
+            "=#REF!+#REF!"
+          ]
+        },
+        {
+          "index": 12,
+          "name": "TARIFA USINA",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "monetario",
+          "samples": [
+            "=I3*0.8",
+            "=I4*0.8",
+            "=I5*0.8",
+            "=I6*0.8",
+            "=I7*0.8"
+          ]
+        },
+        {
+          "index": 13,
+          "name": "DESCONTO NA TARIFA",
+          "filled": 5,
+          "fill_rate": 0.3571,
+          "distinct": 5,
+          "classification": "monetario",
+          "samples": [
+            "=L3/I3-1",
+            "=L4/I4-1",
+            "=L5/I5-1",
+            "=L6/I6-1",
+            "=L7/I7-1"
+          ]
+        },
+        {
+          "index": 14,
+          "name": "VALOR USINA",
+          "filled": 6,
+          "fill_rate": 0.4286,
+          "distinct": 6,
+          "classification": "monetario",
+          "samples": [
+            "=L3*E3+F3+H3",
+            "=L4*E4+F4+H4",
+            "=L5*E5+F5+H5",
+            "=L6*E6+F6+H6",
+            1390.91,
+            "TOTAL"
+          ]
+        },
+        {
+          "index": 15,
+          "name": "ECONOMIA",
+          "filled": 6,
+          "fill_rate": 0.4286,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=J3-N3",
+            "=J4-N4",
+            "=J5-N5",
+            "=J6-N6",
+            "=J7-N7",
+            "=SUM(O3:O15)"
+          ]
+        },
+        {
+          "index": 16,
+          "name": "GANHO REAL USINA",
+          "filled": 14,
+          "fill_rate": 1.0,
+          "distinct": 14,
+          "classification": "cadastro_usina_ativo",
+          "samples": [
+            "=N3-K3",
+            "=N4-K4",
+            "=N5-K5",
+            "=N6-K6",
+            "=N7-K7",
+            "=N8-K8"
+          ]
+        },
+        {
+          "index": 17,
+          "name": "Coluna 17",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 18,
+          "name": "Coluna 18",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 19,
+          "name": "Coluna 19",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 20,
+          "name": "Coluna 20",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 21,
+          "name": "Coluna 21",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 22,
+          "name": "Coluna 22",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 23,
+          "name": "Coluna 23",
+          "filled": 0,
+          "fill_rate": 0.0,
+          "distinct": 0,
+          "classification": "vazio",
+          "samples": []
+        },
+        {
+          "index": 24,
+          "name": "PROPOSTA COMERCIAL",
+          "filled": 12,
+          "fill_rate": 0.8571,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "Comercializadora/Representante",
+            "CONSORCIO ASCENDER SOLUCOES ENERGETICAS",
+            "CNPJ: 58.719.289/0001-83",
+            "Endereço: COL ÁGUAS CLARAS CH 57",
+            "Telefone: (61) 9 9209-9966",
+            "E-mail: comercial@ascendersolar.com.br"
+          ]
+        },
+        {
+          "index": 25,
+          "name": "Coluna 25",
+          "filled": 4,
+          "fill_rate": 0.2857,
+          "distinct": 4,
+          "classification": "texto",
+          "samples": [
+            "Carência",
+            "24 meses",
+            "Tarifa aplicada no último mês",
+            "=I3"
+          ]
+        },
+        {
+          "index": 26,
+          "name": "Coluna 26",
+          "filled": 11,
+          "fill_rate": 0.7857,
+          "distinct": 11,
+          "classification": "texto",
+          "samples": [
+            "Cliente/ Representada",
+            "ABENÇOADO BAR E RESTAURANTE LTDA",
+            "CNPJ nº: 21.584.723/0001-27",
+            "Endereço: CLN 207 BL A LJ 35",
+            "Telefone: 61 99817-7764",
+            "E-mail: gerenteadmonistrativo@grupoabencoado.com"
+          ]
+        },
+        {
+          "index": 27,
+          "name": "Coluna 27",
+          "filled": 4,
+          "fill_rate": 0.2857,
+          "distinct": 4,
+          "classification": "texto",
+          "samples": [
+            "Distribuidora",
+            "Neoenergia Brasília S.A.",
+            "Previsão de Economia - 12 meses",
+            "=O16"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "CLIENTE": "FERNANDO GUIMARAES",
+          "DATA": "2026-04-01T00:00:00",
+          "LEITURA ANTERIOR": 88253,
+          "LEITUTRA ATUIAL": 89432,
+          "CONSUMO": 1155,
+          "PARCELAMENTO": 255.95,
+          "FIO B": 108.19,
+          "CIP": 150.6,
+          "TARIFA NEOENERGIA": 1.07,
+          "VALOR NEOENERGIA": "=E3*I3+F3+H3",
+          "CONTA NEOENERGIA": "=#REF!+#REF!",
+          "TARIFA USINA": "=I3*0.8",
+          "DESCONTO NA TARIFA": "=L3/I3-1",
+          "VALOR USINA": "=L3*E3+F3+H3",
+          "ECONOMIA": "=J3-N3",
+          "GANHO REAL USINA": "=N3-K3",
+          "Coluna 17": null,
+          "Coluna 18": null,
+          "Coluna 19": null,
+          "Coluna 20": null,
+          "Coluna 21": null,
+          "Coluna 22": null,
+          "Coluna 23": null,
+          "PROPOSTA COMERCIAL": "Comercializadora/Representante",
+          "Coluna 25": null,
+          "Coluna 26": "Cliente/ Representada",
+          "Coluna 27": null
+        },
+        {
+          "CLIENTE": "FERNANDO GUIMARAES",
+          "DATA": "2026-03-01T00:00:00",
+          "LEITURA ANTERIOR": 89432,
+          "LEITUTRA ATUIAL": 90824,
+          "CONSUMO": 1068,
+          "PARCELAMENTO": 255.95,
+          "FIO B": 100.89,
+          "CIP": 150.6,
+          "TARIFA NEOENERGIA": 0.9768639,
+          "VALOR NEOENERGIA": "=E4*I4+F4+H4",
+          "CONTA NEOENERGIA": "=#REF!+#REF!",
+          "TARIFA USINA": "=I4*0.8",
+          "DESCONTO NA TARIFA": "=L4/I4-1",
+          "VALOR USINA": "=L4*E4+F4+H4",
+          "ECONOMIA": "=J4-N4",
+          "GANHO REAL USINA": "=N4-K4",
+          "Coluna 17": null,
+          "Coluna 18": null,
+          "Coluna 19": null,
+          "Coluna 20": null,
+          "Coluna 21": null,
+          "Coluna 22": null,
+          "Coluna 23": null,
+          "PROPOSTA COMERCIAL": "CONSORCIO ASCENDER SOLUCOES ENERGETICAS",
+          "Coluna 25": null,
+          "Coluna 26": "ABENÇOADO BAR E RESTAURANTE LTDA",
+          "Coluna 27": null
+        },
+        {
+          "CLIENTE": "FERNANDO GUIMARAES",
+          "DATA": "2026-02-01T00:00:00",
+          "LEITURA ANTERIOR": 90824,
+          "LEITUTRA ATUIAL": 92076,
+          "CONSUMO": 1271,
+          "PARCELAMENTO": 255.95,
+          "FIO B": 119.01,
+          "CIP": 150.6,
+          "TARIFA NEOENERGIA": 0.9682829,
+          "VALOR NEOENERGIA": "=E5*I5+F5+H5",
+          "CONTA NEOENERGIA": "=#REF!+#REF!",
+          "TARIFA USINA": "=I5*0.8",
+          "DESCONTO NA TARIFA": "=L5/I5-1",
+          "VALOR USINA": "=L5*E5+F5+H5",
+          "ECONOMIA": "=J5-N5",
+          "GANHO REAL USINA": "=N5-K5",
+          "Coluna 17": null,
+          "Coluna 18": null,
+          "Coluna 19": null,
+          "Coluna 20": null,
+          "Coluna 21": null,
+          "Coluna 22": null,
+          "Coluna 23": null,
+          "PROPOSTA COMERCIAL": "CNPJ: 58.719.289/0001-83",
+          "Coluna 25": null,
+          "Coluna 26": "CNPJ nº: 21.584.723/0001-27",
+          "Coluna 27": null
+        },
+        {
+          "CLIENTE": "FERNANDO GUIMARAES",
+          "DATA": "2026-01-01T00:00:00",
+          "LEITURA ANTERIOR": 92076,
+          "LEITUTRA ATUIAL": 93155,
+          "CONSUMO": 1310,
+          "PARCELAMENTO": 255.95,
+          "FIO B": 113.34,
+          "CIP": 144.56,
+          "TARIFA NEOENERGIA": 0.9703436,
+          "VALOR NEOENERGIA": "=E6*I6+F6+H6",
+          "CONTA NEOENERGIA": "=#REF!+#REF!",
+          "TARIFA USINA": "=I6*0.8",
+          "DESCONTO NA TARIFA": "=L6/I6-1",
+          "VALOR USINA": "=L6*E6+F6+H6",
+          "ECONOMIA": "=J6-N6",
+          "GANHO REAL USINA": "=N6-K6",
+          "Coluna 17": null,
+          "Coluna 18": null,
+          "Coluna 19": null,
+          "Coluna 20": null,
+          "Coluna 21": null,
+          "Coluna 22": null,
+          "Coluna 23": null,
+          "PROPOSTA COMERCIAL": "Endereço: COL ÁGUAS CLARAS CH 57",
+          "Coluna 25": null,
+          "Coluna 26": "Endereço: CLN 207 BL A LJ 35",
+          "Coluna 27": null
+        },
+        {
+          "CLIENTE": "FERNANDO GUIMARAES",
+          "DATA": "2025-12-01T00:00:00",
+          "LEITURA ANTERIOR": 93155,
+          "LEITUTRA ATUIAL": 94445,
+          "CONSUMO": 1195,
+          "PARCELAMENTO": 403.13,
+          "FIO B": 85.7,
+          "CIP": 144.56,
+          "TARIFA NEOENERGIA": 1.0189176,
+          "VALOR NEOENERGIA": "=E7*I7+F7+H7",
+          "CONTA NEOENERGIA": "=#REF!+#REF!",
+          "TARIFA USINA": "=I7*0.8",
+          "DESCONTO NA TARIFA": "=L7/I7-1",
+          "VALOR USINA": 1390.91,
+          "ECONOMIA": "=J7-N7",
+          "GANHO REAL USINA": "=N7-K7",
+          "Coluna 17": null,
+          "Coluna 18": null,
+          "Coluna 19": null,
+          "Coluna 20": null,
+          "Coluna 21": null,
+          "Coluna 22": null,
+          "Coluna 23": null,
+          "PROPOSTA COMERCIAL": "Telefone: (61) 9 9209-9966",
+          "Coluna 25": null,
+          "Coluna 26": "Telefone: 61 99817-7764",
+          "Coluna 27": null
+        }
+      ]
+    },
+    {
+      "name": "Usina - Encontro",
+      "max_row": 14,
+      "max_column": 11,
+      "empty": false,
+      "header_row_detected": 4,
+      "data_rows": 7,
+      "columns": [
+        {
+          "index": 1,
+          "name": "MÊS",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "data_periodo",
+          "samples": [
+            "2025-11-01T00:00:00",
+            "2025-12-01T00:00:00",
+            "2026-01-01T00:00:00",
+            "2026-02-01T00:00:00",
+            "2026-03-01T00:00:00",
+            "2026-04-01T00:00:00"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "GERAÇÃO kWh",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 5,
+          "classification": "energia",
+          "samples": [
+            8091,
+            14996.55,
+            13204,
+            10137.93,
+            17335.14
+          ]
+        },
+        {
+          "index": 3,
+          "name": "TARIFA",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "monetario",
+          "samples": [
+            1.095185,
+            1.169735,
+            1.125214,
+            1.12652,
+            1.135823,
+            1.125925
+          ]
+        },
+        {
+          "index": 4,
+          "name": "BRUTO",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=B6*C6",
+            "=B7*C7",
+            "=B8*C8",
+            "=B9*C9",
+            "=B10*C10",
+            "=B11*C11"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "FIO B",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            0.12,
+            0.17
+          ]
+        },
+        {
+          "index": 6,
+          "name": "DESAGIO",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=C6*0.3",
+            "=C7*0.3",
+            "=C8*0.3",
+            "=C9*0.3",
+            "=C10*0.3",
+            "=C11*0.3"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "ADM CONSORCIO",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=D6*0.08",
+            "=D7*0.08",
+            "=D8*0.08",
+            "=D9*0.08",
+            "=D10*0.08",
+            "=D11*0.08"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "PARCELAMENTO LOTE",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 1,
+          "classification": "numero",
+          "samples": [
+            719
+          ]
+        },
+        {
+          "index": 9,
+          "name": "LIQUIDO",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=((C6-E6-F6)*B6)-G6-H6",
+            "=((C7-E7-F7)*B7)-G7-H7",
+            "=((C8-E8-F8)*B8)-G8-H8",
+            "=((C9-E9-F9)*B9)-G9-H9",
+            "=((C10-E10-F10)*B10)-G10-H10",
+            "=((C11-E11-F11)*B11)-G11-H11"
+          ]
+        },
+        {
+          "index": 10,
+          "name": "PERCENTUAL",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            "=I6/$G$3",
+            "=I7/$G$3",
+            "=I8/$G$3",
+            "=I9/$G$3",
+            "=I10/$G$3",
+            "=I11/$G$3"
+          ]
+        },
+        {
+          "index": 11,
+          "name": "Coluna 11",
+          "filled": 1,
+          "fill_rate": 0.1429,
+          "distinct": 1,
+          "classification": "texto",
+          "samples": [
+            "MÉDIA"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "MÊS": "2025-11-01T00:00:00",
+          "GERAÇÃO kWh": 8091,
+          "TARIFA": 1.095185,
+          "BRUTO": "=B6*C6",
+          "FIO B": 0.12,
+          "DESAGIO": "=C6*0.3",
+          "ADM CONSORCIO": "=D6*0.08",
+          "PARCELAMENTO LOTE": 719,
+          "LIQUIDO": "=((C6-E6-F6)*B6)-G6-H6",
+          "PERCENTUAL": "=I6/$G$3",
+          "Coluna 11": null
+        },
+        {
+          "MÊS": "2025-12-01T00:00:00",
+          "GERAÇÃO kWh": 14996.55,
+          "TARIFA": 1.169735,
+          "BRUTO": "=B7*C7",
+          "FIO B": 0.12,
+          "DESAGIO": "=C7*0.3",
+          "ADM CONSORCIO": "=D7*0.08",
+          "PARCELAMENTO LOTE": 719,
+          "LIQUIDO": "=((C7-E7-F7)*B7)-G7-H7",
+          "PERCENTUAL": "=I7/$G$3",
+          "Coluna 11": null
+        },
+        {
+          "MÊS": "2026-01-01T00:00:00",
+          "GERAÇÃO kWh": 13204,
+          "TARIFA": 1.125214,
+          "BRUTO": "=B8*C8",
+          "FIO B": 0.12,
+          "DESAGIO": "=C8*0.3",
+          "ADM CONSORCIO": "=D8*0.08",
+          "PARCELAMENTO LOTE": 719,
+          "LIQUIDO": "=((C8-E8-F8)*B8)-G8-H8",
+          "PERCENTUAL": "=I8/$G$3",
+          "Coluna 11": null
+        },
+        {
+          "MÊS": "2026-02-01T00:00:00",
+          "GERAÇÃO kWh": 10137.93,
+          "TARIFA": 1.12652,
+          "BRUTO": "=B9*C9",
+          "FIO B": 0.17,
+          "DESAGIO": "=C9*0.3",
+          "ADM CONSORCIO": "=D9*0.08",
+          "PARCELAMENTO LOTE": 719,
+          "LIQUIDO": "=((C9-E9-F9)*B9)-G9-H9",
+          "PERCENTUAL": "=I9/$G$3",
+          "Coluna 11": null
+        },
+        {
+          "MÊS": "2026-03-01T00:00:00",
+          "GERAÇÃO kWh": 10137.93,
+          "TARIFA": 1.135823,
+          "BRUTO": "=B10*C10",
+          "FIO B": 0.17,
+          "DESAGIO": "=C10*0.3",
+          "ADM CONSORCIO": "=D10*0.08",
+          "PARCELAMENTO LOTE": 719,
+          "LIQUIDO": "=((C10-E10-F10)*B10)-G10-H10",
+          "PERCENTUAL": "=I10/$G$3",
+          "Coluna 11": null
+        }
+      ]
+    },
+    {
+      "name": "Usina - Vivendas",
+      "max_row": 14,
+      "max_column": 10,
+      "empty": false,
+      "header_row_detected": 4,
+      "data_rows": 6,
+      "columns": [
+        {
+          "index": 1,
+          "name": "MÊS",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "data_periodo",
+          "samples": [
+            "2025-11-01T00:00:00",
+            "2025-12-01T00:00:00",
+            "2026-01-01T00:00:00",
+            "2026-02-01T00:00:00",
+            "2026-03-01T00:00:00",
+            "2026-04-01T00:00:00"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "GERAÇÃO kWh",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 5,
+          "classification": "energia",
+          "samples": [
+            8091,
+            13371,
+            13205,
+            10171.81,
+            0
+          ]
+        },
+        {
+          "index": 3,
+          "name": "TARIFA",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "monetario",
+          "samples": [
+            1.095185,
+            1.169735,
+            1.125214,
+            1.12652,
+            1.135823,
+            1.125925
+          ]
+        },
+        {
+          "index": 4,
+          "name": "BRUTO",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=B6*C6",
+            "=B7*C7",
+            "=B8*C8",
+            "=B9*C9",
+            "=B10*C10",
+            "=B11*C11"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "FIO B",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            0.12,
+            0.17
+          ]
+        },
+        {
+          "index": 6,
+          "name": "DESAGIO",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=C6*0.3",
+            "=C7*0.3",
+            "=C8*0.3",
+            "=C9*0.3",
+            "=C10*0.3",
+            "=C11*0.3"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "ADM CONSORCIO",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=D6*0.1",
+            "=D7*0.1",
+            "=D8*0.1",
+            "=D9*0.1",
+            "=D10*0.1",
+            "=D11*0.1"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "ARRENDAMENTO",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 1,
+          "classification": "numero",
+          "samples": [
+            719
+          ]
+        },
+        {
+          "index": 9,
+          "name": "LIQUIDO",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=((C6-E6-F6)*B6)-G6-H6",
+            "=((C7-E7-F7)*B7)-G7-H7",
+            "=((C8-E8-F8)*B8)-G8-H8",
+            "=((C9-E9-F9)*B9)-G9-H9",
+            "=((C10-E10-F10)*B10)-G10-H10",
+            "=((C11-E11-F11)*B11)-G11-H11"
+          ]
+        },
+        {
+          "index": 10,
+          "name": "PERCENTUAL",
+          "filled": 6,
+          "fill_rate": 1.0,
+          "distinct": 6,
+          "classification": "texto",
+          "samples": [
+            "=I6/$G$3",
+            "=I7/$G$3",
+            "=I8/$G$3",
+            "=I9/$G$3",
+            "=I10/$G$3",
+            "=I11/$G$3"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "MÊS": "2025-11-01T00:00:00",
+          "GERAÇÃO kWh": 8091,
+          "TARIFA": 1.095185,
+          "BRUTO": "=B6*C6",
+          "FIO B": 0.12,
+          "DESAGIO": "=C6*0.3",
+          "ADM CONSORCIO": "=D6*0.1",
+          "ARRENDAMENTO": 719,
+          "LIQUIDO": "=((C6-E6-F6)*B6)-G6-H6",
+          "PERCENTUAL": "=I6/$G$3"
+        },
+        {
+          "MÊS": "2025-12-01T00:00:00",
+          "GERAÇÃO kWh": 13371,
+          "TARIFA": 1.169735,
+          "BRUTO": "=B7*C7",
+          "FIO B": 0.12,
+          "DESAGIO": "=C7*0.3",
+          "ADM CONSORCIO": "=D7*0.1",
+          "ARRENDAMENTO": 719,
+          "LIQUIDO": "=((C7-E7-F7)*B7)-G7-H7",
+          "PERCENTUAL": "=I7/$G$3"
+        },
+        {
+          "MÊS": "2026-01-01T00:00:00",
+          "GERAÇÃO kWh": 13205,
+          "TARIFA": 1.125214,
+          "BRUTO": "=B8*C8",
+          "FIO B": 0.12,
+          "DESAGIO": "=C8*0.3",
+          "ADM CONSORCIO": "=D8*0.1",
+          "ARRENDAMENTO": 719,
+          "LIQUIDO": "=((C8-E8-F8)*B8)-G8-H8",
+          "PERCENTUAL": "=I8/$G$3"
+        },
+        {
+          "MÊS": "2026-02-01T00:00:00",
+          "GERAÇÃO kWh": 10171.81,
+          "TARIFA": 1.12652,
+          "BRUTO": "=B9*C9",
+          "FIO B": 0.17,
+          "DESAGIO": "=C9*0.3",
+          "ADM CONSORCIO": "=D9*0.1",
+          "ARRENDAMENTO": 719,
+          "LIQUIDO": "=((C9-E9-F9)*B9)-G9-H9",
+          "PERCENTUAL": "=I9/$G$3"
+        },
+        {
+          "MÊS": "2026-03-01T00:00:00",
+          "GERAÇÃO kWh": 0,
+          "TARIFA": 1.135823,
+          "BRUTO": "=B10*C10",
+          "FIO B": 0.17,
+          "DESAGIO": "=C10*0.3",
+          "ADM CONSORCIO": "=D10*0.1",
+          "ARRENDAMENTO": 719,
+          "LIQUIDO": "=((C10-E10-F10)*B10)-G10-H10",
+          "PERCENTUAL": "=I10/$G$3"
+        }
+      ]
+    },
+    {
+      "name": "Usina - Vitor",
+      "max_row": 14,
+      "max_column": 10,
+      "empty": false,
+      "header_row_detected": 4,
+      "data_rows": 7,
+      "columns": [
+        {
+          "index": 1,
+          "name": "MÊS",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "data_periodo",
+          "samples": [
+            "2025-10-01T00:00:00",
+            "2025-11-01T00:00:00",
+            "2025-12-01T00:00:00",
+            "2026-01-01T00:00:00",
+            "2026-02-01T00:00:00",
+            "2026-03-01T00:00:00"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "GERAÇÃO kWh",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "energia",
+          "samples": [
+            6394,
+            12678,
+            12130,
+            11569,
+            11116,
+            12440
+          ]
+        },
+        {
+          "index": 3,
+          "name": "TARIFA",
+          "filled": 6,
+          "fill_rate": 0.8571,
+          "distinct": 6,
+          "classification": "monetario",
+          "samples": [
+            0.9664579,
+            1.0013833,
+            1.0324457,
+            0.9800064,
+            0.9682828,
+            1.0788462
+          ]
+        },
+        {
+          "index": 4,
+          "name": "BRUTO",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            "=B6*C6",
+            "=B7*C7",
+            "=B8*C8",
+            "=B9*C9",
+            "=B10*C10",
+            "=B11*C11"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "FIO B",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            0.12,
+            0.17
+          ]
+        },
+        {
+          "index": 6,
+          "name": "DESAGIO",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            "=C6*0.25",
+            "=C7*0.25",
+            "=C8*0.25",
+            "=C9*0.25",
+            "=C10*0.25",
+            "=C11*0.25"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "ADM CONSORCIO",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            "=D6*0.1",
+            "=D7*0.1",
+            "=D8*0.1",
+            "=D9*0.1",
+            "=D10*0.1",
+            "=D11*0.1"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "ARRENDAMENTO",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 1,
+          "classification": "numero",
+          "samples": [
+            0
+          ]
+        },
+        {
+          "index": 9,
+          "name": "LIQUIDO",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            "=((C6-E6-F6)*B6)-G6-H6",
+            "=((C7-E7-F7)*B7)-G7-H7",
+            "=((C8-E8-F8)*B8)-G8-H8",
+            "=((C9-E9-F9)*B9)-G9-H9",
+            "=((C10-E10-F10)*B10)-G10-H10",
+            "=((C11-E11-F11)*B11)-G11-H11"
+          ]
+        },
+        {
+          "index": 10,
+          "name": "PERCENTUAL",
+          "filled": 7,
+          "fill_rate": 1.0,
+          "distinct": 7,
+          "classification": "texto",
+          "samples": [
+            "=I6/$G$3",
+            "=I7/$G$3",
+            "=I8/$G$3",
+            "=I9/$G$3",
+            "=I10/$G$3",
+            "=I11/$G$3"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "MÊS": "2025-10-01T00:00:00",
+          "GERAÇÃO kWh": 6394,
+          "TARIFA": 0.9664579,
+          "BRUTO": "=B6*C6",
+          "FIO B": 0.12,
+          "DESAGIO": "=C6*0.25",
+          "ADM CONSORCIO": "=D6*0.1",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((C6-E6-F6)*B6)-G6-H6",
+          "PERCENTUAL": "=I6/$G$3"
+        },
+        {
+          "MÊS": "2025-11-01T00:00:00",
+          "GERAÇÃO kWh": 12678,
+          "TARIFA": 1.0013833,
+          "BRUTO": "=B7*C7",
+          "FIO B": 0.12,
+          "DESAGIO": "=C7*0.25",
+          "ADM CONSORCIO": "=D7*0.1",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((C7-E7-F7)*B7)-G7-H7",
+          "PERCENTUAL": "=I7/$G$3"
+        },
+        {
+          "MÊS": "2025-12-01T00:00:00",
+          "GERAÇÃO kWh": 12130,
+          "TARIFA": 1.0324457,
+          "BRUTO": "=B8*C8",
+          "FIO B": 0.12,
+          "DESAGIO": "=C8*0.25",
+          "ADM CONSORCIO": "=D8*0.1",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((C8-E8-F8)*B8)-G8-H8",
+          "PERCENTUAL": "=I8/$G$3"
+        },
+        {
+          "MÊS": "2026-01-01T00:00:00",
+          "GERAÇÃO kWh": 11569,
+          "TARIFA": 0.9800064,
+          "BRUTO": "=B9*C9",
+          "FIO B": 0.12,
+          "DESAGIO": "=C9*0.25",
+          "ADM CONSORCIO": "=D9*0.1",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((C9-E9-F9)*B9)-G9-H9",
+          "PERCENTUAL": "=I9/$G$3"
+        },
+        {
+          "MÊS": "2026-02-01T00:00:00",
+          "GERAÇÃO kWh": 11116,
+          "TARIFA": 0.9682828,
+          "BRUTO": "=B10*C10",
+          "FIO B": 0.17,
+          "DESAGIO": "=C10*0.25",
+          "ADM CONSORCIO": "=D10*0.1",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((C10-E10-F10)*B10)-G10-H10",
+          "PERCENTUAL": "=I10/$G$3"
+        }
+      ]
+    },
+    {
+      "name": "Usina - Mardem",
+      "max_row": 17,
+      "max_column": 11,
+      "empty": false,
+      "header_row_detected": 4,
+      "data_rows": 12,
+      "columns": [
+        {
+          "index": 1,
+          "name": "MÊS",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 12,
+          "classification": "data_periodo",
+          "samples": [
+            "2025-05-01T00:00:00",
+            "2025-06-01T00:00:00",
+            "2025-07-01T00:00:00",
+            "2025-08-01T00:00:00",
+            "2025-09-01T00:00:00",
+            "2025-10-01T00:00:00"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "GERAÇÃO kWh",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 11,
+          "classification": "energia",
+          "samples": [
+            9004,
+            2708,
+            8342,
+            10105,
+            11044,
+            10844
+          ]
+        },
+        {
+          "index": 3,
+          "name": "COMPENSADO kWh",
+          "filled": 8,
+          "fill_rate": 0.6667,
+          "distinct": 8,
+          "classification": "energia",
+          "samples": [
+            0.8799221,
+            0.8956183,
+            6608,
+            7730,
+            8440,
+            7390
+          ]
+        },
+        {
+          "index": 4,
+          "name": "TARIFA",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 11,
+          "classification": "monetario",
+          "samples": [
+            0.8799221,
+            0.8956183,
+            0.9284669,
+            0.9406574,
+            0.9727045,
+            0.9692619
+          ]
+        },
+        {
+          "index": 5,
+          "name": "BRUTO",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=C6*D6",
+            "=C7*D7",
+            "=C8*D8",
+            "=C9*D9",
+            "=C10*D10",
+            "=C11*D11"
+          ]
+        },
+        {
+          "index": 6,
+          "name": "FIO B",
+          "filled": 9,
+          "fill_rate": 0.75,
+          "distinct": 5,
+          "classification": "numero",
+          "samples": [
+            0.0717771,
+            0.07171636363636363,
+            0.07620616570327553,
+            0.09364091858037579,
+            0.0684793893129771
+          ]
+        },
+        {
+          "index": 7,
+          "name": "DESAGIO",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=D6*0.25",
+            "=D7*0.25",
+            "=D8*0.25",
+            "=D9*0.25",
+            "=D10*0.25",
+            "=D11*0.25"
+          ]
+        },
+        {
+          "index": 8,
+          "name": "ADM CONSORCIO",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=E6*0.08",
+            "=E7*0.08",
+            "=E8*0.08",
+            "=E9*0.08",
+            866.1565856639999,
+            841.64989768
+          ]
+        },
+        {
+          "index": 9,
+          "name": "ARRENDAMENTO",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            0,
+            1
+          ]
+        },
+        {
+          "index": 10,
+          "name": "LIQUIDO",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=((D6-F6-G6)*B6)-H6-I6",
+            "=((D7-F7-G7)*B7)-H7-I7",
+            "=((D8-F8-G8)*B8)-H8-I8",
+            "=((D9-F9-G9)*B9)-H9-I9",
+            7019.355265776,
+            6844.059333665454
+          ]
+        },
+        {
+          "index": 11,
+          "name": "PERCENTUAL",
+          "filled": 12,
+          "fill_rate": 1.0,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=J6/$H$3",
+            "=J7/$H$3",
+            "=J8/$H$3",
+            "=J9/$H$3",
+            "=J10/$H$3",
+            "=J11/$H$3"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "MÊS": "2025-05-01T00:00:00",
+          "GERAÇÃO kWh": 9004,
+          "COMPENSADO kWh": 0.8799221,
+          "TARIFA": 0.8799221,
+          "BRUTO": "=C6*D6",
+          "FIO B": 0.0717771,
+          "DESAGIO": "=D6*0.25",
+          "ADM CONSORCIO": "=E6*0.08",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((D6-F6-G6)*B6)-H6-I6",
+          "PERCENTUAL": "=J6/$H$3"
+        },
+        {
+          "MÊS": "2025-06-01T00:00:00",
+          "GERAÇÃO kWh": 2708,
+          "COMPENSADO kWh": 0.8956183,
+          "TARIFA": 0.8956183,
+          "BRUTO": "=C7*D7",
+          "FIO B": 0.0717771,
+          "DESAGIO": "=D7*0.25",
+          "ADM CONSORCIO": "=E7*0.08",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((D7-F7-G7)*B7)-H7-I7",
+          "PERCENTUAL": "=J7/$H$3"
+        },
+        {
+          "MÊS": "2025-07-01T00:00:00",
+          "GERAÇÃO kWh": 8342,
+          "COMPENSADO kWh": null,
+          "TARIFA": 0.9284669,
+          "BRUTO": "=C8*D8",
+          "FIO B": 0.07171636363636363,
+          "DESAGIO": "=D8*0.25",
+          "ADM CONSORCIO": "=E8*0.08",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((D8-F8-G8)*B8)-H8-I8",
+          "PERCENTUAL": "=J8/$H$3"
+        },
+        {
+          "MÊS": "2025-08-01T00:00:00",
+          "GERAÇÃO kWh": 10105,
+          "COMPENSADO kWh": 6608,
+          "TARIFA": 0.9406574,
+          "BRUTO": "=C9*D9",
+          "FIO B": 0.07620616570327553,
+          "DESAGIO": "=D9*0.25",
+          "ADM CONSORCIO": "=E9*0.08",
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": "=((D9-F9-G9)*B9)-H9-I9",
+          "PERCENTUAL": "=J9/$H$3"
+        },
+        {
+          "MÊS": "2025-09-01T00:00:00",
+          "GERAÇÃO kWh": 11044,
+          "COMPENSADO kWh": 7730,
+          "TARIFA": 0.9727045,
+          "BRUTO": "=C10*D10",
+          "FIO B": 0.0717771,
+          "DESAGIO": "=D10*0.25",
+          "ADM CONSORCIO": 866.1565856639999,
+          "ARRENDAMENTO": 0,
+          "LIQUIDO": 7019.355265776,
+          "PERCENTUAL": "=J10/$H$3"
+        }
+      ]
+    },
+    {
+      "name": "Usina - Ascender",
+      "max_row": 18,
+      "max_column": 10,
+      "empty": false,
+      "header_row_detected": 4,
+      "data_rows": 13,
+      "columns": [
+        {
+          "index": 1,
+          "name": "MÊS",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 12,
+          "classification": "data_periodo",
+          "samples": [
+            "2025-05-01T00:00:00",
+            "2025-06-01T00:00:00",
+            "2025-07-01T00:00:00",
+            "2025-08-01T00:00:00",
+            "2025-09-01T00:00:00",
+            "2025-10-01T00:00:00"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "GERAÇÃO kWh",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 12,
+          "classification": "energia",
+          "samples": [
+            10724,
+            10706,
+            10344,
+            12011,
+            7865,
+            12262
+          ]
+        },
+        {
+          "index": 3,
+          "name": "TARIFA",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 11,
+          "classification": "monetario",
+          "samples": [
+            0.8799221,
+            0.8956183,
+            0.9284669,
+            0.9406574,
+            0.9727045,
+            0.9692619
+          ]
+        },
+        {
+          "index": 4,
+          "name": "BRUTO",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=B6*C6",
+            "=B7*C7",
+            "=B8*C8",
+            "=B9*C9",
+            "=B10*C10",
+            "=B11*C11"
+          ]
+        },
+        {
+          "index": 5,
+          "name": "FIO B",
+          "filled": 9,
+          "fill_rate": 0.6923,
+          "distinct": 5,
+          "classification": "numero",
+          "samples": [
+            0.0717771,
+            0.07171636363636363,
+            0.07620616570327553,
+            0.09364091858037579,
+            0.0684793893129771
+          ]
+        },
+        {
+          "index": 6,
+          "name": "DESAGIO",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=C6*0.3",
+            "=C7*0.3",
+            "=C8*0.3",
+            "=C9*0.3",
+            "=C10*0.3",
+            "=C11*0.3"
+          ]
+        },
+        {
+          "index": 7,
+          "name": "ADM CONSORCIO",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 1,
+          "classification": "numero",
+          "samples": [
+            0
+          ]
+        },
+        {
+          "index": 8,
+          "name": "ARRENDAMENTO",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 2,
+          "classification": "numero",
+          "samples": [
+            400,
+            425
+          ]
+        },
+        {
+          "index": 9,
+          "name": "LIQUIDO",
+          "filled": 13,
+          "fill_rate": 1.0,
+          "distinct": 13,
+          "classification": "texto",
+          "samples": [
+            "=((C6-E6-F6)*B6)-G6-H6",
+            "=((C7-E7-F7)*B7)-G7-H7",
+            "=((C8-E8-F8)*B8)-G8-H8",
+            "=((C9-E9-F9)*B9)-G9-H9",
+            7019.355265776,
+            6844.059333665454
+          ]
+        },
+        {
+          "index": 10,
+          "name": "PERCENTUAL",
+          "filled": 12,
+          "fill_rate": 0.9231,
+          "distinct": 12,
+          "classification": "texto",
+          "samples": [
+            "=I6/$G$3",
+            "=I7/$G$3",
+            "=I8/$G$3",
+            "=I9/$G$3",
+            "=I10/$G$3",
+            "=I11/$G$3"
+          ]
+        }
+      ],
+      "sample_rows": [
+        {
+          "MÊS": "2025-05-01T00:00:00",
+          "GERAÇÃO kWh": 10724,
+          "TARIFA": 0.8799221,
+          "BRUTO": "=B6*C6",
+          "FIO B": 0.0717771,
+          "DESAGIO": "=C6*0.3",
+          "ADM CONSORCIO": 0,
+          "ARRENDAMENTO": 400,
+          "LIQUIDO": "=((C6-E6-F6)*B6)-G6-H6",
+          "PERCENTUAL": "=I6/$G$3"
+        },
+        {
+          "MÊS": "2025-06-01T00:00:00",
+          "GERAÇÃO kWh": 10706,
+          "TARIFA": 0.8956183,
+          "BRUTO": "=B7*C7",
+          "FIO B": 0.0717771,
+          "DESAGIO": "=C7*0.3",
+          "ADM CONSORCIO": 0,
+          "ARRENDAMENTO": 400,
+          "LIQUIDO": "=((C7-E7-F7)*B7)-G7-H7",
+          "PERCENTUAL": "=I7/$G$3"
+        },
+        {
+          "MÊS": "2025-07-01T00:00:00",
+          "GERAÇÃO kWh": 10344,
+          "TARIFA": 0.9284669,
+          "BRUTO": "=B8*C8",
+          "FIO B": 0.07171636363636363,
+          "DESAGIO": "=C8*0.3",
+          "ADM CONSORCIO": 0,
+          "ARRENDAMENTO": 400,
+          "LIQUIDO": "=((C8-E8-F8)*B8)-G8-H8",
+          "PERCENTUAL": "=I8/$G$3"
+        },
+        {
+          "MÊS": "2025-08-01T00:00:00",
+          "GERAÇÃO kWh": 12011,
+          "TARIFA": 0.9406574,
+          "BRUTO": "=B9*C9",
+          "FIO B": 0.07620616570327553,
+          "DESAGIO": "=C9*0.3",
+          "ADM CONSORCIO": 0,
+          "ARRENDAMENTO": 400,
+          "LIQUIDO": "=((C9-E9-F9)*B9)-G9-H9",
+          "PERCENTUAL": "=I9/$G$3"
+        },
+        {
+          "MÊS": "2025-09-01T00:00:00",
+          "GERAÇÃO kWh": 7865,
+          "TARIFA": 0.9727045,
+          "BRUTO": "=B10*C10",
+          "FIO B": 0.0717771,
+          "DESAGIO": "=C10*0.3",
+          "ADM CONSORCIO": 0,
+          "ARRENDAMENTO": 400,
+          "LIQUIDO": 7019.355265776,
+          "PERCENTUAL": "=I10/$G$3"
+        }
+      ]
+    }
+  ],
+  "entity_inference": [
+    {
+      "sheet": "Extrato 25",
+      "likely_entities": [
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 807,
+      "key_candidates": [
+        "Dia",
+        "Mês",
+        "Ano"
+      ]
+    },
+    {
+      "sheet": "Gastos Morumbi",
+      "likely_entities": [
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 41,
+      "key_candidates": [
+        "Valor"
+      ]
+    },
+    {
+      "sheet": "Previsão Orç.",
+      "likely_entities": [
+        "clientes_prosumidores",
+        "faturas_pagamentos_propostas"
+      ],
+      "data_rows": 30,
+      "key_candidates": []
+    },
+    {
+      "sheet": "Usinas",
+      "likely_entities": [
+        "usinas_ativos",
+        "clientes_prosumidores",
+        "medicoes_energia"
+      ],
+      "data_rows": 60,
+      "key_candidates": []
+    },
+    {
+      "sheet": "Rateio",
+      "likely_entities": [
+        "clientes_prosumidores",
+        "medicoes_energia"
+      ],
+      "data_rows": 56,
+      "key_candidates": []
+    },
+    {
+      "sheet": "Dados",
+      "likely_entities": [
+        "clientes_prosumidores",
+        "unidades_consumidoras",
+        "medicoes_energia"
+      ],
+      "data_rows": 51,
+      "key_candidates": []
+    },
+    {
+      "sheet": "CINARA",
+      "likely_entities": [
+        "apoio_operacional"
+      ],
+      "data_rows": 30,
+      "key_candidates": []
+    },
+    {
+      "sheet": "Historico",
+      "likely_entities": [
+        "usinas_ativos",
+        "clientes_prosumidores",
+        "medicoes_energia",
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 14,
+      "key_candidates": [
+        "GANHO REAL USINA"
+      ]
+    },
+    {
+      "sheet": "Usina - Encontro",
+      "likely_entities": [
+        "medicoes_energia",
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 7,
+      "key_candidates": [
+        "PERCENTUAL"
+      ]
+    },
+    {
+      "sheet": "Usina - Vivendas",
+      "likely_entities": [
+        "medicoes_energia",
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 6,
+      "key_candidates": [
+        "MÊS",
+        "TARIFA",
+        "BRUTO",
+        "DESAGIO",
+        "ADM CONSORCIO",
+        "LIQUIDO",
+        "PERCENTUAL"
+      ]
+    },
+    {
+      "sheet": "Usina - Vitor",
+      "likely_entities": [
+        "medicoes_energia",
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 7,
+      "key_candidates": [
+        "MÊS",
+        "BRUTO",
+        "DESAGIO",
+        "ADM CONSORCIO",
+        "LIQUIDO",
+        "PERCENTUAL"
+      ]
+    },
+    {
+      "sheet": "Usina - Mardem",
+      "likely_entities": [
+        "medicoes_energia",
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 12,
+      "key_candidates": [
+        "MÊS",
+        "BRUTO",
+        "DESAGIO",
+        "ADM CONSORCIO",
+        "LIQUIDO",
+        "PERCENTUAL"
+      ]
+    },
+    {
+      "sheet": "Usina - Ascender",
+      "likely_entities": [
+        "medicoes_energia",
+        "faturas_pagamentos_propostas",
+        "competencias_periodos"
+      ],
+      "data_rows": 13,
+      "key_candidates": [
+        "LIQUIDO"
+      ]
+    }
+  ]
+}

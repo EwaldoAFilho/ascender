@@ -1,0 +1,18 @@
+{
+  "empresa": "ASCENDER",
+  "dominio": "soliscloud-api",
+  "pdf": "C:\\Users\\slaye\\Downloads\\SolisCloud Platform API Document V2.0.pdf",
+  "generated_at": "2026-04-30T18:24:15",
+  "model": "all-MiniLM-L6-v2",
+  "pages_extracted": 122,
+  "chunks": 124,
+  "chunk_notes": 124,
+  "endpoints_detected": 66,
+  "outputs": {
+    "kb_dir": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\base-conhecimento\\soliscloud-api",
+    "embed_dir": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\_embeddings\\soliscloud-api",
+    "chunks_jsonl": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\_embeddings\\soliscloud-api\\chunks.jsonl",
+    "embeddings_npy": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\_embeddings\\soliscloud-api\\embeddings.npy",
+    "endpoints_json": "C:\\obsidian\\dev_fluig_protheus\\05 - Projetos\\ascender\\_embeddings\\soliscloud-api\\endpoints.json"
+  }
+}

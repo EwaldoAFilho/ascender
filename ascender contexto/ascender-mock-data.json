@@ -1,0 +1,169 @@
+{
+  "usinas": [
+    {
+      "id": "usina-ascender-01",
+      "nome": "ASCENDER 01",
+      "codigoDigitalGrid": "1357213",
+      "stationIdSoliscloud": "mock-station-ascender-01",
+      "distribuidora": "Neoenergia",
+      "potenciaKwp": 75,
+      "status": "ativa"
+    },
+    {
+      "id": "usina-morumbi",
+      "nome": "MORUMBI",
+      "codigoDigitalGrid": "845590",
+      "stationIdSoliscloud": "mock-station-morumbi",
+      "distribuidora": "Neoenergia",
+      "potenciaKwp": 60,
+      "status": "ativa"
+    },
+    {
+      "id": "usina-encontro",
+      "nome": "USINA ENCONTRO DAS AGUAS GO",
+      "codigoDigitalGrid": "431764001222",
+      "stationIdSoliscloud": "mock-station-encontro",
+      "distribuidora": "Equatorial GO",
+      "potenciaKwp": 90,
+      "status": "atencao"
+    }
+  ],
+  "clientes": [
+    {
+      "id": "cliente-tt-burger",
+      "nome": "TT BURGER",
+      "documentoMascarado": "***.***.***/0001-**",
+      "tipo": "prosumidor",
+      "status": "ativo"
+    },
+    {
+      "id": "cliente-fernando-guimaraes",
+      "nome": "FERNANDO GUIMARAES",
+      "documentoMascarado": "***.***.***-**",
+      "tipo": "prosumidor",
+      "status": "ativo"
+    },
+    {
+      "id": "cliente-condominio-real-versatile",
+      "nome": "CONDOMINIO REAL VERSATILE",
+      "documentoMascarado": "***.***.***/0001-**",
+      "tipo": "cliente",
+      "status": "ativo"
+    }
+  ],
+  "unidadesConsumidoras": [
+    {
+      "id": "uc-32903",
+      "clienteId": "cliente-tt-burger",
+      "codigoInstalacao": "32903",
+      "distribuidora": "CEMIG",
+      "consumoMedioKwh": 6550
+    },
+    {
+      "id": "uc-616324",
+      "clienteId": "cliente-fernando-guimaraes",
+      "codigoInstalacao": "616324",
+      "distribuidora": "CEMIG",
+      "consumoMedioKwh": 1271
+    },
+    {
+      "id": "uc-1291385",
+      "clienteId": "cliente-condominio-real-versatile",
+      "codigoInstalacao": "1291385",
+      "distribuidora": "CEMIG",
+      "consumoMedioKwh": 11548
+    }
+  ],
+  "medicoesGeracao": [
+    {
+      "id": "med-ascender-2026-04",
+      "usinaId": "usina-ascender-01",
+      "competencia": "2026-04",
+      "geracaoKwh": 12262,
+      "fonte": "planilha"
+    },
+    {
+      "id": "med-morumbi-2026-04",
+      "usinaId": "usina-morumbi",
+      "competencia": "2026-04",
+      "geracaoKwh": 14996.55,
+      "fonte": "planilha"
+    },
+    {
+      "id": "med-encontro-2026-04",
+      "usinaId": "usina-encontro",
+      "competencia": "2026-04",
+      "geracaoKwh": 10137.93,
+      "fonte": "planilha"
+    }
+  ],
+  "faturas": [
+    {
+      "id": "fat-747698",
+      "clienteId": "cliente-tt-burger",
+      "unidadeConsumidoraId": "uc-32903",
+      "usinaId": "usina-ascender-01",
+      "competencia": "2026-04",
+      "valorFatura": 3542.37,
+      "valorBoleto": 4932.53,
+      "vencimento": "2026-05-02",
+      "status": "aguardando"
+    },
+    {
+      "id": "fat-776105",
+      "clienteId": "cliente-fernando-guimaraes",
+      "unidadeConsumidoraId": "uc-616324",
+      "usinaId": "usina-ascender-01",
+      "competencia": "2026-04",
+      "valorFatura": 880.49,
+      "valorBoleto": 1395.23,
+      "vencimento": "2026-05-08",
+      "status": "aguardando"
+    },
+    {
+      "id": "fat-745192",
+      "clienteId": "cliente-condominio-real-versatile",
+      "unidadeConsumidoraId": "uc-1291385",
+      "usinaId": "usina-ascender-01",
+      "competencia": "2026-04",
+      "valorFatura": 7517.58,
+      "valorBoleto": 9706.24,
+      "vencimento": "2026-05-10",
+      "status": "aguardando"
+    }
+  ],
+  "propostas": [
+    {
+      "id": "prop-mock-001",
+      "clienteId": "cliente-fernando-guimaraes",
+      "unidadeConsumidoraId": "uc-616324",
+      "distribuidora": "Neoenergia",
+      "consumoEstimadoKwh": 1271,
+      "tarifaDistribuidora": 1.07,
+      "tarifaAscender": 0.856,
+      "economiaMensalEstimada": 272,
+      "economia12mEstimada": 3264,
+      "status": "simulacao"
+    }
+  ],
+  "integracoes": [
+    {
+      "id": "soliscloud",
+      "nome": "SolisCloud",
+      "status": "mock",
+      "descricao": "Fonte tecnica para geracao, inversores e alarmes."
+    },
+    {
+      "id": "digital-grid",
+      "nome": "Digital Grid",
+      "status": "pendente-validacao",
+      "descricao": "Fonte comercial/financeira para faturas, pagamentos, consumo e rateio."
+    },
+    {
+      "id": "planilha-controle-usinas",
+      "nome": "Controle de Usinas",
+      "status": "importado-para-analise",
+      "descricao": "Planilha operacional usada diariamente pela ASCENDER."
+    }
+  ]
+}

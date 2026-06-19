@@ -1,0 +1,21 @@
+CREATE TABLE "faturas_dg" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"dg_bill_id" integer NOT NULL,
+	"competencia" text DEFAULT '' NOT NULL,
+	"reference_date" text,
+	"fatura_numero" integer,
+	"installation_number" text,
+	"installation_class" text,
+	"payment_status" text DEFAULT '' NOT NULL,
+	"valor_energia" double precision DEFAULT 0 NOT NULL,
+	"valor_total" double precision DEFAULT 0 NOT NULL,
+	"valor_pago" double precision DEFAULT 0 NOT NULL,
+	"economia" double precision DEFAULT 0 NOT NULL,
+	"consumo_kwh" double precision DEFAULT 0 NOT NULL,
+	"energia_injetada_kwh" double precision DEFAULT 0 NOT NULL,
+	"vencimento" text,
+	"pago_em" text,
+	"raw" jsonb,
+	"sincronizado_em" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "faturas_dg_dg_bill_id_unique" UNIQUE("dg_bill_id")
+);

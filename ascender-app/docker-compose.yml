@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ascender
+      POSTGRES_PASSWORD: ascender
+      POSTGRES_DB: ascender
+    volumes:
+      - ascender_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ascender -d ascender"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Garante o host do banco do compose, independentemente do .env.
+      DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+  # Cron: sincroniza o histórico mensal de geração (SolisCloud → banco).
+  # Usa a mesma imagem, mas sem o entrypoint do app; roda em loop (a cada 6h).
+  sync:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
+    entrypoint: []
+    command: >
+      sh -c "sleep 45;
+      while true; do
+        echo '[sync] iniciando sincronizacao de geracao';
+        npm run db:sync-geracao || echo '[sync] geracao falhou; nova tentativa no proximo ciclo';
+        echo '[sync] iniciando sincronizacao de faturas (Digital Grid)';
+        npm run db:sync-faturas-dg || echo '[sync] faturas DG puladas (sem token?); nova tentativa no proximo ciclo';
+        echo '[sync] iniciando sincronizacao de rateio (Digital Grid)';
+        npm run db:sync-rateio-dg || echo '[sync] rateio DG pulado (sem token?); nova tentativa no proximo ciclo';
+        sleep 21600;
+      done"
+
+volumes:
+  ascender_pgdata:
