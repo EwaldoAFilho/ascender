@@ -88,3 +88,23 @@ export type SolisPaged<T> =
   | { page?: { records?: T[]; total?: number } }
   | { records?: T[] }
   | T[];
+
+// collectorList: dataloggers/coletores (O&M). Inclui um resumo de status.
+export type SolisCollectorRecord = {
+  id?: string;
+  sn?: string;
+  stationId?: string;
+  state?: number; // 1=online, 2=offline, 3=alarme
+  dataTimestamp?: number | string;
+  model?: string;
+};
+
+export type SolisCollectorData = {
+  collectionStatusVo?: {
+    all?: number;
+    normal?: number;
+    fault?: number;
+    offline?: number;
+  };
+  page?: { records?: SolisCollectorRecord[]; total?: number };
+};

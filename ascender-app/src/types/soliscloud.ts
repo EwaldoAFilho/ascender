@@ -37,6 +37,20 @@ export type InverterTelemetry = {
   lastUpdate: string;
 };
 
+// Coletor (datalogger) — monitor de comunicação para O&M.
+export type Collector = {
+  sn: string;
+  plantId: string;
+  state: DeviceState; // online | offline | alarm
+  updateTime: string;
+  model: string | null;
+};
+
+export type CollectorMonitor = {
+  resumo: { total: number; online: number; offline: number; alarme: number };
+  coletores: Collector[];
+};
+
 export type SolisAlarm = {
   id: string;
   plantId: string;

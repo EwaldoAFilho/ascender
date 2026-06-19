@@ -24,7 +24,7 @@ const recursosSolis: Array<{ rec: string; uso: string; producao: boolean }> = [
   { rec: "stationYear", uso: "Geração mensal do ano + receita (Geração)", producao: true },
   { rec: "inverterList", uso: "Inversores por usina (SolisCloud)", producao: true },
   { rec: "alarmList", uso: "Alarmes / alertas técnicos (SolisCloud)", producao: true },
-  { rec: "collectorList", uso: "Comunicação dos coletores (O&M) — planejado", producao: false },
+  { rec: "collectorList", uso: "Comunicação dos coletores / dataloggers (O&M)", producao: true },
 ];
 
 const recursosDg: Array<{ rec: string; uso: string; producao: boolean }> = [

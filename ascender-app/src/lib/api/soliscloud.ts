@@ -1,4 +1,5 @@
 import type {
+  CollectorMonitor,
   InverterTelemetry,
   SolisAlarm,
   SolisTelemetry,
@@ -50,6 +51,10 @@ export function fetchInverters(stationId?: string) {
 export function fetchAlarms(stationId?: string) {
   const qs = stationId ? `?stationId=${encodeURIComponent(stationId)}` : "";
   return getJson<SolisAlarm[]>(`/api/soliscloud/alarms${qs}`);
+}
+
+export function fetchCollectors() {
+  return getJson<CollectorMonitor>("/api/soliscloud/collectors");
 }
 
 export type IntegrationStatus = {

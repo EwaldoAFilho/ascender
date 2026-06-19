@@ -1,5 +1,6 @@
 import type {
   AlarmLevel,
+  Collector,
   DeviceState,
   InverterTelemetry,
   SolisAlarm,
@@ -7,6 +8,7 @@ import type {
 } from "@/types/soliscloud";
 import type {
   SolisAlarmRecord,
+  SolisCollectorRecord,
   SolisInverterRecord,
   SolisPaged,
   SolisSeriesRecord,
@@ -178,5 +180,16 @@ export function mapAlarmRecord(record: SolisAlarmRecord): SolisAlarm {
     message: record.alarmMsg ?? record.alarmName ?? record.alarmCode ?? "Alarme",
     startedAt: formatTimestamp(record.alarmBegTime),
     status: mapAlarmStatus(record.state),
+  };
+}
+
+export function mapCollectorRecord(record: SolisCollectorRecord): Collector {
+  return {
+    sn: String(record.sn ?? record.id ?? ""),
+    plantId: String(record.stationId ?? ""),
+    state: mapState(record.state),
+    updateTime: formatTimestamp(record.dataTimestamp),
+    model:
+      record.model && String(record.model).trim() ? String(record.model) : null,
   };
 }

@@ -8,6 +8,7 @@ export const SOLIS_ENDPOINTS = {
   inverterList: "/v1/api/inverterList",
   inverterDetail: "/v1/api/inverterDetail",
   alarmList: "/v1/api/alarmList",
+  collectorList: "/v1/api/collectorList",
 } as const;
 
 export const SOLIS_DEFAULT_BASE_URL = "https://www.soliscloud.com:13333";

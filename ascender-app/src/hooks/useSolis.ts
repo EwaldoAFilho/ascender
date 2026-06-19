@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchAlarms,
+  fetchCollectors,
   fetchGeneration,
   fetchIntegrationStatus,
   fetchInverters,
@@ -32,6 +33,14 @@ export function useAlarms(stationId?: string) {
   return useQuery({
     queryKey: ["soliscloud", "alarms", stationId ?? "all"],
     queryFn: () => fetchAlarms(stationId),
+    refetchInterval: REFRESH_INTERVAL,
+  });
+}
+
+export function useCollectors() {
+  return useQuery({
+    queryKey: ["soliscloud", "collectors"],
+    queryFn: fetchCollectors,
     refetchInterval: REFRESH_INTERVAL,
   });
 }

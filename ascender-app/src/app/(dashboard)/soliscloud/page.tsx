@@ -3,19 +3,36 @@
 import { AlarmsByStation } from "@/components/AlarmsByStation";
 import { BarList } from "@/components/BarList";
 import { EmptyState, ErrorState, PanelSkeleton } from "@/components/states";
-import { useAlarms, useInverters, useStations } from "@/hooks/useSolis";
+import {
+  useAlarms,
+  useCollectors,
+  useInverters,
+  useStations,
+} from "@/hooks/useSolis";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 const loadingStyle = { color: "var(--muted)", margin: 0 } as const;
+
+const collectorStateLabel: Record<string, string> = {
+  online: "online",
+  offline: "offline",
+  alarm: "alarme",
+};
+const collectorRank: Record<string, number> = { offline: 0, alarm: 1, online: 2 };
 
 export default function SolisCloudPage() {
   const stations = useStations();
   const inverters = useInverters();
   const alarms = useAlarms();
+  const collectors = useCollectors();
 
   const stationList = stations.data ?? [];
   const inverterList = inverters.data ?? [];
   const alarmList = alarms.data ?? [];
+  const collectorData = collectors.data;
+  const collectorList = [...(collectorData?.coletores ?? [])].sort(
+    (a, b) => (collectorRank[a.state] ?? 9) - (collectorRank[b.state] ?? 9),
+  );
   const stationNameById = new Map(
     stationList.map((s) => [s.stationId, s.stationName ?? s.stationId]),
   );
@@ -74,6 +91,56 @@ export default function SolisCloudPage() {
                 </small>
               </article>
             ))}
+          </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Comunicação dos coletores</h2>
+            <p>Status dos dataloggers (O&M). Coletor offline = usina sem envio de dados.</p>
+          </div>
+          <span>
+            {collectors.isSuccess && collectorData
+              ? `${collectorData.resumo.online} online · ${collectorData.resumo.offline} offline${collectorData.resumo.alarme ? ` · ${collectorData.resumo.alarme} alarme` : ""} de ${collectorData.resumo.total}`
+              : "—"}
+          </span>
+        </div>
+        {collectors.isPending ? (
+          <p style={loadingStyle}>Carregando coletores…</p>
+        ) : collectors.isError ? (
+          <ErrorState error={collectors.error} onRetry={() => collectors.refetch()} />
+        ) : collectorList.length === 0 ? (
+          <EmptyState message="Nenhum coletor retornado pela SolisCloud." />
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Serial (SN)</th>
+                  <th>Estação</th>
+                  <th>Modelo</th>
+                  <th>Última comunicação</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {collectorList.map((c) => (
+                  <tr key={c.sn}>
+                    <td>{c.sn}</td>
+                    <td>{stationNameById.get(c.plantId) ?? c.plantId}</td>
+                    <td>{c.model ?? "—"}</td>
+                    <td>{c.updateTime || "—"}</td>
+                    <td>
+                      <span className={`status status-${c.state}`}>
+                        {collectorStateLabel[c.state] ?? c.state}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </section>
