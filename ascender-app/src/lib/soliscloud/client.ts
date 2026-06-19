@@ -10,17 +10,47 @@ export type SolisCredentials = {
 };
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // dados SolisCloud atualizam a cada ~5 min
-const MIN_INTERVAL_MS = 600; // respeita ~2 req/s por endpoint, com folga
+// Espaçamento GLOBAL entre chamadas. A SolisCloud aplica rate limit por conta
+// (não por endpoint), então telas que disparam várias chamadas ao mesmo tempo
+// (estações + inversores + alarmes + coletores) precisam compartilhar a fila.
+const MIN_INTERVAL_MS = 600; // ~1,6 req/s, com folga sobre o limite da conta
+const MAX_RETRIES = 2; // tentativas extras para erros transitórios (rede/5xx/429)
 
-const lastCallAt = new Map<string, number>();
+let lastCallAt = 0;
+let queue: Promise<unknown> = Promise.resolve();
 
-async function throttle(resourcePath: string): Promise<void> {
-  const last = lastCallAt.get(resourcePath) ?? 0;
-  const wait = Math.max(0, last + MIN_INTERVAL_MS - Date.now());
-  if (wait > 0) {
-    await new Promise((resolve) => setTimeout(resolve, wait));
-  }
-  lastCallAt.set(resourcePath, Date.now());
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Reserva um "slot" de envio na fila global, garantindo MIN_INTERVAL_MS entre o
+ * início de duas chamadas quaisquer à SolisCloud — mesmo de requisições
+ * concorrentes. Sem isso, abrir a tela (4 chamadas paralelas) estoura o rate
+ * limit e a 1ª carga falha; só depois, com o cache quente, ela passa.
+ */
+function reserveSlot(): Promise<void> {
+  const run = queue.then(async () => {
+    const wait = Math.max(0, lastCallAt + MIN_INTERVAL_MS - Date.now());
+    if (wait > 0) await sleep(wait);
+    lastCallAt = Date.now();
+  });
+  // A próxima chamada espera esta reservar o slot, mesmo que ela falhe depois.
+  queue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+function isTransientStatus(status: number): boolean {
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
 }
 
 export class SolisApiError extends Error {
@@ -41,6 +71,10 @@ function friendlyError(code: string, fallback: string): string {
 /**
  * Faz uma chamada assinada (POST) a um endpoint SolisCloud e devolve `data`.
  * O `keySecret` é usado apenas aqui (servidor) para assinar; nunca é exposto.
+ *
+ * As chamadas passam por uma fila global (reserveSlot) e fazem retry com
+ * backoff em falhas transitórias. Erros lógicos da API (credencial/permissão)
+ * não são repetidos — são determinísticos.
  */
 export async function callSolis<T>(
   creds: SolisCredentials,
@@ -57,50 +91,69 @@ export async function callSolis<T>(
     if (hit !== undefined) return hit;
   }
 
-  await throttle(resourcePath);
-
-  const headers = buildAuthHeaders({
-    keyId: creds.keyId,
-    keySecret: creds.keySecret,
-    resourcePath,
-    body,
-  });
   const url = `${normalizeBaseUrl(creds.baseUrl)}${resourcePath}`;
+  let lastError: SolisApiError = new SolisApiError(
+    "Falha ao consultar a SolisCloud.",
+  );
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: "POST",
-      headers,
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) await sleep(800 * attempt); // backoff linear: 0,8s / 1,6s
+    await reserveSlot();
+
+    // Assinatura refeita a cada tentativa: o Date (±15 min) fica sempre fresco.
+    const headers = buildAuthHeaders({
+      keyId: creds.keyId,
+      keySecret: creds.keySecret,
+      resourcePath,
       body,
-      cache: "no-store",
     });
-  } catch {
-    throw new SolisApiError("Falha de conexão com a SolisCloud.");
+
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+        cache: "no-store",
+      });
+    } catch {
+      lastError = new SolisApiError("Falha de conexão com a SolisCloud.");
+      continue; // erro de rede é transitório → tenta de novo
+    }
+
+    if (!res.ok) {
+      lastError = new SolisApiError(`SolisCloud respondeu HTTP ${res.status}.`, {
+        status: res.status,
+      });
+      if (isTransientStatus(res.status) && attempt < MAX_RETRIES) continue;
+      throw lastError;
+    }
+
+    const json = (await res.json().catch(() => null)) as SolisEnvelope<T> | null;
+    if (!json) {
+      lastError = new SolisApiError("Resposta inválida da SolisCloud.");
+      if (attempt < MAX_RETRIES) continue;
+      throw lastError;
+    }
+
+    const code = String(json.code ?? "");
+    const ok =
+      json.success === true ||
+      code === "0" ||
+      code === "1" ||
+      code === "1000000";
+    if (!ok) {
+      // Erro lógico (credencial, permissão, parâmetro) — determinístico.
+      throw new SolisApiError(
+        friendlyError(code, json.msg || "Erro retornado pela SolisCloud."),
+        { code },
+      );
+    }
+
+    const data = json.data as T;
+    if (useCache) setCached(cacheKey, data, CACHE_TTL_MS);
+    return data;
   }
 
-  if (!res.ok) {
-    throw new SolisApiError(`SolisCloud respondeu HTTP ${res.status}.`, {
-      status: res.status,
-    });
-  }
-
-  const json = (await res.json().catch(() => null)) as SolisEnvelope<T> | null;
-  if (!json) {
-    throw new SolisApiError("Resposta inválida da SolisCloud.");
-  }
-
-  const code = String(json.code ?? "");
-  const ok =
-    json.success === true || code === "0" || code === "1" || code === "1000000";
-  if (!ok) {
-    throw new SolisApiError(
-      friendlyError(code, json.msg || "Erro retornado pela SolisCloud."),
-      { code },
-    );
-  }
-
-  const data = json.data as T;
-  if (useCache) setCached(cacheKey, data, CACHE_TTL_MS);
-  return data;
+  throw lastError;
 }
