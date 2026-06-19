@@ -1,6 +1,5 @@
-import { Building2, Sun, Users } from "lucide-react";
 import { ImportarCadastrosDg } from "@/components/cadastros/ImportarCadastrosDg";
-import { KpiCard } from "@/components/KpiCard";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   getConciliacaoReport,
   type ConciliacaoReport,
@@ -72,6 +71,36 @@ export default async function ConciliacaoPage() {
   const totalImportar =
     report.clientes.aImportar + report.usinas.aImportar + report.ucs.aImportar;
 
+  const kpis: SummaryItem[] = [
+    {
+      label: "Clientes",
+      value: `${report.clientes.vinculados}/${report.clientes.dgTotal}`,
+      hint:
+        report.clientes.aImportar > 0
+          ? `${report.clientes.aImportar} a importar`
+          : "tudo conciliado",
+      tone: report.clientes.aImportar === 0 ? "ok" : "warn",
+    },
+    {
+      label: "Usinas",
+      value: `${report.usinas.vinculados}/${report.usinas.dgTotal}`,
+      hint:
+        report.usinas.aImportar > 0
+          ? `${report.usinas.aImportar} a vincular`
+          : "tudo vinculado",
+      tone: report.usinas.aImportar === 0 ? "ok" : "warn",
+    },
+    {
+      label: "Unidades consumidoras",
+      value: `${report.ucs.vinculados}/${report.ucs.dgTotal}`,
+      hint:
+        report.ucs.aImportar > 0
+          ? `${report.ucs.aImportar} a importar`
+          : "tudo conciliado",
+      tone: report.ucs.aImportar === 0 ? "ok" : "warn",
+    },
+  ];
+
   return (
     <>
       <section className="panel">
@@ -99,29 +128,7 @@ export default async function ConciliacaoPage() {
         )}
       </section>
 
-      <section className="kpi-grid compact-kpis">
-        <KpiCard
-          title="Clientes"
-          value={`${report.clientes.vinculados}/${report.clientes.dgTotal}`}
-          detail="Vinculados / total no DG"
-          icon={Users}
-          tone={report.clientes.aImportar === 0 ? "success" : "warning"}
-        />
-        <KpiCard
-          title="Usinas"
-          value={`${report.usinas.vinculados}/${report.usinas.dgTotal}`}
-          detail="Vinculadas / total no DG"
-          icon={Sun}
-          tone={report.usinas.aImportar === 0 ? "success" : "warning"}
-        />
-        <KpiCard
-          title="Unidades consumidoras"
-          value={`${report.ucs.vinculados}/${report.ucs.dgTotal}`}
-          detail="Vinculadas / total no DG"
-          icon={Building2}
-          tone={report.ucs.aImportar === 0 ? "success" : "warning"}
-        />
-      </section>
+      <SummaryStrip items={kpis} />
 
       <CategoriaCard titulo="Clientes a importar" dados={report.clientes} />
       <CategoriaCard

@@ -1,6 +1,5 @@
-import { FileText, Lightbulb, Users } from "lucide-react";
 import { CrudSection } from "@/components/cadastros/CrudSection";
-import { KpiCard } from "@/components/KpiCard";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteProposta, saveProposta } from "@/lib/cadastros/actions";
 import {
   listPropostas,
@@ -38,30 +37,36 @@ export default async function PropostasPage() {
     0,
   );
   const ticket = props.length ? economiaAnualTotal / props.length : 0;
+  const aprovadas = props.filter((p) => p.status === "aprovada").length;
+
+  const kpis: SummaryItem[] = [
+    {
+      label: "Propostas",
+      value: numberFormatter.format(props.length),
+      hint: "cadastradas",
+    },
+    {
+      label: "Aprovadas",
+      value: numberFormatter.format(aprovadas),
+      hint: `de ${props.length} proposta(s)`,
+      tone: aprovadas > 0 ? "ok" : "default",
+    },
+    {
+      label: "Economia anual potencial",
+      value: moneyFormatter.format(economiaAnualTotal),
+      hint: "soma das propostas",
+      tone: "ok",
+    },
+    {
+      label: "Ticket médio (ano)",
+      value: moneyFormatter.format(ticket),
+      hint: "economia por proposta",
+    },
+  ];
 
   return (
     <>
-      <section className="kpi-grid compact-kpis">
-        <KpiCard
-          title="Propostas"
-          value={String(props.length)}
-          detail="cadastradas"
-          icon={FileText}
-        />
-        <KpiCard
-          title="Economia anual potencial"
-          value={moneyFormatter.format(economiaAnualTotal)}
-          detail="soma das propostas"
-          icon={Lightbulb}
-          tone="success"
-        />
-        <KpiCard
-          title="Ticket médio (ano)"
-          value={moneyFormatter.format(ticket)}
-          detail="economia média por proposta"
-          icon={Users}
-        />
-      </section>
+      <SummaryStrip items={kpis} />
 
       <CrudSection
         singular="proposta"

@@ -14,6 +14,8 @@ import { getDb } from "@/lib/db";
 import { faturasDg, medicoesGeracao, rateiosDg } from "@/lib/db/schema";
 import { getDgRow } from "@/lib/digitalgrid/credentials";
 import { getSolisCredentialRow } from "@/lib/soliscloud/credentials";
+import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
+import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +105,33 @@ export default async function IntegracoesPage() {
 
   const fontesAtivas = (solisOk ? 1 : 0) + (dgOk ? 1 : 0);
 
+  const kpis: SummaryItem[] = [
+    {
+      label: "Fontes ativas",
+      value: `${fontesAtivas}/2`,
+      hint: "SolisCloud + Digital Grid",
+      tone: fontesAtivas === 2 ? "ok" : fontesAtivas === 1 ? "warn" : "bad",
+    },
+    {
+      label: "Medições de geração",
+      value: numberFormatter.format(histG?.total ?? 0),
+      hint: "no histórico (banco)",
+      tone: (histG?.total ?? 0) > 0 ? "ok" : "warn",
+    },
+    {
+      label: "Faturas",
+      value: numberFormatter.format(histF?.total ?? 0),
+      hint: "sincronizadas do DG",
+      tone: (histF?.total ?? 0) > 0 ? "ok" : "warn",
+    },
+    {
+      label: "Cotas de rateio",
+      value: numberFormatter.format(histR?.total ?? 0),
+      hint: "sincronizadas do DG",
+      tone: (histR?.total ?? 0) > 0 ? "ok" : "warn",
+    },
+  ];
+
   const telaBadge: Record<TelaStatus, { cls: string; label: string }> = {
     real: { cls: "status-online", label: "real" },
     manual: { cls: "status-aguardando", label: "manual" },
@@ -112,6 +141,7 @@ export default async function IntegracoesPage() {
 
   return (
     <>
+      <SummaryStrip items={kpis} />
       <section className="split-grid">
         <section className="panel">
           <div className="panel-header">
