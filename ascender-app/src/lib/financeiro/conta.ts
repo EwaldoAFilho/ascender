@@ -39,6 +39,11 @@ const camposPublicos = {
   sceeExcedenteKwh: contasEnergia.sceeExcedenteKwh,
   sceeCreditosKwh: contasEnergia.sceeCreditosKwh,
   sceeSaldoProximoKwh: contasEnergia.sceeSaldoProximoKwh,
+  sceeSaldoAnteriorKwh: contasEnergia.sceeSaldoAnteriorKwh,
+  sceeTransfKwh: contasEnergia.sceeTransfKwh,
+  sceeInjetadoKwh: contasEnergia.sceeInjetadoKwh,
+  sceeCompensadoKwh: contasEnergia.sceeCompensadoKwh,
+  sceeSaldoAtualKwh: contasEnergia.sceeSaldoAtualKwh,
   criadoEm: contasEnergia.criadoEm,
 } as const;
 
@@ -76,6 +81,11 @@ export async function salvarContaEnergia(
     sceeExcedenteKwh: p.sceeExcedenteKwh,
     sceeCreditosKwh: p.sceeCreditosKwh,
     sceeSaldoProximoKwh: p.sceeSaldoProximoKwh,
+    sceeSaldoAnteriorKwh: p.sceeSaldoAnteriorKwh,
+    sceeTransfKwh: p.sceeTransfKwh,
+    sceeInjetadoKwh: p.sceeInjetadoKwh,
+    sceeCompensadoKwh: p.sceeCompensadoKwh,
+    sceeSaldoAtualKwh: p.sceeSaldoAtualKwh,
     textoExtraido: texto,
   };
   await getDb()

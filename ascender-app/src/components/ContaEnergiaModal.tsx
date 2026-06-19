@@ -26,6 +26,11 @@ type ContaView = {
   sceeExcedenteKwh: number | null;
   sceeCreditosKwh: number | null;
   sceeSaldoProximoKwh: number | null;
+  sceeSaldoAnteriorKwh: number | null;
+  sceeTransfKwh: number | null;
+  sceeInjetadoKwh: number | null;
+  sceeCompensadoKwh: number | null;
+  sceeSaldoAtualKwh: number | null;
 };
 
 const kwh = (n: number | null) =>
@@ -171,30 +176,59 @@ export function ContaEnergiaModal({
           </p>
         ) : (
           <>
-            <div
-              className="panel"
-              style={{
-                margin: "0 0 14px",
-                padding: 14,
-                borderLeft: "4px solid var(--success)",
-              }}
-            >
-              <strong style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Zap size={16} style={{ color: "var(--success)" }} /> Créditos (SCEE)
-              </strong>
-              <div className="summary-list" style={{ marginTop: 8 }}>
-                <Campo label="Excedente" valor={kwh(conta.sceeExcedenteKwh)} />
-                <Campo label="Créditos utilizados" valor={kwh(conta.sceeCreditosKwh)} />
-                <Campo
-                  label="Saldo p/ próximo ciclo"
-                  valor={
-                    <span style={{ color: "var(--success)" }}>
-                      {kwh(conta.sceeSaldoProximoKwh)}
-                    </span>
-                  }
-                />
-              </div>
-            </div>
+            {(() => {
+              const layoutB = conta.sceeSaldoAtualKwh != null;
+              const temScee =
+                layoutB ||
+                conta.sceeSaldoProximoKwh != null ||
+                conta.sceeCreditosKwh != null ||
+                conta.sceeExcedenteKwh != null;
+              if (!temScee) return null;
+              return (
+                <div
+                  className="panel"
+                  style={{
+                    margin: "0 0 14px",
+                    padding: 14,
+                    borderLeft: "4px solid var(--success)",
+                  }}
+                >
+                  <strong style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <Zap size={16} style={{ color: "var(--success)" }} /> Créditos (SCEE)
+                  </strong>
+                  <div className="summary-list" style={{ marginTop: 8 }}>
+                    {layoutB ? (
+                      <>
+                        <Campo label="Saldo anterior" valor={kwh(conta.sceeSaldoAnteriorKwh)} />
+                        <Campo label="Injetado" valor={kwh(conta.sceeInjetadoKwh)} />
+                        <Campo label="Compensado" valor={kwh(conta.sceeCompensadoKwh)} />
+                        <Campo
+                          label="Saldo atual"
+                          valor={
+                            <span style={{ color: "var(--success)" }}>
+                              {kwh(conta.sceeSaldoAtualKwh)}
+                            </span>
+                          }
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Campo label="Excedente" valor={kwh(conta.sceeExcedenteKwh)} />
+                        <Campo label="Créditos utilizados" valor={kwh(conta.sceeCreditosKwh)} />
+                        <Campo
+                          label="Saldo p/ próximo ciclo"
+                          valor={
+                            <span style={{ color: "var(--success)" }}>
+                              {kwh(conta.sceeSaldoProximoKwh)}
+                            </span>
+                          }
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="summary-list">
               <Campo label="Cliente" valor={conta.cliente} />

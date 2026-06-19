@@ -267,9 +267,16 @@ export const contasEnergia = pgTable("contas_energia", {
   tributos: jsonb("tributos"), // { pis, cofins, icms }
   itensFatura: jsonb("itens_fatura"), // [{ descricao, valor }]
   aviso: text("aviso"),
+  // SCEE — layout beneficiário
   sceeExcedenteKwh: doublePrecision("scee_excedente_kwh"),
   sceeCreditosKwh: doublePrecision("scee_creditos_kwh"),
   sceeSaldoProximoKwh: doublePrecision("scee_saldo_proximo_kwh"),
+  // SCEE — layout gerador/consórcio
+  sceeSaldoAnteriorKwh: doublePrecision("scee_saldo_anterior_kwh"),
+  sceeTransfKwh: doublePrecision("scee_transf_kwh"),
+  sceeInjetadoKwh: doublePrecision("scee_injetado_kwh"),
+  sceeCompensadoKwh: doublePrecision("scee_compensado_kwh"),
+  sceeSaldoAtualKwh: doublePrecision("scee_saldo_atual_kwh"),
   textoExtraido: text("texto_extraido"),
   criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
