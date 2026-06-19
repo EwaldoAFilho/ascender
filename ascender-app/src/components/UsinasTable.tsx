@@ -61,7 +61,7 @@ const columns: DataColumn<UsinaLinha>[] = [
   },
   {
     key: "esperado",
-    header: "Esperado",
+    header: "Meta até hoje",
     align: "right",
     value: (l) => l.esperadoMesKwh ?? 0,
     render: (l) => (l.esperadoMesKwh ? `${n(l.esperadoMesKwh)} kWh` : "-"),

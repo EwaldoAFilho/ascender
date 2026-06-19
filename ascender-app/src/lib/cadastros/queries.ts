@@ -279,12 +279,25 @@ export async function getUsinasComTelemetria(): Promise<{
     listUsinas(),
     getTelemetriaPorStation(),
   ]);
+  // Meta proporcional aos dias decorridos do mês corrente: o realizado é
+  // acumulado do mês até hoje, então comparar com a meta cheia distorce a
+  // aderência no início/meio do mês. Ajusta a meta para "até hoje".
+  const agora = new Date();
+  const diasNoMes = new Date(
+    agora.getFullYear(),
+    agora.getMonth() + 1,
+    0,
+  ).getDate();
+  const fracaoMes = Math.min(agora.getDate() / diasNoMes, 1);
+
   const linhas: UsinaCruzada[] = usinasCad.map((u) => {
     const t = u.stationIdSoliscloud
       ? tele.mapa.get(u.stationIdSoliscloud)
       : undefined;
     const realizado = t ? t.monthEnergyKwh : null;
-    const esperado = u.geracaoEsperadaKwhMes || null;
+    const esperadoCheio = u.geracaoEsperadaKwhMes || null;
+    // meta esperada até hoje (proporcional aos dias decorridos)
+    const esperado = esperadoCheio != null ? esperadoCheio * fracaoMes : null;
     const aderencia =
       realizado != null && esperado ? (realizado / esperado) * 100 : null;
     return {

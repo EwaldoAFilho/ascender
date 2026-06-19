@@ -97,7 +97,7 @@ export default async function OverviewPage() {
             </div>
           </div>
           <div className="cockpit-chips">
-            <span className="status status-online">{online} gerando</span>
+            <span className="status status-online">{online} online</span>
             {alarme > 0 ? (
               <span className="status status-alarm">{alarme} em alarme</span>
             ) : null}

@@ -63,7 +63,7 @@ export default async function ExecutivoPage() {
           unit={temAderencia ? "% da meta" : ""}
           sublabel={
             temAderencia
-              ? `Realizado ${numberFormatter.format(realTot)} / Esperado ${numberFormatter.format(espTot)} kWh`
+              ? `Realizado ${numberFormatter.format(realTot)} / meta até hoje ${numberFormatter.format(espTot)} kWh`
               : "Defina a meta de geração das usinas"
           }
           tone={temAderencia ? tone : "brand"}
@@ -117,7 +117,7 @@ export default async function ExecutivoPage() {
           <div className="panel-header">
             <div>
               <h2>Aderência por usina</h2>
-              <p>Realizado × esperado no mês — pior desempenho no topo.</p>
+              <p>Realizado × meta proporcional aos dias — pior desempenho no topo.</p>
             </div>
           </div>
           {aderRows.length === 0 ? (
