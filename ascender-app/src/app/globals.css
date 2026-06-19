@@ -282,18 +282,6 @@ h2 {
   border: 1px solid rgba(245, 183, 0, 0.3);
 }
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.compact-kpis {
-  grid-template-columns: 1fr;
-}
-
-.kpi-card,
 .panel,
 .proposal-card,
 .idea-card {
@@ -302,14 +290,6 @@ h2 {
   border-radius: 8px;
 }
 
-.kpi-card {
-  display: flex;
-  gap: 12px;
-  min-height: 122px;
-  padding: 16px;
-}
-
-.kpi-icon,
 .source-icon {
   display: grid;
   place-items: center;
@@ -321,21 +301,12 @@ h2 {
   color: var(--brand-yellow);
 }
 
-.kpi-title,
-.kpi-card small,
 .panel-header span,
 .proposal-card span,
 .proposal-card small,
 .integration-list span,
 .idea-card small {
   color: var(--muted);
-}
-
-.kpi-card strong {
-  display: block;
-  margin: 6px 0;
-  color: var(--heading);
-  font-size: 1.35rem;
 }
 
 .tone-warning {
@@ -911,15 +882,10 @@ th {
     display: block;
   }
 
-  .kpi-grid,
   .module-grid,
   .telemetry-grid,
   .idea-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .compact-kpis {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .dashboard-grid,
@@ -969,14 +935,6 @@ th {
 
   .sidebar button {
     justify-content: flex-start;
-  }
-
-  .kpi-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  .compact-kpis {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .module-grid {

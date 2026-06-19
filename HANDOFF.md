@@ -85,7 +85,8 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 
 - **DataTable** (`src/components/DataTable.tsx`): ordenação por coluna, busca, paginação e **exportação Excel/PDF** (xlsx + jspdf, import dinâmico). Usado nas tabelas de dados e no `CrudSection` (cadastros).
 - **Dashboards Início/Executivo** redesenhados (skill frontend-design): **PowerRing** (anel SVG amarelo→ouro) — potência/capacidade no Início, **aderência** no Executivo. Aderência usa **meta proporcional aos dias** do mês corrente (`getUsinasComTelemetria`).
-- **SummaryStrip** (`src/components/SummaryStrip.tsx`): faixa de métricas (`.metric`/`.metric-row`) com **tom de saúde** (ok/warn/bad = verde/âmbar/vermelho). Usada em **SolisCloud** e **Usinas** (KPIs no topo) e em cada **Cadastro** (resumo). **Cadastros** tem hub `/cadastros` com cards+contadores (`getCadastrosResumo`) e abas (`registry-tabs`, com aba "Visão geral"); SolisCloud memoiza derivados/colunas (skill Vercel).
+- **SummaryStrip** (`src/components/SummaryStrip.tsx`): faixa de métricas (`.metric`/`.metric-row`) com **tom de saúde** (ok/warn/bad = verde/âmbar/vermelho). É o **KPI-padrão de todas as telas de conteúdo** (SolisCloud, Usinas, Financeiro, Rateio, Propostas, Integrações, Geração, Análise, Conciliação e o resumo de cada Cadastro). **Substituiu o antigo `KpiCard`, que foi removido** (e o CSS `.kpi-*` limpo). **Cadastros** tem hub `/cadastros` com cards+contadores (`getCadastrosResumo`) e abas (`registry-tabs`, aba "Visão geral"); SolisCloud memoiza derivados/colunas e usa a **fila global** de chamadas (seção 7).
+- **Login** (`src/app/login/page.tsx`) redesenhado (skill frontend-design): **split-screen** — painel "amanhecer" (gradiente azul-petróleo + halo solar dourado na base) com o logo via `mix-blend-mode: screen` (o fundo preto do arquivo some) + formulário ao lado. Headline "Energia que ascende". Responsivo; validado por screenshot nos temas claro e escuro.
 - Tema claro/escuro via variáveis CSS em `src/app/globals.css` (azul `--brand-blue` + amarelo/ouro solar). Datas exibidas DD/MM/AAAA, competências MM/AAAA (armazenadas AAAA-MM).
 
 ## 9. O que falta / próximos (opcional)
@@ -94,4 +95,6 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 - Importador de planilha Excel (dados que só vivem na planilha operacional).
 - Parser de contas para outras distribuidoras.
 - Edição manual dos campos extraídos de contas (correção do que o parser não pegar).
+- **Navegação mobile** — o app é responsivo, mas pensado para desktop. Plano de melhoria (mobile = "acompanhar"; cadastros/edição ocultos no celular) em **`ascender-app/PLANO-MOBILE.md`**. Aguardando implementação.
+- Polir o hero do login em telas muito largas (>1600px): sobra espaço vazio no centro; considerar limitar a largura do conteúdo ou reancorar o bloco.
 - **Fila/cache da SolisCloud em Redis** — só se houver múltiplas réplicas do `app` ou se o `app` e o `sync` (filas por processo, ver seção 7) passarem a colidir no rate limit com frequência. Hoje o retry com backoff cobre o encontro raro.
