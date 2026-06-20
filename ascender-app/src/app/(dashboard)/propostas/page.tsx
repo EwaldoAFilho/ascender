@@ -1,4 +1,5 @@
 import { CrudSection } from "@/components/cadastros/CrudSection";
+import { DesktopOnly } from "@/components/DesktopOnly";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteProposta, saveProposta } from "@/lib/cadastros/actions";
 import {
@@ -65,7 +66,7 @@ export default async function PropostasPage() {
   ];
 
   return (
-    <>
+    <DesktopOnly area="As propostas">
       <SummaryStrip items={kpis} />
 
       <CrudSection
@@ -165,6 +166,6 @@ export default async function PropostasPage() {
           },
         }))}
       />
-    </>
+    </DesktopOnly>
   );
 }

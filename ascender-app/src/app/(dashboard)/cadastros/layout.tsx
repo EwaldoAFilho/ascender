@@ -12,6 +12,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { DesktopOnly } from "@/components/DesktopOnly";
 
 const tabs: Array<{ href: string; label: string; icon: LucideIcon; exact?: boolean }> = [
   { href: "/cadastros", label: "Visão geral", icon: LayoutGrid, exact: true },
@@ -31,7 +32,7 @@ export default function CadastrosLayout({
   const pathname = usePathname();
 
   return (
-    <>
+    <DesktopOnly area="Os cadastros">
       <nav className="registry-tabs" aria-label="Tipos de cadastro">
         {tabs.map((tab) => {
           const active = tab.exact
@@ -51,6 +52,6 @@ export default function CadastrosLayout({
         })}
       </nav>
       {children}
-    </>
+    </DesktopOnly>
   );
 }

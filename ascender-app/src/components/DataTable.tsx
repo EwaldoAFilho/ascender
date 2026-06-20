@@ -254,7 +254,11 @@ export function DataTable<T>({
               visible.map((row, i) => (
                 <tr key={rowKey(row, i)}>
                   {columns.map((col) => (
-                    <td key={col.key} style={{ textAlign: col.align ?? "left" }}>
+                    <td
+                      key={col.key}
+                      data-label={col.header}
+                      style={{ textAlign: col.align ?? "left" }}
+                    >
                       {col.render ? col.render(row) : col.value(row)}
                     </td>
                   ))}

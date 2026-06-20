@@ -1831,6 +1831,125 @@ th {
   color: var(--danger);
 }
 
+/* ===== Tabelas em cartões no celular (Fase 3 mobile) ===== */
+@media (max-width: 760px) {
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .table-wrap {
+    overflow-x: visible;
+  }
+  .table-wrap table {
+    min-width: 0;
+  }
+  /* esconde o cabeçalho (vira rótulo em cada célula), mas mantém acessível */
+  .table-wrap thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+  }
+  .table-wrap table,
+  .table-wrap tbody,
+  .table-wrap tr,
+  .table-wrap td {
+    display: block;
+    width: 100%;
+  }
+  .table-wrap tr {
+    margin-bottom: 12px;
+    padding: 4px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-soft);
+  }
+  .table-wrap td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    white-space: normal;
+  }
+  .table-wrap td:last-child {
+    border-bottom: 0;
+  }
+  .table-wrap td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  /* linha de "nenhum registro" (colSpan) ocupa o card inteiro, centralizada */
+  .table-wrap td[colspan] {
+    display: block;
+    text-align: center;
+  }
+  .table-wrap td[colspan]::before {
+    content: none;
+  }
+  /* ações alinhadas ao fim do card */
+  .table-wrap .table-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ===== Guard "melhor no desktop" (Fase 2 mobile) ===== */
+.desktop-only-notice {
+  display: none;
+}
+.desktop-only-content {
+  display: contents;
+}
+.desktop-only-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--brand-yellow);
+}
+@media (max-width: 899px) {
+  .desktop-only-notice {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    padding: 36px 20px;
+    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .desktop-only-notice h2 {
+    margin: 0;
+  }
+  .desktop-only-notice p {
+    margin: 0;
+    max-width: 42ch;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .desktop-only-notice .btn-primary {
+    margin-top: 6px;
+    text-decoration: none;
+  }
+  .desktop-only-content {
+    display: none;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--brand-yellow);
   outline-offset: 2px;
