@@ -17,6 +17,7 @@ import {
   viewTitles,
 } from "@/lib/dashboard-data";
 import { useTheme } from "@/lib/theme";
+import { MobileNav } from "@/components/MobileNav";
 
 function moduleMatches(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -128,6 +129,21 @@ export default function DashboardLayout({
       </aside>
 
       <main>
+        <div className="mobile-topbar">
+          <div>
+            <p className="eyebrow">ASCENDER</p>
+            <strong>{header.title}</strong>
+          </div>
+          <button
+            className="theme-toggle"
+            type="button"
+            onClick={toggleTheme}
+            aria-label={isDarkTheme ? "Ativar tema claro" : "Ativar tema escuro"}
+            title={isDarkTheme ? "Ativar tema claro" : "Ativar tema escuro"}
+          >
+            {isDarkTheme ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        </div>
         <header className="topbar">
           <div>
             <p className="eyebrow">ASCENDER Solar Tech</p>
@@ -176,6 +192,8 @@ export default function DashboardLayout({
 
         {children}
       </main>
+
+      <MobileNav />
     </div>
   );
 }

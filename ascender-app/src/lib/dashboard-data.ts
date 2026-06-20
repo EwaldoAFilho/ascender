@@ -28,6 +28,8 @@ export type Module = {
   source: string;
   icon: LucideIcon;
   href: string;
+  /** "desktop" = tela de trabalho/edição, oculta na navegação mobile. */
+  scope?: "all" | "desktop";
 };
 
 export const moneyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -75,6 +77,7 @@ export const modules: Module[] = [
     source: "Cadastro + conciliacao Digital Grid",
     icon: ClipboardList,
     href: "/cadastros",
+    scope: "desktop",
   },
   {
     id: "soliscloud",
@@ -119,6 +122,7 @@ export const modules: Module[] = [
     source: "Simulador comercial",
     icon: FileText,
     href: "/propostas",
+    scope: "desktop",
   },
   {
     id: "integracoes",

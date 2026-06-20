@@ -1672,6 +1672,165 @@ th {
   }
 }
 
+/* ===== Navegação mobile (Fase 1): top bar + bottom tab bar + sheet ===== */
+.mobile-topbar {
+  display: none;
+}
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .sidebar {
+    display: none;
+  }
+  .topbar {
+    display: none;
+  }
+  /* esconde telas de trabalho no mobile (cards do ModuleGrid etc.) */
+  .is-desktop-only {
+    display: none !important;
+  }
+
+  .mobile-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: -14px -14px 14px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .mobile-topbar .eyebrow {
+    margin: 0 0 2px;
+    font-size: 0.6rem;
+  }
+  .mobile-topbar strong {
+    color: var(--heading);
+    font-size: 1.05rem;
+    line-height: 1.1;
+  }
+  .mobile-topbar .theme-toggle {
+    width: auto;
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: 8px 10px;
+  }
+
+  main {
+    padding-bottom: 84px;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    gap: 2px;
+    padding: 6px 4px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.12);
+  }
+  .mobile-nav a,
+  .mobile-nav button {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .mobile-nav a.active,
+  .mobile-nav button.active {
+    color: var(--brand-yellow);
+  }
+}
+
+.mobile-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(3, 12, 18, 0.55);
+}
+.mobile-sheet {
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.3);
+}
+.mobile-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.mobile-sheet-head strong {
+  color: var(--heading);
+  font-size: 1.1rem;
+}
+.mobile-sheet-head button {
+  display: inline-flex;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.mobile-sheet-list {
+  display: grid;
+  gap: 4px;
+}
+.mobile-sheet-list a,
+.mobile-sheet-list button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mobile-sheet-list a.active {
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+.mobile-sheet-list a:hover,
+.mobile-sheet-list button:hover {
+  background: var(--surface-soft);
+}
+.mobile-sheet-list .danger {
+  color: var(--danger);
+}
+
 :focus-visible {
   outline: 2px solid var(--brand-yellow);
   outline-offset: 2px;

@@ -11,7 +11,7 @@ export function ModuleGrid() {
         <button
           key={module.id}
           type="button"
-          className="module-card"
+          className={`module-card${module.scope === "desktop" ? " is-desktop-only" : ""}`}
           onClick={() => router.push(module.href)}
         >
           <div className="module-card-icon">
