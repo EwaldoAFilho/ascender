@@ -98,9 +98,14 @@ Não bloquear no servidor (a sessão é a mesma) — é uma camada de UX no clie
    Operação · Financeiro · **Mais**) + top bar mobile (marca + título + tema);
    sidebar/topbar de desktop escondidas abaixo de **900px**; Cadastros e
    Propostas ocultos no celular (nav e ModuleGrid via `scope: "desktop"`).
-2. **Guard** — aviso "melhor no desktop" nas rotas de trabalho em telas estreitas.
-3. **Tabelas responsivas** — modo cartão no `DataTable` (<760px).
-4. **Polish** — gráficos, espaçamentos, safe-area, toque; testar iOS + Android.
+2. ✅ **Guard (feita)** — rotas de trabalho (Cadastros/Propostas) mostram o aviso
+   "melhor no computador" abaixo de 900px (componente `DesktopOnly`); o conteúdo
+   é preservado no desktop.
+3. ✅ **Tabelas em cartões (feita)** — o `DataTable` vira cartões empilhados
+   abaixo de 760px (rótulo→valor via `data-label`), sem scroll horizontal.
+4. ✅ **Polish (feita)** — copy do aviso revista; `panel-header` empilha no mobile
+   (título + controles). Resta validar em aparelhos reais iOS/Android (até aqui,
+   validado por screenshot via CDP).
 
 ## Decisões
 
@@ -108,7 +113,6 @@ Não bloquear no servidor (a sessão é a mesma) — é uma camada de UX no clie
 - **D2 — Escopo mobile:** ✅ ocultos **Cadastros** e **Propostas**; o restante de
   consulta + Configurações ficam no menu "Mais". (Reabrir se quiser ajustar o
   que aparece.)
-- **D3 — Rota de trabalho no mobile:** _em aberto (Fase 2)_ — aviso "melhor no
-  desktop" (recomendado) ou redirecionar para o Início?
-- **D4 — Tabelas:** _em aberto (Fase 3)_ — evoluir o `DataTable` para modo cartão
-  (recomendado) ou manter o scroll horizontal?
+- **D3 — Rota de trabalho no mobile:** ✅ **aviso** "melhor no computador" (não
+  redireciona — o usuário entende e volta ao início quando quiser).
+- **D4 — Tabelas:** ✅ **modo cartão** no `DataTable` (<760px).
