@@ -59,6 +59,19 @@ export function formatData(data: string | null | undefined): string {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : data || "—";
 }
 
+// "há X min/h/d" a partir de um ISO — para indicar o frescor das sincronizações.
+export function tempoRelativo(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return "—";
+  const min = Math.round((Date.now() - t) / 60000);
+  if (min < 1) return "agora há pouco";
+  if (min < 60) return `há ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `há ${h} h`;
+  return `há ${Math.round(h / 24)} d`;
+}
+
 export const modules: Module[] = [
   {
     id: "executivo",

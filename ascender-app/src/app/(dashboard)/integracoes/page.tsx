@@ -15,7 +15,8 @@ import { faturasDg, medicoesGeracao, rateiosDg } from "@/lib/db/schema";
 import { getDgRow } from "@/lib/digitalgrid/credentials";
 import { getSolisCredentialRow } from "@/lib/soliscloud/credentials";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
-import { numberFormatter } from "@/lib/dashboard-data";
+import { getSyncRunsResumo } from "@/lib/db/sync-run";
+import { numberFormatter, tempoRelativo } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +105,13 @@ export default async function IntegracoesPage() {
     .from(rateiosDg);
 
   const fontesAtivas = (solisOk ? 1 : 0) + (dgOk ? 1 : 0);
+  const syncSaude = await getSyncRunsResumo();
+  const nomeJob: Record<string, string> = {
+    telemetria: "Telemetria · estações, inversores, coletores e alarmes (~10 min)",
+    geracao: "Geração mensal · SolisCloud (6h)",
+    faturas_dg: "Faturas · Digital Grid (6h)",
+    rateio_dg: "Rateio · Digital Grid (6h)",
+  };
 
   const kpis: SummaryItem[] = [
     {
@@ -142,6 +150,43 @@ export default async function IntegracoesPage() {
   return (
     <>
       <SummaryStrip items={kpis} />
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Sincronização (backend)</h2>
+            <p>
+              Um worker coleta os dados e grava no banco; as telas leem do banco.
+              Última execução de cada job:
+            </p>
+          </div>
+        </div>
+        {syncSaude.length === 0 ? (
+          <p style={{ color: "var(--muted)", margin: 0 }}>
+            Nenhuma sincronização registrada ainda — aguarde o primeiro ciclo.
+          </p>
+        ) : (
+          <div className="endpoint-list">
+            {syncSaude.map((s) => (
+              <article key={s.job}>
+                <div>
+                  <strong>{nomeJob[s.job] ?? s.job}</strong>
+                  <span>
+                    {tempoRelativo(s.terminadoEm)}
+                    {s.mensagem ? ` · ${s.mensagem}` : ""}
+                  </span>
+                </div>
+                <span
+                  className={`status ${s.status === "ok" ? "status-online" : "status-vencido"}`}
+                >
+                  {s.status === "ok" ? "ok" : "erro"}
+                </span>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
       <section className="split-grid">
         <section className="panel">
           <div className="panel-header">

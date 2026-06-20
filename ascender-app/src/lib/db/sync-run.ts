@@ -1,5 +1,36 @@
+import { desc } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { syncRuns } from "@/lib/db/schema";
+
+export type SyncRunResumo = {
+  job: string;
+  status: string;
+  itens: number;
+  terminadoEm: string | null;
+  mensagem: string | null;
+};
+
+/** Último run de cada job — para o painel de saúde da sincronização. */
+export async function getSyncRunsResumo(): Promise<SyncRunResumo[]> {
+  const db = getDb();
+  const rows = await db
+    .selectDistinctOn([syncRuns.job], {
+      job: syncRuns.job,
+      status: syncRuns.status,
+      itens: syncRuns.itens,
+      terminadoEm: syncRuns.terminadoEm,
+      mensagem: syncRuns.mensagem,
+    })
+    .from(syncRuns)
+    .orderBy(syncRuns.job, desc(syncRuns.iniciadoEm));
+  return rows.map((r) => ({
+    job: r.job,
+    status: r.status,
+    itens: r.itens,
+    terminadoEm: r.terminadoEm ? new Date(r.terminadoEm).toISOString() : null,
+    mensagem: r.mensagem,
+  }));
+}
 
 /**
  * Executa um job de sincronização e registra a execução em `sync_runs` (início,
