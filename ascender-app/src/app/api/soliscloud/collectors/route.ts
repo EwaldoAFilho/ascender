@@ -1,29 +1,13 @@
-import { callSolis } from "@/lib/soliscloud/client";
-import { SOLIS_ENDPOINTS } from "@/lib/soliscloud/endpoints";
-import { withSolis } from "@/lib/soliscloud/handler";
-import { mapCollectorRecord } from "@/lib/soliscloud/mappers";
-import type { SolisCollectorData } from "@/lib/soliscloud/types";
-import type { CollectorMonitor } from "@/types/soliscloud";
+import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/auth/guard";
+import { lerColetoresDoBanco } from "@/lib/soliscloud/telemetria-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  return withSolis<CollectorMonitor>(async (creds) => {
-    const data = await callSolis<SolisCollectorData>(
-      creds,
-      SOLIS_ENDPOINTS.collectorList,
-      { pageNo: 1, pageSize: 100 },
-    );
-    const coletores = (data.page?.records ?? []).map(mapCollectorRecord);
-    return {
-      resumo: {
-        total: coletores.length,
-        online: coletores.filter((c) => c.state === "online").length,
-        offline: coletores.filter((c) => c.state === "offline").length,
-        alarme: coletores.filter((c) => c.state === "alarm").length,
-      },
-      coletores,
-    };
-  });
+// Lê os coletores/dataloggers do banco (worker sync-telemetria a cada ~10 min).
+export async function GET() {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+  return NextResponse.json(await lerColetoresDoBanco());
 }

@@ -1,23 +1,13 @@
-import { callSolis } from "@/lib/soliscloud/client";
-import { SOLIS_ENDPOINTS } from "@/lib/soliscloud/endpoints";
-import { withSolis } from "@/lib/soliscloud/handler";
-import { extractRecords, mapInverterRecord } from "@/lib/soliscloud/mappers";
-import type { SolisInverterRecord, SolisPaged } from "@/lib/soliscloud/types";
+import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/auth/guard";
+import { lerInversoresDoBanco } from "@/lib/soliscloud/telemetria-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function GET(request: Request) {
-  const stationId =
-    new URL(request.url).searchParams.get("stationId") ?? undefined;
-  return withSolis(async (creds) => {
-    const payload: Record<string, unknown> = { pageNo: 1, pageSize: 100 };
-    if (stationId) payload.stationId = stationId;
-    const data = await callSolis<SolisPaged<SolisInverterRecord>>(
-      creds,
-      SOLIS_ENDPOINTS.inverterList,
-      payload,
-    );
-    return extractRecords(data).map(mapInverterRecord);
-  });
+// Lê os inversores do banco (worker sync-telemetria a cada ~10 min).
+export async function GET() {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+  return NextResponse.json(await lerInversoresDoBanco());
 }

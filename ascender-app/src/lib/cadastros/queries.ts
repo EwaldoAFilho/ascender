@@ -13,7 +13,8 @@ import {
 import { callSolis } from "@/lib/soliscloud/client";
 import { getSolisCredentials } from "@/lib/soliscloud/credentials";
 import { SOLIS_ENDPOINTS } from "@/lib/soliscloud/endpoints";
-import { extractRecords, mapStationRecord } from "@/lib/soliscloud/mappers";
+import { extractRecords } from "@/lib/soliscloud/mappers";
+import { lerEstacoesDoBanco } from "@/lib/soliscloud/telemetria-db";
 import type { SolisPaged, SolisStationRecord } from "@/lib/soliscloud/types";
 import type { SolisTelemetry } from "@/types/soliscloud";
 
@@ -292,23 +293,15 @@ export async function getTelemetriaPorStation(): Promise<{
   configurada: boolean;
   mapa: Map<string, SolisTelemetry>;
 }> {
+  // Lê a telemetria do banco (mantida pelo worker sync-telemetria), não da API
+  // ao vivo — escala para muitos usuários e independe da latência da SolisCloud.
+  const [creds, estacoes] = await Promise.all([
+    getSolisCredentials(),
+    lerEstacoesDoBanco(),
+  ]);
   const mapa = new Map<string, SolisTelemetry>();
-  const creds = await getSolisCredentials();
-  if (!creds) return { configurada: false, mapa };
-  try {
-    const data = await callSolis<SolisPaged<SolisStationRecord>>(
-      creds,
-      SOLIS_ENDPOINTS.userStationList,
-      { pageNo: 1, pageSize: 100 },
-    );
-    for (const rec of extractRecords(data)) {
-      const t = mapStationRecord(rec);
-      if (t.stationId) mapa.set(t.stationId, t);
-    }
-  } catch {
-    /* mantém mapa vazio; a tela exibe aviso de indisponibilidade */
-  }
-  return { configurada: true, mapa };
+  for (const t of estacoes) mapa.set(t.stationId, t);
+  return { configurada: Boolean(creds) || estacoes.length > 0, mapa };
 }
 
 export type UsinaCruzada = {

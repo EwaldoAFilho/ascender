@@ -1,19 +1,13 @@
-import { callSolis } from "@/lib/soliscloud/client";
-import { SOLIS_ENDPOINTS } from "@/lib/soliscloud/endpoints";
-import { withSolis } from "@/lib/soliscloud/handler";
-import { extractRecords, mapStationRecord } from "@/lib/soliscloud/mappers";
-import type { SolisPaged, SolisStationRecord } from "@/lib/soliscloud/types";
+import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/auth/guard";
+import { lerEstacoesDoBanco } from "@/lib/soliscloud/telemetria-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  return withSolis(async (creds) => {
-    const data = await callSolis<SolisPaged<SolisStationRecord>>(
-      creds,
-      SOLIS_ENDPOINTS.userStationList,
-      { pageNo: 1, pageSize: 100 },
-    );
-    return extractRecords(data).map(mapStationRecord);
-  });
+// Lê a telemetria das estações do banco (worker sync-telemetria a cada ~10 min).
+export async function GET() {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+  return NextResponse.json(await lerEstacoesDoBanco());
 }
