@@ -5,10 +5,12 @@ import { AlarmsByStation } from "@/components/AlarmsByStation";
 import { BarList } from "@/components/BarList";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState, ErrorState, PanelSkeleton } from "@/components/states";
+import { GenerationChart } from "@/components/GenerationChart";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   useAlarms,
   useCollectors,
+  useHistoricoFrota,
   useInverters,
   useStations,
 } from "@/hooks/useSolis";
@@ -29,6 +31,7 @@ export default function SolisCloudPage() {
   const inverters = useInverters();
   const alarms = useAlarms();
   const collectors = useCollectors();
+  const historico = useHistoricoFrota();
 
   const stationList = useMemo(() => stations.data ?? [], [stations.data]);
   const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
@@ -232,6 +235,25 @@ export default function SolisCloudPage() {
               </article>
             ))}
           </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Potência da frota (24h)</h2>
+            <p>Histórico coletado no banco a cada ~10 min — cresce ao longo do tempo.</p>
+          </div>
+        </div>
+        {historico.isPending ? (
+          <p style={loadingStyle}>Carregando histórico…</p>
+        ) : !historico.data || historico.data.points.length < 2 ? (
+          <p style={loadingStyle}>
+            Coletando dados… a curva aparece conforme o worker roda (a cada ~10
+            min).
+          </p>
+        ) : (
+          <GenerationChart series={historico.data} />
         )}
       </section>
 

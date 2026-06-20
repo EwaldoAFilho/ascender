@@ -5,6 +5,7 @@ import {
   fetchAlarms,
   fetchCollectors,
   fetchGeneration,
+  fetchHistoricoFrota,
   fetchIntegrationStatus,
   fetchInverters,
   fetchStations,
@@ -41,6 +42,14 @@ export function useCollectors() {
   return useQuery({
     queryKey: ["soliscloud", "collectors"],
     queryFn: fetchCollectors,
+    refetchInterval: REFRESH_INTERVAL,
+  });
+}
+
+export function useHistoricoFrota() {
+  return useQuery({
+    queryKey: ["soliscloud", "historico"],
+    queryFn: fetchHistoricoFrota,
     refetchInterval: REFRESH_INTERVAL,
   });
 }

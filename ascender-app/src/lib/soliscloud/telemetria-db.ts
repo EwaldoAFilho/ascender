@@ -7,6 +7,7 @@ import {
   telemetriaInversor,
   usinas,
 } from "@/lib/db/schema";
+import type { GenerationSeries } from "@/lib/api/soliscloud";
 import type {
   AlarmLevel,
   Collector,
@@ -157,4 +158,53 @@ export async function ultimaTelemetriaEm(): Promise<string | null> {
     .select({ at: sql<Date | null>`max(${telemetriaEstacao.capturadoEm})` })
     .from(telemetriaEstacao);
   return r?.at ? new Date(r.at).toISOString() : null;
+}
+
+function fmtHora(d: Date | null | undefined): string {
+  if (!d) return "";
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    }).format(d);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Curva de potência da frota nas últimas `horas` — soma a potência de todas as
+ * estações por ciclo de coleta (cada ciclo grava com um mesmo `capturado_em`).
+ * Só o histórico permite isso; cresce conforme o worker roda.
+ */
+export async function historicoPotenciaFrota(
+  horas = 24,
+): Promise<GenerationSeries> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      capt: telemetriaEstacao.capturadoEm,
+      total: sql<number>`sum(${telemetriaEstacao.potenciaKw})`,
+    })
+    .from(telemetriaEstacao)
+    .where(sql`${telemetriaEstacao.capturadoEm} > now() - make_interval(hours => ${horas})`)
+    .groupBy(telemetriaEstacao.capturadoEm)
+    .orderBy(telemetriaEstacao.capturadoEm);
+
+  const points = rows.map((r) => ({
+    label: fmtHora(new Date(r.capt)),
+    value: Number(r.total),
+    money: null,
+  }));
+  const peakKw = points.reduce((m, p) => Math.max(m, p.value), 0);
+
+  return {
+    period: "day",
+    unit: "kW",
+    points,
+    totalKwh: null,
+    totalMoney: null,
+    peakKw,
+  };
 }

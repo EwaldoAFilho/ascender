@@ -57,6 +57,10 @@ export function fetchCollectors() {
   return getJson<CollectorMonitor>("/api/soliscloud/collectors");
 }
 
+export function fetchHistoricoFrota() {
+  return getJson<GenerationSeries>("/api/soliscloud/historico");
+}
+
 export type IntegrationStatus = {
   configured: boolean;
   connected: boolean;
