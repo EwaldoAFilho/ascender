@@ -3,7 +3,13 @@ import { DG_BASE_URL, DG_ENDPOINTS } from "./endpoints";
 
 const SCHEMES = ["Bearer", "Token"] as const;
 
-/** GET autenticado a um recurso do Digital Grid (somente leitura). */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const DG_MAX_RETRIES = 2; // tentativas extras para erros transitórios
+
+/** GET autenticado a um recurso do Digital Grid (somente leitura), com retry. */
 export async function dgGet<T = unknown>(
   path: string,
   params?: Record<string, string | number>,
@@ -17,12 +23,34 @@ export async function dgGet<T = unknown>(
       ).toString()
     : "";
   const url = `${c.baseUrl.replace(/\/$/, "")}${path}${qs}`;
-  const r = await fetch(url, {
-    headers: { Authorization: `${c.scheme} ${c.token}`, Accept: "application/json" },
-    cache: "no-store",
-  });
-  if (!r.ok) throw new Error(`Digital Grid HTTP ${r.status} em ${path}`);
-  return (await r.json()) as T;
+  const headers = {
+    Authorization: `${c.scheme} ${c.token}`,
+    Accept: "application/json",
+  };
+
+  let lastError: Error = new Error(
+    `Falha ao consultar o Digital Grid em ${path}`,
+  );
+  for (let attempt = 0; attempt <= DG_MAX_RETRIES; attempt++) {
+    if (attempt > 0) await sleep(800 * attempt); // backoff linear: 0,8s / 1,6s
+    let r: Response;
+    try {
+      r = await fetch(url, { headers, cache: "no-store" });
+    } catch {
+      lastError = new Error(`Falha de conexão com o Digital Grid em ${path}`);
+      continue; // erro de rede é transitório
+    }
+    if (!r.ok) {
+      lastError = new Error(`Digital Grid HTTP ${r.status} em ${path}`);
+      // 429/5xx são transitórios; 401/403/404 são definitivos (não repete).
+      if ((r.status === 429 || r.status >= 500) && attempt < DG_MAX_RETRIES) {
+        continue;
+      }
+      throw lastError;
+    }
+    return (await r.json()) as T;
+  }
+  throw lastError;
 }
 
 export type DgTestResult = {
