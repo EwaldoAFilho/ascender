@@ -51,5 +51,25 @@ services:
         sleep 21600;
       done"
 
+  # Cron rápido: coleta a telemetria da SolisCloud (estações, inversores,
+  # coletores, alarmes) para o banco a cada ~10 min. As telas leem só do banco.
+  sync-telemetria:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
+    entrypoint: []
+    command: >
+      sh -c "sleep 30;
+      while true; do
+        echo '[sync-telemetria] coletando telemetria (SolisCloud)';
+        npm run db:sync-telemetria || echo '[sync-telemetria] falhou (sem credencial?); nova tentativa no proximo ciclo';
+        sleep 600;
+      done"
+
 volumes:
   ascender_pgdata:

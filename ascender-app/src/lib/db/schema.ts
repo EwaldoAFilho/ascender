@@ -1,6 +1,7 @@
 import {
   boolean,
   doublePrecision,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -344,6 +345,116 @@ export const propostas = pgTable("propostas", {
     .notNull()
     .defaultNow(),
 });
+
+// ===== Histórico de telemetria (sync-first; worker a cada ~10 min) =====
+// Tabelas append-only: cada linha é uma leitura. O "estado atual" é o registro
+// mais recente por entidade (DISTINCT ON). Sem limpeza — histórico permanente.
+
+export const telemetriaEstacao = pgTable(
+  "telemetria_estacao",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usinaId: uuid("usina_id").references(() => usinas.id, {
+      onDelete: "set null",
+    }),
+    stationId: text("station_id").notNull(),
+    estado: text("estado").notNull().default("offline"), // online|alarm|offline
+    potenciaKw: doublePrecision("potencia_kw").notNull().default(0),
+    energiaDiaKwh: doublePrecision("energia_dia_kwh").notNull().default(0),
+    energiaMesKwh: doublePrecision("energia_mes_kwh").notNull().default(0),
+    energiaAnoKwh: doublePrecision("energia_ano_kwh").notNull().default(0),
+    energiaTotalKwh: doublePrecision("energia_total_kwh").notNull().default(0),
+    capturadoEm: timestamp("capturado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("telemetria_estacao_station_capt_idx").on(t.stationId, t.capturadoEm),
+    index("telemetria_estacao_usina_capt_idx").on(t.usinaId, t.capturadoEm),
+  ],
+);
+
+export const telemetriaInversor = pgTable(
+  "telemetria_inversor",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usinaId: uuid("usina_id").references(() => usinas.id, {
+      onDelete: "set null",
+    }),
+    stationId: text("station_id"),
+    serial: text("serial").notNull(),
+    estado: text("estado").notNull().default("offline"),
+    potenciaKw: doublePrecision("potencia_kw").notNull().default(0),
+    energiaDiaKwh: doublePrecision("energia_dia_kwh").notNull().default(0),
+    energiaTotalKwh: doublePrecision("energia_total_kwh").notNull().default(0),
+    temperaturaC: doublePrecision("temperatura_c").notNull().default(0),
+    capturadoEm: timestamp("capturado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("telemetria_inversor_serial_capt_idx").on(t.serial, t.capturadoEm),
+  ],
+);
+
+export const telemetriaColetor = pgTable(
+  "telemetria_coletor",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    usinaId: uuid("usina_id").references(() => usinas.id, {
+      onDelete: "set null",
+    }),
+    stationId: text("station_id"),
+    sn: text("sn").notNull(),
+    estado: text("estado").notNull().default("offline"),
+    ultimaComunicacao: text("ultima_comunicacao"),
+    modelo: text("modelo"),
+    capturadoEm: timestamp("capturado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("telemetria_coletor_sn_capt_idx").on(t.sn, t.capturadoEm)],
+);
+
+// Alarmes: 1 linha por alarme (upsert por alarm_id), com status/resolução
+// atualizados — guarda o histórico de tudo que já alarmou (O&M).
+export const alarmes = pgTable("alarmes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  alarmId: text("alarm_id").notNull().unique(),
+  usinaId: uuid("usina_id").references(() => usinas.id, {
+    onDelete: "set null",
+  }),
+  stationId: text("station_id"),
+  deviceSn: text("device_sn"),
+  nivel: text("nivel").notNull().default("baixo"), // baixo|medio|critico
+  mensagem: text("mensagem"),
+  iniciadoEm: text("iniciado_em"),
+  status: text("status").notNull().default("aberto"), // aberto|em-tratativa|resolvido
+  vistoEm: timestamp("visto_em", { withTimezone: true }).notNull().defaultNow(),
+  atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  resolvidoEm: timestamp("resolvido_em", { withTimezone: true }),
+});
+
+// Auditoria de cada execução do worker (alimenta "atualizado há X" e a saúde).
+export const syncRuns = pgTable("sync_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  job: text("job").notNull(), // telemetria|geracao|faturas_dg|rateio_dg
+  iniciadoEm: timestamp("iniciado_em", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  terminadoEm: timestamp("terminado_em", { withTimezone: true }),
+  status: text("status").notNull().default("ok"), // ok|erro
+  itens: integer("itens").notNull().default(0),
+  mensagem: text("mensagem"),
+});
+
+export type TelemetriaEstacao = typeof telemetriaEstacao.$inferSelect;
+export type TelemetriaInversor = typeof telemetriaInversor.$inferSelect;
+export type TelemetriaColetor = typeof telemetriaColetor.$inferSelect;
+export type Alarme = typeof alarmes.$inferSelect;
+export type SyncRun = typeof syncRuns.$inferSelect;
 
 export type IntegrationCredential = typeof integrationCredentials.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
