@@ -91,6 +91,7 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 
 ## 9. O que falta / próximos (opcional)
 
+- **Persistência/histórico (sync-first)** — worker no backend mantém o banco atualizado e as telas leem só do banco (escala p/ múltiplos usuários; histórico **permanente**, sem limpeza, de telemetria/inversores/alarmes/coletores, a cada 10 min). Plano em **`ascender-app/PLANO-PERSISTENCIA.md`**. Aguardando implementação (Fase 1: schema + worker de telemetria).
 - RBAC (papéis/permissões).
 - Importador de planilha Excel (dados que só vivem na planilha operacional).
 - Parser de contas para outras distribuidoras.
