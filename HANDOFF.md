@@ -95,6 +95,6 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 - Importador de planilha Excel (dados que só vivem na planilha operacional).
 - Parser de contas para outras distribuidoras.
 - Edição manual dos campos extraídos de contas (correção do que o parser não pegar).
-- **Navegação mobile** — o app é responsivo, mas pensado para desktop. Plano de melhoria (mobile = "acompanhar"; cadastros/edição ocultos no celular) em **`ascender-app/PLANO-MOBILE.md`**. Aguardando implementação.
+- **Navegação mobile** — plano em **`ascender-app/PLANO-MOBILE.md`**. **Fase 1 feita** (bottom tab bar + top bar mobile + menu "Mais"; sidebar some <900px; Cadastros/Propostas ocultos no celular via `scope`). Pendentes: Fase 2 (aviso "melhor no desktop" nas rotas de trabalho), Fase 3 (tabelas em cartões <760px), Fase 4 (polish).
 - Polir o hero do login em telas muito largas (>1600px): sobra espaço vazio no centro; considerar limitar a largura do conteúdo ou reancorar o bloco.
 - **Fila/cache da SolisCloud em Redis** — só se houver múltiplas réplicas do `app` ou se o `app` e o `sync` (filas por processo, ver seção 7) passarem a colidir no rate limit com frequência. Hoje o retry com backoff cobre o encontro raro.

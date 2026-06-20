@@ -92,21 +92,23 @@ Não bloquear no servidor (a sessão é a mesma) — é uma camada de UX no clie
 5. **DataTable modo cartão**: variante responsiva no próprio componente
    (CSS `@container`/media query ou render condicional por `useIsMobile`).
 
-## Fases sugeridas
+## Fases
 
-1. **Navegação** — top bar mobile + bottom tab bar + sheet "Mais"; esconder a
-   grade atual; aplicar o escopo (ocultar Cadastros/Propostas no mobile).
+1. ✅ **Navegação (feita)** — `MobileNav` (bottom tab bar: Início · Executivo ·
+   Operação · Financeiro · **Mais**) + top bar mobile (marca + título + tema);
+   sidebar/topbar de desktop escondidas abaixo de **900px**; Cadastros e
+   Propostas ocultos no celular (nav e ModuleGrid via `scope: "desktop"`).
 2. **Guard** — aviso "melhor no desktop" nas rotas de trabalho em telas estreitas.
 3. **Tabelas responsivas** — modo cartão no `DataTable` (<760px).
 4. **Polish** — gráficos, espaçamentos, safe-area, toque; testar iOS + Android.
 
-## Decisões a confirmar (antes de implementar)
+## Decisões
 
-- **D1 — Padrão de navegação:** bottom tab bar (recomendado) ou menu hambúrguer
-  no topo?
-- **D2 — Escopo mobile:** ocultar **Cadastros** (certo) e também **Propostas**?
-  E quanto de **Configurações** fica no celular (só senha/tema/sair)?
-- **D3 — Rota de trabalho no mobile:** mostrar aviso (recomendado) ou redirecionar
-  para o Início?
-- **D4 — Tabelas:** evoluir o `DataTable` para modo cartão (recomendado) ou
-  manter o scroll horizontal por enquanto?
+- **D1 — Padrão de navegação:** ✅ **bottom tab bar** (adotado na Fase 1).
+- **D2 — Escopo mobile:** ✅ ocultos **Cadastros** e **Propostas**; o restante de
+  consulta + Configurações ficam no menu "Mais". (Reabrir se quiser ajustar o
+  que aparece.)
+- **D3 — Rota de trabalho no mobile:** _em aberto (Fase 2)_ — aviso "melhor no
+  desktop" (recomendado) ou redirecionar para o Início?
+- **D4 — Tabelas:** _em aberto (Fase 3)_ — evoluir o `DataTable` para modo cartão
+  (recomendado) ou manter o scroll horizontal?
