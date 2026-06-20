@@ -7,6 +7,7 @@ import {
   fetchGeneration,
   fetchHistoricoFrota,
   fetchIntegrationStatus,
+  fetchSyncStatus,
   fetchInverters,
   fetchStations,
   type GenerationPeriod,
@@ -50,6 +51,14 @@ export function useHistoricoFrota() {
   return useQuery({
     queryKey: ["soliscloud", "historico"],
     queryFn: fetchHistoricoFrota,
+    refetchInterval: REFRESH_INTERVAL,
+  });
+}
+
+export function useSyncStatus() {
+  return useQuery({
+    queryKey: ["soliscloud", "sync-status"],
+    queryFn: fetchSyncStatus,
     refetchInterval: REFRESH_INTERVAL,
   });
 }

@@ -1950,6 +1950,32 @@ th {
   }
 }
 
+/* ===== Selo de frescor da telemetria (sync-first) ===== */
+.frescor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.frescor.is-ok {
+  color: var(--success);
+  border-color: rgba(4, 120, 87, 0.3);
+}
+.frescor.is-warn {
+  color: var(--warning);
+  border-color: rgba(245, 183, 0, 0.4);
+}
+.frescor.is-bad {
+  color: var(--danger);
+  border-color: rgba(180, 35, 24, 0.3);
+}
+
 :focus-visible {
   outline: 2px solid var(--brand-yellow);
   outline-offset: 2px;

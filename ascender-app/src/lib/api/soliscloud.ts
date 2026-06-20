@@ -61,6 +61,10 @@ export function fetchHistoricoFrota() {
   return getJson<GenerationSeries>("/api/soliscloud/historico");
 }
 
+export function fetchSyncStatus() {
+  return getJson<{ iso: string | null }>("/api/soliscloud/sync-status");
+}
+
 export type IntegrationStatus = {
   configured: boolean;
   connected: boolean;

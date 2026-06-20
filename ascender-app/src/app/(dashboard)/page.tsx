@@ -1,3 +1,4 @@
+import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { ModuleGrid } from "@/components/ModuleGrid";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
@@ -7,6 +8,7 @@ import {
   getTelemetriaPorStation,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
+import { ultimaTelemetriaEm } from "@/lib/soliscloud/telemetria-db";
 import { getResumoFaturasDg } from "@/lib/digitalgrid/queries";
 import {
   formatCompetencia,
@@ -18,11 +20,12 @@ import type { GenerationSeries } from "@/lib/api/soliscloud";
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [usinas, tele, hist, fat] = await Promise.all([
+  const [usinas, tele, hist, fat, coletaEm] = await Promise.all([
     getUsinasComTelemetria(),
     getTelemetriaPorStation(),
     getHistoricoGeracaoMensal(),
     getResumoFaturasDg(),
+    ultimaTelemetriaEm(),
   ]);
 
   const estacoes = Array.from(tele.mapa.values()).sort(
@@ -114,9 +117,19 @@ export default async function OverviewPage() {
         <div className="panel-header">
           <div>
             <h2>Frota ao vivo</h2>
-            <p>Potência de cada usina agora (atualiza a cada ~5 min).</p>
+            <p>Potência de cada usina, coletada no banco a cada ~10 min.</p>
           </div>
-          <span>{estacoes.length} usina(s)</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <FrescorTelemetria iso={coletaEm} />
+            <span>{estacoes.length} usina(s)</span>
+          </div>
         </div>
         {estacoes.length === 0 ? (
           <p style={{ color: "var(--muted)", margin: 0 }}>

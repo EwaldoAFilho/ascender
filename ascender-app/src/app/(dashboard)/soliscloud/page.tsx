@@ -5,6 +5,7 @@ import { AlarmsByStation } from "@/components/AlarmsByStation";
 import { BarList } from "@/components/BarList";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState, ErrorState, PanelSkeleton } from "@/components/states";
+import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { GenerationChart } from "@/components/GenerationChart";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
@@ -13,6 +14,7 @@ import {
   useHistoricoFrota,
   useInverters,
   useStations,
+  useSyncStatus,
 } from "@/hooks/useSolis";
 import { numberFormatter } from "@/lib/dashboard-data";
 import type { Collector, InverterTelemetry } from "@/types/soliscloud";
@@ -32,6 +34,7 @@ export default function SolisCloudPage() {
   const alarms = useAlarms();
   const collectors = useCollectors();
   const historico = useHistoricoFrota();
+  const sync = useSyncStatus();
 
   const stationList = useMemo(() => stations.data ?? [], [stations.data]);
   const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
@@ -183,6 +186,17 @@ export default function SolisCloudPage() {
 
   return (
     <>
+      {sync.data ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: 10,
+          }}
+        >
+          <FrescorTelemetria iso={sync.data.iso} />
+        </div>
+      ) : null}
       <SummaryStrip items={kpis} />
 
       <section className="panel">
