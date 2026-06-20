@@ -96,22 +96,26 @@ Postgres lida com dezenas de milhões tranquilamente. Conforme crescer (anos),
 
 ## Fases de implementação
 
-1. **Schema + worker de telemetria** — migrations das 5 tabelas; `db:sync-telemetria`
-   (estações, inversores, coletores, alarmes); serviço no compose (10 min);
-   grava `sync_runs`. O banco começa a acumular (telas ainda ao vivo).
-2. **Telas leem do banco** — Início, Executivo, Usinas, SolisCloud, Geração,
-   Análise → queries do banco + "atualizado há X min"; proxy vira fallback.
-3. **Histórico/relatórios** — visões novas que só o histórico permite: potência
-   ao longo do tempo, **disponibilidade (uptime) dos coletores**, linha do tempo
-   de alarmes, realizado × esperado por dia.
-4. **Robustez** — scheduler Node (node-cron) no lugar do shell-loop; retry/fila
-   no Digital Grid; advisory lock; particionamento quando o volume pedir.
+1. ✅ **Schema + worker (feita)** — 5 tabelas (migration 0010); `db:sync-telemetria`
+   (estações, inversores, coletores, alarmes); serviço `sync-telemetria` no
+   compose (10 min); grava `sync_runs`.
+2. ✅ **Telas leem do banco (feita)** — Início, Executivo, Usinas, SolisCloud e
+   Análise leem o estado atual (DISTINCT ON) via `telemetria-db.ts` /
+   `getTelemetriaPorStation`. Geração (curva por estação) segue ao vivo —
+   pendência menor.
+3. ✅ **Histórico (feita, base)** — "Potência da frota (24h)" na SolisCloud, dos
+   snapshots. Próximas visões (uptime de coletores, linha do tempo de alarmes,
+   realizado × esperado por dia) ficam para quando o histórico engrossar.
+4. ✅ **Robustez (feita)** — `sync_runs` em todos os crons (helper
+   `registrarSyncRun`); retry/backoff no Digital Grid. Pendentes p/ escala:
+   scheduler Node, advisory lock e particionamento por tempo.
 
-## Decisões em aberto (antes/durante a implementação)
+## Decisões (resolvidas na implementação)
 
-- **Curva intradiária**: derivar dos snapshots de 10 min (recomendado, 1 worker)
-  ou persistir também o `stationDay` (curva oficial ~5 min)?
-- **Worker**: começar com shell-loop (rápido) e evoluir para node-cron, ou já
-  ir direto ao scheduler Node?
-- **Fallback ao vivo**: manter o proxy como rede de segurança quando o snapshot
-  estiver velho, ou assumir 100% banco?
+- **Curva intradiária**: ✅ dos snapshots de 10 min (a "Potência da frota (24h)"
+  usa isso). A curva por estação da tela Geração ainda é ao vivo.
+- **Worker**: ✅ shell-loop no compose (serviço `sync-telemetria`). Migrar para
+  node-cron fica para a robustez futura.
+- **Fallback ao vivo**: ✅ por ora, 100% banco — se o worker parar, as telas
+  mostram o último dado coletado (não quebram). Fallback automático fica como
+  melhoria futura.

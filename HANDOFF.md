@@ -91,7 +91,7 @@ Server Components para leitura + Server Actions/route handlers para escrita.
 
 ## 9. O que falta / próximos (opcional)
 
-- **Persistência/histórico (sync-first)** — worker no backend mantém o banco atualizado e as telas leem só do banco (escala p/ múltiplos usuários; histórico **permanente**, sem limpeza, de telemetria/inversores/alarmes/coletores, a cada 10 min). Plano em **`ascender-app/PLANO-PERSISTENCIA.md`**. Aguardando implementação (Fase 1: schema + worker de telemetria).
+- **Persistência/histórico (sync-first)** — **implementado** (Fases 1-4 do `ascender-app/PLANO-PERSISTENCIA.md`): serviço `sync-telemetria` (10 min) grava telemetria/inversores/coletores/alarmes no banco (tabelas `telemetria_*`, `alarmes`, `sync_runs`; migration 0010, **sem limpeza**); as telas leem do banco (`src/lib/soliscloud/telemetria-db.ts`); "Potência da frota (24h)" na SolisCloud; `sync_runs` audita todos os crons; retry no Digital Grid. **Pendente p/ escala**: scheduler Node, advisory lock, particionamento; e a curva por estação da tela Geração ainda é ao vivo.
 - RBAC (papéis/permissões).
 - Importador de planilha Excel (dados que só vivem na planilha operacional).
 - Parser de contas para outras distribuidoras.
