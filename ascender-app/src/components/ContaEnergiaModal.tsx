@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Trash2, UploadCloud, X, Zap } from "lucide-react";
 import { useConfirm } from "@/components/ConfirmProvider";
+import { useToast } from "@/components/ToastProvider";
 import { formatData, moneyFormatter } from "@/lib/dashboard-data";
 
 type Tributos = { pis: number | null; cofins: number | null; icms: number | null };
@@ -79,6 +80,7 @@ export function ContaEnergiaModal({
   const [erro, setErro] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const confirm = useConfirm();
+  const toast = useToast();
 
   async function carregar() {
     setLoading(true);
@@ -105,6 +107,7 @@ export function ContaEnergiaModal({
   }, [faturaDgId]);
 
   async function enviar(file: File) {
+    const tinha = conta != null;
     setBusy(true);
     setErro(null);
     try {
@@ -121,6 +124,7 @@ export function ContaEnergiaModal({
       } else {
         await carregar();
         onChanged();
+        toast({ message: tinha ? "Conta substituída." : "Conta anexada." });
       }
     } catch {
       setErro("Falha ao enviar o arquivo.");
@@ -150,6 +154,7 @@ export function ContaEnergiaModal({
       } else {
         onChanged();
         onClose();
+        toast({ message: "Conta excluída." });
       }
     } catch {
       setErro("Falha ao excluir a conta.");

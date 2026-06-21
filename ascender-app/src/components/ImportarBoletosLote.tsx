@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Layers, UploadCloud, X } from "lucide-react";
+import { useToast } from "@/components/ToastProvider";
 
 type Resultado = {
   arquivo: string;
@@ -26,6 +27,7 @@ const META: Record<
 
 export function ImportarBoletosLote() {
   const router = useRouter();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
@@ -60,7 +62,14 @@ export function ImportarBoletosLote() {
       if (!res.ok) {
         setErro(data?.error ?? "Falha ao processar o lote.");
       } else {
-        setResultados(data.resultados as Resultado[]);
+        const lista = data.resultados as Resultado[];
+        setResultados(lista);
+        const anexados = lista.filter((r) => r.status === "anexado").length;
+        const pendentes = lista.length - anexados;
+        toast({
+          message: `Lote conciliado: ${anexados} anexado(s), ${pendentes} pendente(s).`,
+          variant: anexados > 0 ? "success" : "info",
+        });
       }
     } catch {
       setErro("Falha ao enviar o lote.");

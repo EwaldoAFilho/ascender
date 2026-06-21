@@ -11,6 +11,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useConfirm } from "@/components/ConfirmProvider";
+import { useToast } from "@/components/ToastProvider";
 import {
   excluirAnexoCliente,
   getFichaCliente,
@@ -77,6 +78,7 @@ export function ClienteFicha({
   const [erro, setErro] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const confirm = useConfirm();
+  const toast = useToast();
 
   const carregar = useCallback(async () => {
     const dados = await getFichaCliente(clienteId);
@@ -107,6 +109,7 @@ export function ClienteFicha({
         setErro(json?.error ?? "Falha ao enviar o anexo.");
       } else {
         await carregar();
+        toast({ message: "Anexo enviado." });
       }
     } catch {
       setErro("Falha ao enviar o anexo.");
@@ -126,8 +129,12 @@ export function ClienteFicha({
     if (!ok) return;
     setErro(null);
     const res = await excluirAnexoCliente(id);
-    if (res.ok) await carregar();
-    else setErro(res.error);
+    if (res.ok) {
+      await carregar();
+      toast({ message: "Anexo excluído." });
+    } else {
+      setErro(res.error);
+    }
   }
 
   return (

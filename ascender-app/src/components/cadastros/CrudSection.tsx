@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useConfirm } from "@/components/ConfirmProvider";
+import { useToast } from "@/components/ToastProvider";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -79,6 +80,7 @@ export function CrudSection({
 }: Props) {
   const router = useRouter();
   const confirm = useConfirm();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -120,6 +122,7 @@ export function CrudSection({
     if (result.ok) {
       setOpen(false);
       router.refresh();
+      toast({ message: editingId ? "Registro atualizado." : "Registro criado." });
     } else {
       setError(result.error);
     }
@@ -138,6 +141,7 @@ export function CrudSection({
     setBusy(false);
     if (result.ok) {
       router.refresh();
+      toast({ message: "Registro excluído." });
     } else {
       await confirm({
         title: "Não foi possível excluir",
