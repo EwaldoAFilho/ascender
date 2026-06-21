@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DataTable, type DataColumn } from "@/components/DataTable";
 import { GenerationChart } from "@/components/GenerationChart";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { ErrorState } from "@/components/states";
-import { useGeneration, useStations } from "@/hooks/useSolis";
+import { useGeneration, useGeracaoDiaria, useStations } from "@/hooks/useSolis";
 import type { GenerationPeriod } from "@/lib/api/soliscloud";
-import { moneyFormatter, numberFormatter } from "@/lib/dashboard-data";
+import type { GeracaoDia } from "@/lib/soliscloud/telemetria-db";
+import { formatData, moneyFormatter, numberFormatter } from "@/lib/dashboard-data";
 
 const PERIODS: Array<{ id: GenerationPeriod; label: string }> = [
   { id: "day", label: "Dia" },
@@ -16,8 +18,54 @@ const PERIODS: Array<{ id: GenerationPeriod; label: string }> = [
 
 const loadingStyle = { color: "var(--muted)", margin: 0 } as const;
 
+const geracaoDiaColumns: DataColumn<GeracaoDia>[] = [
+  {
+    key: "dia",
+    header: "Dia",
+    value: (r) => r.dia,
+    render: (r) => formatData(r.dia),
+  },
+  {
+    key: "realizado",
+    header: "Realizado",
+    align: "right",
+    value: (r) => r.realizado,
+    render: (r) => `${numberFormatter.format(r.realizado)} kWh`,
+  },
+  {
+    key: "meta",
+    header: "Meta (dia)",
+    align: "right",
+    value: (r) => r.esperado,
+    render: (r) => `${numberFormatter.format(r.esperado)} kWh`,
+  },
+  {
+    key: "aderencia",
+    header: "Aderência",
+    align: "right",
+    value: (r) => r.aderenciaPct ?? 0,
+    render: (r) =>
+      r.aderenciaPct == null ? (
+        "—"
+      ) : (
+        <span
+          className={
+            r.aderenciaPct >= 100
+              ? "positive-value"
+              : r.aderenciaPct < 70
+                ? "negative-value"
+                : ""
+          }
+        >
+          {numberFormatter.format(r.aderenciaPct)}%
+        </span>
+      ),
+  },
+];
+
 export default function GeracaoPage() {
   const stations = useStations();
+  const geracaoDia = useGeracaoDiaria();
   const [stationId, setStationId] = useState("");
   const [period, setPeriod] = useState<GenerationPeriod>("day");
 
@@ -136,6 +184,31 @@ export default function GeracaoPage() {
               </div>
             ) : null}
           </>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Geração diária da frota (realizado × meta)</h2>
+            <p>Do histórico no banco — pior aderência no topo; cresce a cada dia.</p>
+          </div>
+        </div>
+        {geracaoDia.isPending ? (
+          <p style={loadingStyle}>Carregando…</p>
+        ) : !geracaoDia.data || geracaoDia.data.length === 0 ? (
+          <p style={loadingStyle}>
+            Coletando dados… aparece a partir do primeiro dia com coleta.
+          </p>
+        ) : (
+          <DataTable
+            columns={geracaoDiaColumns}
+            rows={geracaoDia.data}
+            rowKey={(r) => r.dia}
+            fileName="geracao-diaria"
+            initialSort={{ key: "dia", dir: "desc" }}
+            emptyMessage="Sem dados."
+          />
         )}
       </section>
     </>

@@ -1,5 +1,6 @@
 import type {
   AlarmeHistorico,
+  GeracaoDia,
   UptimeColetor,
 } from "@/lib/soliscloud/telemetria-db";
 import type {
@@ -75,6 +76,10 @@ export function fetchUptimeColetores() {
 
 export function fetchHistoricoAlarmes() {
   return getJson<AlarmeHistorico[]>("/api/soliscloud/historico-alarmes");
+}
+
+export function fetchGeracaoDiaria() {
+  return getJson<GeracaoDia[]>("/api/soliscloud/geracao-diaria");
 }
 
 export type IntegrationStatus = {

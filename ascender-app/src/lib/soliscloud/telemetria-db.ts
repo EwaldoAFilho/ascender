@@ -160,6 +160,55 @@ export async function ultimaTelemetriaEm(): Promise<string | null> {
   return r?.at ? new Date(r.at).toISOString() : null;
 }
 
+export type GeracaoDia = {
+  dia: string; // "AAAA-MM-DD"
+  realizado: number;
+  esperado: number;
+  aderenciaPct: number | null;
+};
+
+/**
+ * Geração realizada por dia (frota) × meta diária, dos últimos `dias`. O
+ * realizado vem do pico de `energia_dia_kwh` por estação/dia (acumulado do dia)
+ * somado entre estações; a meta diária é a soma das metas mensais / 30.
+ */
+export async function geracaoDiariaFrota(dias = 14): Promise<GeracaoDia[]> {
+  const db = getDb();
+  const [m] = await db
+    .select({
+      meta: sql<number>`coalesce(sum(${usinas.geracaoEsperadaKwhMes}), 0)`,
+    })
+    .from(usinas);
+  const esperadoDia = Number(m?.meta ?? 0) / 30;
+
+  // Realizado por dia = pico de energia_dia_kwh (acumulado do dia) por estação,
+  // somado entre estações. SQL bruto (Postgres padrão) para a subconsulta.
+  const res = await db.execute(sql`
+    SELECT to_char(d, 'YYYY-MM-DD') AS dia, sum(maxdia)::float8 AS realizado
+    FROM (
+      SELECT station_id,
+             (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date AS d,
+             max(energia_dia_kwh) AS maxdia
+      FROM telemetria_estacao
+      WHERE capturado_em > now() - make_interval(days => ${dias})
+      GROUP BY station_id, (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date
+    ) sub
+    GROUP BY d
+    ORDER BY d
+  `);
+  const rows = res.rows as Array<{ dia: string; realizado: number }>;
+
+  return rows.map((r) => {
+    const realizado = Number(r.realizado);
+    return {
+      dia: r.dia,
+      realizado,
+      esperado: esperadoDia,
+      aderenciaPct: esperadoDia > 0 ? (realizado / esperadoDia) * 100 : null,
+    };
+  });
+}
+
 export type UptimeColetor = {
   sn: string;
   usinaNome: string;
