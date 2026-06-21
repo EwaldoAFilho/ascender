@@ -1,4 +1,5 @@
 import { FaturasDgTable, type FaturaDgRow } from "@/components/FaturasDgTable";
+import { ImportarBoletosLote } from "@/components/ImportarBoletosLote";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   getClientePorInstalacao,
@@ -84,6 +85,12 @@ export default async function FinanceiroPage() {
   return (
     <>
       <SummaryStrip items={kpis} />
+
+      {faturas.length > 0 ? (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
+          <ImportarBoletosLote />
+        </div>
+      ) : null}
 
       {faturas.length === 0 ? (
         <section className="panel">

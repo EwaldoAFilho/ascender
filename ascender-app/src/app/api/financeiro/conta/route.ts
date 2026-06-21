@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
 import {
+  excluirContaEnergia,
   getContaEnergia,
   salvarContaEnergia,
 } from "@/lib/financeiro/conta";
@@ -20,6 +21,25 @@ export async function GET(request: Request) {
   }
   const conta = await getContaEnergia(faturaDgId);
   return NextResponse.json({ conta });
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+
+  const faturaDgId = new URL(request.url).searchParams.get("faturaDgId");
+  if (!faturaDgId) {
+    return NextResponse.json({ error: "faturaDgId obrigatório." }, { status: 400 });
+  }
+  try {
+    await excluirContaEnergia(faturaDgId);
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json(
+      { error: "Falha ao excluir a conta." },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: Request) {

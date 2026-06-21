@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, UploadCloud, X, Zap } from "lucide-react";
+import { ExternalLink, Trash2, UploadCloud, X, Zap } from "lucide-react";
 import { formatData, moneyFormatter } from "@/lib/dashboard-data";
 
 type Tributos = { pis: number | null; cofins: number | null; icms: number | null };
@@ -42,6 +42,21 @@ function Campo({ label, valor }: { label: string; valor: React.ReactNode }) {
     <div>
       <span>{label}</span>
       <strong>{valor ?? "—"}</strong>
+    </div>
+  );
+}
+
+function Secao({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="conta-secao">
+      <h3 className="conta-secao-titulo">{titulo}</h3>
+      <div className="summary-list">{children}</div>
     </div>
   );
 }
@@ -112,6 +127,29 @@ export function ContaEnergiaModal({
     }
   }
 
+  async function excluir() {
+    if (!window.confirm("Excluir a conta anexada desta fatura?")) return;
+    setBusy(true);
+    setErro(null);
+    try {
+      const res = await fetch(
+        `/api/financeiro/conta?faturaDgId=${encodeURIComponent(faturaDgId)}`,
+        { method: "DELETE" },
+      );
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setErro(data?.error ?? "Falha ao excluir.");
+      } else {
+        onChanged();
+        onClose();
+      }
+    } catch {
+      setErro("Falha ao excluir a conta.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="modal-overlay" role="presentation" onClick={onClose}>
       <div
@@ -160,6 +198,18 @@ export function ContaEnergiaModal({
               <ExternalLink size={15} style={{ verticalAlign: "-2px", marginRight: 6 }} />
               Abrir PDF
             </a>
+          ) : null}
+          {conta ? (
+            <button
+              type="button"
+              className="btn-secondary danger"
+              onClick={excluir}
+              disabled={busy}
+              style={{ marginLeft: "auto" }}
+            >
+              <Trash2 size={15} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+              Excluir anexo
+            </button>
           ) : null}
         </div>
 
@@ -230,21 +280,27 @@ export function ContaEnergiaModal({
               );
             })()}
 
-            <div className="summary-list">
+            <Secao titulo="Identificação">
               <Campo label="Cliente" valor={conta.cliente} />
+              <Campo label="Nota fiscal" valor={conta.notaFiscal} />
+            </Secao>
+
+            <Secao titulo="Valores e tributos">
               <Campo label="Valor" valor={brl(conta.valor)} />
               <Campo label="Vencimento" valor={formatData(conta.vencimento)} />
-              <Campo label="Nota fiscal" valor={conta.notaFiscal} />
               <Campo label="Consumo faturado" valor={kwh(conta.energiaKwh)} />
-              <Campo label="Nº de dias" valor={conta.numeroDias} />
-              <Campo label="Leitura anterior" valor={formatData(conta.leituraAnteriorData)} />
-              <Campo label="Leitura atual" valor={formatData(conta.leituraData)} />
-              <Campo label="Próxima leitura" valor={formatData(conta.leituraProximaData)} />
               <Campo
                 label="Tributos (PIS/COFINS/ICMS)"
                 valor={`${brl(conta.tributos?.pis ?? null)} / ${brl(conta.tributos?.cofins ?? null)} / ${brl(conta.tributos?.icms ?? null)}`}
               />
-            </div>
+            </Secao>
+
+            <Secao titulo="Leitura">
+              <Campo label="Nº de dias" valor={conta.numeroDias} />
+              <Campo label="Leitura anterior" valor={formatData(conta.leituraAnteriorData)} />
+              <Campo label="Leitura atual" valor={formatData(conta.leituraData)} />
+              <Campo label="Próxima leitura" valor={formatData(conta.leituraProximaData)} />
+            </Secao>
 
             {conta.codigoBarras ? (
               <p style={{ marginTop: 12 }}>
