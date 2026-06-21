@@ -306,6 +306,14 @@ const usinaSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v && v.trim() ? v.trim() : "ativa")),
+  endereco: optText,
+  bairro: optText,
+  estado: optText,
+  cep: optText,
+  codigoCliente: optText,
+  codigoInstalacao: optText,
+  modulos: optText,
+  inversores: optText,
 });
 
 export async function saveUsina(input: unknown): Promise<ActionResult> {

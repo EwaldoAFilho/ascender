@@ -61,6 +61,16 @@ export function listUsinas() {
       status: usinas.status,
       distribuidoraId: usinas.distribuidoraId,
       distribuidoraNome: distribuidoras.nome,
+      endereco: usinas.endereco,
+      bairro: usinas.bairro,
+      estado: usinas.estado,
+      cep: usinas.cep,
+      codigoCliente: usinas.codigoCliente,
+      codigoInstalacao: usinas.codigoInstalacao,
+      modulos: usinas.modulos,
+      inversores: usinas.inversores,
+      origem: usinas.origem,
+      origemSincronizadoEm: usinas.origemSincronizadoEm,
     })
     .from(usinas)
     .leftJoin(distribuidoras, eq(usinas.distribuidoraId, distribuidoras.id))

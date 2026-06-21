@@ -145,6 +145,15 @@ export const usinas = pgTable("usinas", {
     .notNull()
     .default(0),
   status: text("status").notNull().default("ativa"), // ativa | atencao | inativa
+  // Dados cadastrais (manuais) da usina.
+  endereco: text("endereco"),
+  bairro: text("bairro"),
+  estado: text("estado"), // UF
+  cep: text("cep"),
+  codigoCliente: text("codigo_cliente"),
+  codigoInstalacao: text("codigo_instalacao"), // UC
+  modulos: text("modulos"), // ex.: "164 × 600 W"
+  inversores: text("inversores"), // ex.: "Solis 30 kW + Solis 37,5 kW"
   origem: text("origem").notNull().default("manual"), // manual | digitalgrid | soliscloud
   origemSincronizadoEm: timestamp("origem_sincronizado_em", {
     withTimezone: true,

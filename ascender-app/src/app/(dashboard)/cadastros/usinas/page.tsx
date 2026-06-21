@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
 import { CrudSection } from "@/components/cadastros/CrudSection";
 import { ImportarUsinasSolis } from "@/components/cadastros/ImportarUsinasSolis";
+import { OrigemBanner } from "@/components/cadastros/OrigemBanner";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteUsina, saveUsina } from "@/lib/cadastros/actions";
 import {
@@ -17,6 +19,24 @@ export default async function UsinasCadastroPage() {
     opcoesDistribuidoras(),
     opcoesEstacoesSolis(),
   ]);
+
+  // Banner de proveniência no modal: usinas que vieram da SolisCloud/DG.
+  const extras: Record<string, ReactNode> = {};
+  for (const u of rows) {
+    if (u.origem && u.origem !== "manual") {
+      extras[u.id] = (
+        <OrigemBanner
+          origem={u.origem}
+          sincronizadoEm={u.origemSincronizadoEm?.toISOString() ?? null}
+          camposIntegracao={[
+            "Nome da usina",
+            "Potência (kWp)",
+            "Station ID SolisCloud",
+          ]}
+        />
+      );
+    }
+  }
 
   const totalKwp = rows.reduce((s, u) => s + u.potenciaKwp, 0);
   const naSolis = rows.filter((u) => u.stationIdSoliscloud).length;
@@ -60,7 +80,29 @@ export default async function UsinasCadastroPage() {
           type: "select",
           options: distOpts,
         },
+        { name: "endereco", label: "Endereço", type: "text" },
+        { name: "bairro", label: "Bairro", type: "text" },
+        { name: "estado", label: "Estado (UF)", type: "text" },
+        { name: "cep", label: "CEP", type: "text" },
+        { name: "codigoCliente", label: "Cód. cliente", type: "text" },
+        {
+          name: "codigoInstalacao",
+          label: "Cód. instalação (UC)",
+          type: "text",
+        },
         { name: "potenciaKwp", label: "Potência (kWp)", type: "number" },
+        {
+          name: "modulos",
+          label: "Módulos",
+          type: "text",
+          placeholder: "ex.: 164 × 600 W",
+        },
+        {
+          name: "inversores",
+          label: "Inversores",
+          type: "text",
+          placeholder: "ex.: Solis 30 kW + Solis 37,5 kW",
+        },
         {
           name: "geracaoEsperadaKwhMes",
           label: "Geração esperada (kWh/mês)",
@@ -120,13 +162,22 @@ export default async function UsinasCadastroPage() {
         values: {
           nome: u.nome,
           distribuidoraId: u.distribuidoraId ?? "",
+          endereco: u.endereco ?? "",
+          bairro: u.bairro ?? "",
+          estado: u.estado ?? "",
+          cep: u.cep ?? "",
+          codigoCliente: u.codigoCliente ?? "",
+          codigoInstalacao: u.codigoInstalacao ?? "",
           potenciaKwp: String(u.potenciaKwp),
+          modulos: u.modulos ?? "",
+          inversores: u.inversores ?? "",
           geracaoEsperadaKwhMes: String(u.geracaoEsperadaKwhMes),
           codigoDigitalGrid: u.codigoDigitalGrid ?? "",
           stationIdSoliscloud: u.stationIdSoliscloud ?? "",
           status: u.status,
         },
       }))}
+      extras={extras}
       />
     </>
   );
