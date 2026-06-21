@@ -92,6 +92,13 @@
       "when": 1782068737632,
       "tag": "0012_cliente_dados_adicionais",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1782068819134,
+      "tag": "0013_anexos_e_historico",
+      "breakpoints": true
     }
   ]
 }

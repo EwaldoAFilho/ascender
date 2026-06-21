@@ -360,6 +360,126 @@ h2 {
   color: var(--muted);
 }
 
+/* Ficha do cliente: anexos + histórico dentro do modal. */
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ficha-bloco {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--surface-soft);
+}
+
+.ficha-bloco-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ficha-bloco-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.ficha-bloco-head .btn-link {
+  cursor: pointer;
+}
+
+.ficha-erro {
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.ficha-vazio {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.ficha-anexos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ficha-anexos li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.ficha-anexo-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ficha-anexo-info strong {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ficha-anexo-info span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ficha-anexo-acoes {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ficha-historico {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ficha-historico li {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  align-items: baseline;
+}
+
+.ficha-hist-quando {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 104px;
+}
+
+.ficha-hist-texto i {
+  color: var(--muted);
+  font-style: normal;
+}
+
 .module-hero {
   display: grid;
   grid-template-columns: 1fr;

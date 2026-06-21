@@ -19,6 +19,14 @@ import {
   importarCadastrosDg as runImportarCadastrosDg,
   type ConciliacaoResult,
 } from "@/lib/digitalgrid/cadastros";
+import { excluirAnexo, listarAnexos, type AnexoMeta } from "./anexos";
+import {
+  autorAtual,
+  listarHistorico,
+  registrarHistorico,
+  type EntradaHistorico,
+} from "./historico";
+import type { CadastroHistorico } from "@/lib/db/schema";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -112,25 +120,111 @@ const clienteSchema = z.object({
   dadosAdicionais: optText,
 });
 
+// Campos do cliente rastreados no histórico (chave → rótulo legível).
+const CLIENTE_CAMPOS: [keyof typeof clienteSchema._output, string][] = [
+  ["nome", "Nome"],
+  ["documento", "Documento"],
+  ["tipo", "Tipo"],
+  ["status", "Status"],
+  ["email", "E-mail"],
+  ["responsavel", "Responsável"],
+  ["dadosAdicionais", "Dados adicionais"],
+];
+
+const normValor = (v: unknown): string | null => {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+};
+
 export async function saveCliente(input: unknown): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
   const parsed = clienteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const { autor, autorId } = await autorAtual();
   try {
     if (id) {
+      const [antes] = await getDb()
+        .select()
+        .from(clientes)
+        .where(eq(clientes.id, id));
       await getDb()
         .update(clientes)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(clientes.id, id));
+      if (antes) {
+        const entradas: EntradaHistorico[] = [];
+        for (const [campo, label] of CLIENTE_CAMPOS) {
+          const before = normValor((antes as Record<string, unknown>)[campo]);
+          const after = normValor((data as Record<string, unknown>)[campo]);
+          if (before !== after) {
+            entradas.push({
+              entidade: "cliente",
+              entidadeId: id,
+              acao: "editou_campo",
+              campo: label,
+              valorAntes: before,
+              valorDepois: after,
+              autor,
+              autorId,
+            });
+          }
+        }
+        await registrarHistorico(entradas);
+      }
     } else {
-      await getDb().insert(clientes).values(data);
+      const [row] = await getDb()
+        .insert(clientes)
+        .values(data)
+        .returning({ id: clientes.id });
+      await registrarHistorico({
+        entidade: "cliente",
+        entidadeId: row.id,
+        acao: "criou",
+        detalhe: data.nome,
+        autor,
+        autorId,
+      });
     }
     revalidate();
     return { ok: true };
   } catch {
     return { ok: false, error: "Erro ao salvar cliente." };
+  }
+}
+
+// ===== Cliente · ficha (anexos + histórico) =====
+
+export type FichaCliente = {
+  anexos: AnexoMeta[];
+  historico: CadastroHistorico[];
+};
+
+export async function getFichaCliente(
+  clienteId: string,
+): Promise<FichaCliente> {
+  const auth = await ensureAuth();
+  if (auth) return { anexos: [], historico: [] };
+  const [anexosLista, historico] = await Promise.all([
+    listarAnexos("cliente", clienteId),
+    listarHistorico("cliente", clienteId),
+  ]);
+  return { anexos: anexosLista, historico };
+}
+
+export async function excluirAnexoCliente(
+  anexoId: string,
+): Promise<ActionResult> {
+  const auth = await ensureAuth();
+  if (auth) return auth;
+  try {
+    await excluirAnexo(anexoId);
+    revalidate();
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Não foi possível excluir o anexo." };
   }
 }
 

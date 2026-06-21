@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ClienteFicha } from "@/components/cadastros/ClienteFicha";
 import { CrudSection } from "@/components/cadastros/CrudSection";
 import { OrigemBanner } from "@/components/cadastros/OrigemBanner";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
@@ -11,18 +12,19 @@ export const dynamic = "force-dynamic";
 export default async function ClientesCadastroPage() {
   const rows = await listClientes();
 
-  // Banner de proveniência no modal: só para registros vindos de integração.
+  // Ao editar um cliente existente, o modal mostra a ficha: proveniência
+  // (quando veio de integração) + anexos + histórico de alterações.
   const extras: Record<string, ReactNode> = {};
   for (const c of rows) {
-    if (c.origem && c.origem !== "manual") {
-      extras[c.id] = (
+    const banner =
+      c.origem && c.origem !== "manual" ? (
         <OrigemBanner
           origem={c.origem}
           sincronizadoEm={c.origemSincronizadoEm?.toISOString() ?? null}
           camposIntegracao={["Nome / Razão social", "Documento (CPF/CNPJ)"]}
         />
-      );
-    }
+      ) : undefined;
+    extras[c.id] = <ClienteFicha clienteId={c.id} banner={banner} />;
   }
 
   const ativos = rows.filter((c) => c.status === "ativo").length;

@@ -1,5 +1,6 @@
 import {
   boolean,
+  customType,
   doublePrecision,
   index,
   integer,
@@ -10,6 +11,13 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
+
+// Binário cru (BLOB) — guarda o conteúdo dos anexos como `bytea` no Postgres.
+const bytea = customType<{ data: Buffer; default: false }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 // ===== Integrações / configurações (já existentes) =====
 
@@ -452,6 +460,50 @@ export const alarmes = pgTable("alarmes", {
   resolvidoEm: timestamp("resolvido_em", { withTimezone: true }),
 });
 
+// Anexos de qualquer cadastro (genérico por entidade+id). Conteúdo em bytea
+// (BLOB no banco). Hoje usado por 'cliente'; reaproveitável em UCs/usinas etc.
+export const anexos = pgTable(
+  "anexos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entidade: text("entidade").notNull(), // 'cliente'
+    entidadeId: uuid("entidade_id").notNull(),
+    nome: text("nome").notNull(),
+    mimeType: text("mime_type").notNull().default("application/octet-stream"),
+    tamanhoBytes: integer("tamanho_bytes").notNull().default(0),
+    conteudo: bytea("conteudo").notNull(),
+    enviadoPor: text("enviado_por"), // e-mail de quem subiu
+    enviadoPorId: uuid("enviado_por_id"),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("anexos_entidade_idx").on(t.entidade, t.entidadeId)],
+);
+
+// Histórico de alterações dos cadastros (campos e anexos) para rastreabilidade.
+export const cadastroHistorico = pgTable(
+  "cadastro_historico",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entidade: text("entidade").notNull(), // 'cliente'
+    entidadeId: uuid("entidade_id").notNull(),
+    acao: text("acao").notNull(), // criou | editou_campo | anexou | removeu_anexo
+    campo: text("campo"),
+    valorAntes: text("valor_antes"),
+    valorDepois: text("valor_depois"),
+    detalhe: text("detalhe"),
+    autor: text("autor"), // e-mail de quem fez
+    autorId: uuid("autor_id"),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("cadastro_historico_entidade_idx").on(t.entidade, t.entidadeId),
+  ],
+);
+
 // Auditoria de cada execução do worker (alimenta "atualizado há X" e a saúde).
 export const syncRuns = pgTable("sync_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -470,6 +522,8 @@ export type TelemetriaInversor = typeof telemetriaInversor.$inferSelect;
 export type TelemetriaColetor = typeof telemetriaColetor.$inferSelect;
 export type Alarme = typeof alarmes.$inferSelect;
 export type SyncRun = typeof syncRuns.$inferSelect;
+export type Anexo = typeof anexos.$inferSelect;
+export type CadastroHistorico = typeof cadastroHistorico.$inferSelect;
 
 export type IntegrationCredential = typeof integrationCredentials.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
