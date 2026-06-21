@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AlarmsByStation } from "@/components/AlarmsByStation";
 import { BarList } from "@/components/BarList";
 import { DataTable, type DataColumn } from "@/components/DataTable";
@@ -34,6 +34,8 @@ const collectorStateLabel: Record<string, string> = {
 };
 const collectorRank: Record<string, number> = { offline: 0, alarm: 1, online: 2 };
 
+type View = "operacao" | "historico";
+
 export default function SolisCloudPage() {
   const stations = useStations();
   const inverters = useInverters();
@@ -43,6 +45,7 @@ export default function SolisCloudPage() {
   const sync = useSyncStatus();
   const uptime = useUptimeColetores();
   const histAlarmes = useHistoricoAlarmes();
+  const [view, setView] = useState<View>("operacao");
 
   const stationList = useMemo(() => stations.data ?? [], [stations.data]);
   const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
@@ -256,243 +259,270 @@ export default function SolisCloudPage() {
 
   return (
     <>
-      {sync.data ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: 10,
-          }}
-        >
-          <FrescorTelemetria iso={sync.data.iso} />
-        </div>
-      ) : null}
-      <SummaryStrip items={kpis} />
+      <div className="solis-toolbar">
+        <nav className="registry-tabs" aria-label="Visão da operação">
+          <button
+            type="button"
+            className={view === "operacao" ? "active" : ""}
+            onClick={() => setView("operacao")}
+          >
+            Operação ao vivo
+          </button>
+          <button
+            type="button"
+            className={view === "historico" ? "active" : ""}
+            onClick={() => setView("historico")}
+          >
+            Histórico &amp; O&amp;M
+          </button>
+        </nav>
+        {sync.data ? <FrescorTelemetria iso={sync.data.iso} /> : null}
+      </div>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Telemetria por estação</h2>
-            <p>Dados reais da SolisCloud, atualizados a cada ~5 min.</p>
-          </div>
-          <span>{stations.isSuccess ? `${stationList.length} usina(s)` : "—"}</span>
-        </div>
-        {stations.isPending ? (
-          <p style={loadingStyle}>Carregando telemetria…</p>
-        ) : stations.isError ? (
-          <ErrorState error={stations.error} onRetry={() => stations.refetch()} />
-        ) : stationList.length === 0 ? (
-          <EmptyState message="Nenhuma estação retornada pela SolisCloud." />
-        ) : (
-          <div className="telemetry-grid">
-            {stationList.map((telemetry) => (
-              <article key={telemetry.stationId} className="telemetry-card">
-                <div className="telemetry-head">
-                  <strong>{telemetry.stationName ?? telemetry.stationId}</strong>
-                  <span className={`status status-${telemetry.state}`}>
-                    {telemetry.state}
-                  </span>
-                </div>
-                <dl>
-                  <div>
-                    <dt>Agora</dt>
-                    <dd>{numberFormatter.format(telemetry.currentPowerKw)} kW</dd>
-                  </div>
-                  <div>
-                    <dt>Hoje</dt>
-                    <dd>{numberFormatter.format(telemetry.dayEnergyKwh)} kWh</dd>
-                  </div>
-                  <div>
-                    <dt>Mês</dt>
-                    <dd>{numberFormatter.format(telemetry.monthEnergyKwh)} kWh</dd>
-                  </div>
-                  <div>
-                    <dt>Total</dt>
-                    <dd>{numberFormatter.format(telemetry.allEnergyKwh)} kWh</dd>
-                  </div>
-                </dl>
-                <small>
-                  {telemetry.updateTime
-                    ? `Atualizado em ${telemetry.updateTime}`
-                    : "Sem data de atualização"}
-                </small>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+      {view === "operacao" ? (
+        <>
+          <SummaryStrip items={kpis} />
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Potência da frota (24h)</h2>
-            <p>Histórico coletado no banco a cada ~10 min — cresce ao longo do tempo.</p>
-          </div>
-        </div>
-        {historico.isPending ? (
-          <p style={loadingStyle}>Carregando histórico…</p>
-        ) : !historico.data || historico.data.points.length < 2 ? (
-          <p style={loadingStyle}>
-            Coletando dados… a curva aparece conforme o worker roda (a cada ~10
-            min).
-          </p>
-        ) : (
-          <GenerationChart series={historico.data} />
-        )}
-      </section>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Telemetria por estação</h2>
+                <p>Do banco (worker a cada ~10 min). Estado atual de cada usina.</p>
+              </div>
+              <span>
+                {stations.isSuccess ? `${stationList.length} usina(s)` : "—"}
+              </span>
+            </div>
+            {stations.isPending ? (
+              <p style={loadingStyle}>Carregando telemetria…</p>
+            ) : stations.isError ? (
+              <ErrorState error={stations.error} onRetry={() => stations.refetch()} />
+            ) : stationList.length === 0 ? (
+              <EmptyState message="Nenhuma estação retornada pela SolisCloud." />
+            ) : (
+              <div className="telemetry-grid">
+                {stationList.map((telemetry) => (
+                  <article key={telemetry.stationId} className="telemetry-card">
+                    <div className="telemetry-head">
+                      <strong>
+                        {telemetry.stationName ?? telemetry.stationId}
+                      </strong>
+                      <span className={`status status-${telemetry.state}`}>
+                        {telemetry.state}
+                      </span>
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Agora</dt>
+                        <dd>
+                          {numberFormatter.format(telemetry.currentPowerKw)} kW
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Hoje</dt>
+                        <dd>
+                          {numberFormatter.format(telemetry.dayEnergyKwh)} kWh
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Mês</dt>
+                        <dd>
+                          {numberFormatter.format(telemetry.monthEnergyKwh)} kWh
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Total</dt>
+                        <dd>
+                          {numberFormatter.format(telemetry.allEnergyKwh)} kWh
+                        </dd>
+                      </div>
+                    </dl>
+                    <small>
+                      {telemetry.updateTime
+                        ? `Atualizado em ${telemetry.updateTime}`
+                        : "Sem data de atualização"}
+                    </small>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Comunicação dos coletores</h2>
-            <p>Status dos dataloggers (O&amp;M). Coletor offline = usina sem enviar dados.</p>
-          </div>
-          <span>
-            {collectors.isSuccess && collectorData
-              ? `${collectorData.resumo.online} online · ${collectorData.resumo.offline} offline${collectorData.resumo.alarme ? ` · ${collectorData.resumo.alarme} alarme` : ""} de ${collectorData.resumo.total}`
-              : "—"}
-          </span>
-        </div>
-        {collectors.isPending ? (
-          <p style={loadingStyle}>Carregando coletores…</p>
-        ) : collectors.isError ? (
-          <ErrorState error={collectors.error} onRetry={() => collectors.refetch()} />
-        ) : (
-          <DataTable
-            columns={coletorColumns}
-            rows={coletores}
-            rowKey={(c) => c.sn}
-            fileName="coletores"
-            initialSort={{ key: "status", dir: "asc" }}
-            emptyMessage="Nenhum coletor retornado pela SolisCloud."
-          />
-        )}
-      </section>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Comunicação dos coletores</h2>
+                <p>Status dos dataloggers. Coletor offline = usina sem enviar dados.</p>
+              </div>
+              <span>
+                {collectors.isSuccess && collectorData
+                  ? `${collectorData.resumo.online} online · ${collectorData.resumo.offline} offline${collectorData.resumo.alarme ? ` · ${collectorData.resumo.alarme} alarme` : ""} de ${collectorData.resumo.total}`
+                  : "—"}
+              </span>
+            </div>
+            {collectors.isPending ? (
+              <p style={loadingStyle}>Carregando coletores…</p>
+            ) : collectors.isError ? (
+              <ErrorState error={collectors.error} onRetry={() => collectors.refetch()} />
+            ) : (
+              <DataTable
+                columns={coletorColumns}
+                rows={coletores}
+                rowKey={(c) => c.sn}
+                fileName="coletores"
+                initialSort={{ key: "status", dir: "asc" }}
+                emptyMessage="Nenhum coletor retornado pela SolisCloud."
+              />
+            )}
+          </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Disponibilidade dos coletores (24h)</h2>
-            <p>% do tempo online no período, do histórico no banco — cresce ao longo do tempo.</p>
-          </div>
-        </div>
-        {uptime.isPending ? (
-          <p style={loadingStyle}>Carregando disponibilidade…</p>
-        ) : !uptime.data || uptime.data.length === 0 ? (
-          <p style={loadingStyle}>
-            Coletando dados… a disponibilidade aparece conforme o worker roda.
-          </p>
-        ) : (
-          <DataTable
-            columns={uptimeColumns}
-            rows={uptime.data}
-            rowKey={(c) => c.sn}
-            fileName="uptime-coletores"
-            initialSort={{ key: "uptime", dir: "asc" }}
-            emptyMessage="Sem dados de disponibilidade."
-          />
-        )}
-      </section>
+          <section className="dashboard-grid">
+            {stations.isPending ? (
+              <PanelSkeleton title="Energia de hoje por usina" />
+            ) : stations.isError ? (
+              <ErrorState
+                title="Energia de hoje por usina"
+                error={stations.error}
+                onRetry={() => stations.refetch()}
+              />
+            ) : (
+              <BarList
+                title="Energia de hoje por usina"
+                rows={stationList.map((t) => ({
+                  label: t.stationName ?? t.stationId,
+                  value: t.dayEnergyKwh,
+                  caption: "geração de hoje",
+                }))}
+                formatter={(value) => `${numberFormatter.format(value)} kWh`}
+              />
+            )}
+            {stations.isSuccess ? (
+              <BarList
+                title="Energia do mês por usina"
+                rows={stationList.map((t) => ({
+                  label: t.stationName ?? t.stationId,
+                  value: t.monthEnergyKwh,
+                  caption: "acumulado no mês",
+                }))}
+                formatter={(value) => `${numberFormatter.format(value)} kWh`}
+              />
+            ) : (
+              <PanelSkeleton title="Energia do mês por usina" />
+            )}
+          </section>
 
-      <section className="dashboard-grid">
-        {stations.isPending ? (
-          <PanelSkeleton title="Energia de hoje por usina" />
-        ) : stations.isError ? (
-          <ErrorState
-            title="Energia de hoje por usina"
-            error={stations.error}
-            onRetry={() => stations.refetch()}
-          />
-        ) : (
-          <BarList
-            title="Energia de hoje por usina"
-            rows={stationList.map((t) => ({
-              label: t.stationName ?? t.stationId,
-              value: t.dayEnergyKwh,
-              caption: "geração de hoje",
-            }))}
-            formatter={(value) => `${numberFormatter.format(value)} kWh`}
-          />
-        )}
-        {stations.isSuccess ? (
-          <BarList
-            title="Energia do mês por usina"
-            rows={stationList.map((t) => ({
-              label: t.stationName ?? t.stationId,
-              value: t.monthEnergyKwh,
-              caption: "acumulado no mês",
-            }))}
-            formatter={(value) => `${numberFormatter.format(value)} kWh`}
-          />
-        ) : (
-          <PanelSkeleton title="Energia do mês por usina" />
-        )}
-      </section>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Alertas por usina</h2>
+                <p>Clique numa usina para ver os alertas dela.</p>
+              </div>
+              <span>
+                {alarms.isSuccess
+                  ? `${usinasComAtivo} com alerta ativo · ${alarmList.length} eventos`
+                  : "—"}
+              </span>
+            </div>
+            {alarms.isPending ? (
+              <p style={loadingStyle}>Carregando alertas…</p>
+            ) : alarms.isError ? (
+              <ErrorState error={alarms.error} onRetry={() => alarms.refetch()} />
+            ) : (
+              <AlarmsByStation alarms={alarmList} stationNameById={stationNameById} />
+            )}
+          </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Alertas por usina</h2>
-            <p>Clique numa usina para ver os alertas dela.</p>
-          </div>
-          <span>
-            {alarms.isSuccess
-              ? `${usinasComAtivo} com alerta ativo · ${alarmList.length} eventos`
-              : "—"}
-          </span>
-        </div>
-        {alarms.isPending ? (
-          <p style={loadingStyle}>Carregando alertas…</p>
-        ) : alarms.isError ? (
-          <ErrorState error={alarms.error} onRetry={() => alarms.refetch()} />
-        ) : (
-          <AlarmsByStation alarms={alarmList} stationNameById={stationNameById} />
-        )}
-      </section>
+          <section className="panel">
+            <div className="panel-header">
+              <h2>Inversores</h2>
+              <span>
+                {inverters.isSuccess ? `${inverterList.length} inversor(es)` : "—"}
+              </span>
+            </div>
+            {inverters.isPending ? (
+              <p style={loadingStyle}>Carregando inversores…</p>
+            ) : inverters.isError ? (
+              <ErrorState error={inverters.error} onRetry={() => inverters.refetch()} />
+            ) : (
+              <DataTable
+                columns={inverterColumns}
+                rows={inverterList}
+                rowKey={(i) => i.id}
+                fileName="inversores"
+                emptyMessage="Nenhum inversor retornado."
+              />
+            )}
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Potência da frota (24h)</h2>
+                <p>Histórico coletado no banco a cada ~10 min — cresce ao longo do tempo.</p>
+              </div>
+            </div>
+            {historico.isPending ? (
+              <p style={loadingStyle}>Carregando histórico…</p>
+            ) : !historico.data || historico.data.points.length < 2 ? (
+              <p style={loadingStyle}>
+                Coletando dados… a curva aparece conforme o worker roda (a cada
+                ~10 min).
+              </p>
+            ) : (
+              <GenerationChart series={historico.data} />
+            )}
+          </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Histórico de alarmes</h2>
-            <p>Todos os alarmes já registrados, mais recentes primeiro.</p>
-          </div>
-        </div>
-        {histAlarmes.isPending ? (
-          <p style={loadingStyle}>Carregando histórico…</p>
-        ) : !histAlarmes.data || histAlarmes.data.length === 0 ? (
-          <EmptyState message="Nenhum alarme registrado." />
-        ) : (
-          <DataTable
-            columns={alarmeColumns}
-            rows={histAlarmes.data}
-            rowKey={(a) => a.alarmId}
-            fileName="alarmes"
-            emptyMessage="Nenhum alarme."
-          />
-        )}
-      </section>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Disponibilidade dos coletores (24h)</h2>
+                <p>% do tempo online no período, do histórico no banco — pior no topo.</p>
+              </div>
+            </div>
+            {uptime.isPending ? (
+              <p style={loadingStyle}>Carregando disponibilidade…</p>
+            ) : !uptime.data || uptime.data.length === 0 ? (
+              <p style={loadingStyle}>
+                Coletando dados… a disponibilidade aparece conforme o worker roda.
+              </p>
+            ) : (
+              <DataTable
+                columns={uptimeColumns}
+                rows={uptime.data}
+                rowKey={(c) => c.sn}
+                fileName="uptime-coletores"
+                initialSort={{ key: "uptime", dir: "asc" }}
+                emptyMessage="Sem dados de disponibilidade."
+              />
+            )}
+          </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <h2>Inversores</h2>
-          <span>
-            {inverters.isSuccess ? `${inverterList.length} inversor(es)` : "—"}
-          </span>
-        </div>
-        {inverters.isPending ? (
-          <p style={loadingStyle}>Carregando inversores…</p>
-        ) : inverters.isError ? (
-          <ErrorState error={inverters.error} onRetry={() => inverters.refetch()} />
-        ) : (
-          <DataTable
-            columns={inverterColumns}
-            rows={inverterList}
-            rowKey={(i) => i.id}
-            fileName="inversores"
-            emptyMessage="Nenhum inversor retornado."
-          />
-        )}
-      </section>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Histórico de alarmes</h2>
+                <p>Todos os alarmes já registrados, mais recentes primeiro.</p>
+              </div>
+            </div>
+            {histAlarmes.isPending ? (
+              <p style={loadingStyle}>Carregando histórico…</p>
+            ) : !histAlarmes.data || histAlarmes.data.length === 0 ? (
+              <EmptyState message="Nenhum alarme registrado." />
+            ) : (
+              <DataTable
+                columns={alarmeColumns}
+                rows={histAlarmes.data}
+                rowKey={(a) => a.alarmId}
+                fileName="alarmes"
+                emptyMessage="Nenhum alarme."
+              />
+            )}
+          </section>
+        </>
+      )}
     </>
   );
 }

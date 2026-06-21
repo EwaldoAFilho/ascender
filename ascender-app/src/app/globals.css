@@ -1950,6 +1950,19 @@ th {
   }
 }
 
+/* ===== Toolbar da SolisCloud (abas Operação/Histórico + frescor) ===== */
+.solis-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.solis-toolbar .registry-tabs {
+  margin-bottom: 0;
+}
+
 /* ===== Selo de frescor da telemetria (sync-first) ===== */
 .frescor {
   display: inline-flex;
