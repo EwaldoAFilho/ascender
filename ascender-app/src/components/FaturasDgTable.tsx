@@ -14,8 +14,8 @@ import {
 export type FaturaDgRow = {
   id: string;
   competencia: string;
+  cliente: string | null;
   installationNumber: string | null;
-  installationClass: string | null;
   paymentStatus: string;
   valorTotal: number;
   valorPago: number;
@@ -45,14 +45,9 @@ const columns: DataColumn<FaturaDgRow>[] = [
     render: (r) => formatCompetencia(r.competencia),
   },
   {
-    key: "installation",
-    header: "Instalação",
-    value: (r) => r.installationNumber ?? "",
-  },
-  {
-    key: "classe",
-    header: "Classe",
-    value: (r) => r.installationClass ?? "",
+    key: "cliente",
+    header: "Cliente",
+    value: (r) => r.cliente ?? "—",
   },
   {
     key: "consumo",
@@ -204,7 +199,7 @@ export function FaturasDgTable({
       {contaFatura ? (
         <ContaEnergiaModal
           faturaDgId={contaFatura.id}
-          titulo={`${contaFatura.installationNumber ?? "UC"} · ${formatCompetencia(contaFatura.competencia)}`}
+          titulo={`${contaFatura.cliente ?? contaFatura.installationNumber ?? "UC"} · ${formatCompetencia(contaFatura.competencia)}`}
           onClose={() => setContaFatura(null)}
           onChanged={() => router.refresh()}
         />

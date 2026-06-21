@@ -1,8 +1,10 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
+  clientes,
   faturasDg,
   rateiosDg,
+  unidadesConsumidoras,
   type FaturaDg,
   type RateioDg,
 } from "@/lib/db/schema";
@@ -12,6 +14,38 @@ export async function listFaturasDg(): Promise<FaturaDg[]> {
     .select()
     .from(faturasDg)
     .orderBy(desc(faturasDg.competencia), desc(faturasDg.valorTotal));
+}
+
+/**
+ * Mapa `installationNumber` → nome do cliente. A fatura do Digital Grid só
+ * guarda o código da UC; o nome vem do cadastro (UC → cliente) como fonte
+ * primária e do `owner_name` do rateio (Digital Grid) como fallback, quando a
+ * UC ainda não está cadastrada.
+ */
+export async function getClientePorInstalacao(): Promise<Map<string, string>> {
+  const db = getDb();
+  const [cadastro, rateio] = await Promise.all([
+    db
+      .select({
+        inst: unidadesConsumidoras.codigoInstalacao,
+        nome: clientes.nome,
+      })
+      .from(unidadesConsumidoras)
+      .innerJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId)),
+    db
+      .select({ inst: rateiosDg.installation, nome: rateiosDg.ownerName })
+      .from(rateiosDg),
+  ]);
+
+  const map = new Map<string, string>();
+  // Fallback primeiro; o cadastro sobrescreve quando existe.
+  for (const r of rateio) {
+    if (r.inst && r.nome) map.set(r.inst, r.nome);
+  }
+  for (const c of cadastro) {
+    if (c.inst && c.nome) map.set(c.inst, c.nome);
+  }
+  return map;
 }
 
 export async function getResumoFaturasDg(): Promise<{

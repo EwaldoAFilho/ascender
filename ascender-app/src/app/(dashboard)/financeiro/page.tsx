@@ -1,6 +1,7 @@
 import { FaturasDgTable, type FaturaDgRow } from "@/components/FaturasDgTable";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
+  getClientePorInstalacao,
   getUltimaSyncFaturasDg,
   listFaturasDg,
 } from "@/lib/digitalgrid/queries";
@@ -23,10 +24,11 @@ function formatDateTime(iso: string | null): string {
 }
 
 export default async function FinanceiroPage() {
-  const [faturas, ultimaSync, comConta] = await Promise.all([
+  const [faturas, ultimaSync, comConta, clientePorInst] = await Promise.all([
     listFaturasDg(),
     getUltimaSyncFaturasDg(),
     getFaturaIdsComConta(),
+    getClientePorInstalacao(),
   ]);
 
   const totalFaturado = faturas.reduce((s, f) => s + f.valorTotal, 0);
@@ -66,8 +68,10 @@ export default async function FinanceiroPage() {
   const rows: FaturaDgRow[] = faturas.map((f) => ({
     id: f.id,
     competencia: f.competencia,
+    cliente: f.installationNumber
+      ? (clientePorInst.get(f.installationNumber) ?? null)
+      : null,
     installationNumber: f.installationNumber,
-    installationClass: f.installationClass,
     paymentStatus: f.paymentStatus,
     valorTotal: f.valorTotal,
     valorPago: f.valorPago,
