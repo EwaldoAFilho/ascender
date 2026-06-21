@@ -61,6 +61,8 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
         .set({
           nome: t.stationName ?? t.stationId,
           potenciaKwp,
+          origem: "soliscloud",
+          origemSincronizadoEm: new Date(),
           updatedAt: new Date(),
         })
         .where(eq(usinas.id, existing[0].id));
@@ -71,6 +73,8 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
         stationIdSoliscloud: t.stationId,
         potenciaKwp,
         status: "ativa",
+        origem: "soliscloud",
+        origemSincronizadoEm: new Date(),
       });
       criadas++;
     }

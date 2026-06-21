@@ -82,6 +82,11 @@ export const clientes = pgTable("clientes", {
   status: text("status").notNull().default("ativo"), // ativo | inativo
   email: text("email"),
   responsavel: text("responsavel"),
+  // Proveniência do registro: manual ou de qual integração veio.
+  origem: text("origem").notNull().default("manual"), // manual | digitalgrid | soliscloud
+  origemSincronizadoEm: timestamp("origem_sincronizado_em", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -102,6 +107,10 @@ export const unidadesConsumidoras = pgTable("unidades_consumidoras", {
   ),
   consumoMedioKwh: doublePrecision("consumo_medio_kwh").notNull().default(0),
   ativo: boolean("ativo").notNull().default(true),
+  origem: text("origem").notNull().default("manual"), // manual | digitalgrid | soliscloud
+  origemSincronizadoEm: timestamp("origem_sincronizado_em", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -126,6 +135,10 @@ export const usinas = pgTable("usinas", {
     .notNull()
     .default(0),
   status: text("status").notNull().default("ativa"), // ativa | atencao | inativa
+  origem: text("origem").notNull().default("manual"), // manual | digitalgrid | soliscloud
+  origemSincronizadoEm: timestamp("origem_sincronizado_em", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

@@ -78,6 +78,13 @@
       "when": 1781967257920,
       "tag": "0010_fair_tomorrow_man",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782068450572,
+      "tag": "0011_proveniencia_cadastros",
+      "breakpoints": true
     }
   ]
 }

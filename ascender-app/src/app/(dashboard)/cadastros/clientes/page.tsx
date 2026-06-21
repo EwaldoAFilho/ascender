@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import { CrudSection } from "@/components/cadastros/CrudSection";
+import { OrigemBanner } from "@/components/cadastros/OrigemBanner";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteCliente, saveCliente } from "@/lib/cadastros/actions";
 import { listClientes } from "@/lib/cadastros/queries";
@@ -8,6 +10,20 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientesCadastroPage() {
   const rows = await listClientes();
+
+  // Banner de proveniência no modal: só para registros vindos de integração.
+  const extras: Record<string, ReactNode> = {};
+  for (const c of rows) {
+    if (c.origem && c.origem !== "manual") {
+      extras[c.id] = (
+        <OrigemBanner
+          origem={c.origem}
+          sincronizadoEm={c.origemSincronizadoEm?.toISOString() ?? null}
+          camposIntegracao={["Nome / Razão social", "Documento (CPF/CNPJ)"]}
+        />
+      );
+    }
+  }
 
   const ativos = rows.filter((c) => c.status === "ativo").length;
   const prosumidores = rows.filter((c) => c.tipo === "prosumidor").length;
@@ -61,10 +77,16 @@ export default async function ClientesCadastroPage() {
           { name: "email", label: "E-mail financeiro", type: "text" },
           { name: "responsavel", label: "Responsável", type: "text" },
         ]}
-        columns={["Cliente", "Documento", "Tipo", "Status"]}
+        columns={["Cliente", "Documento", "Tipo", "Status", "Origem"]}
         rows={rows.map((c) => ({
           id: c.id,
-          cells: [c.nome, c.documento || "-", c.tipo, c.status],
+          cells: [
+            c.nome,
+            c.documento || "-",
+            c.tipo,
+            c.status,
+            c.origem === "manual" ? "manual" : c.origem,
+          ],
           values: {
             nome: c.nome,
             documento: c.documento ?? "",
@@ -74,6 +96,7 @@ export default async function ClientesCadastroPage() {
             responsavel: c.responsavel ?? "",
           },
         }))}
+        extras={extras}
         />
     </>
   );

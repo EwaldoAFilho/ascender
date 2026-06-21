@@ -131,12 +131,28 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
   }
   for (const e of entities) {
     const doc = onlyDigits(e.document);
-    if (!doc || cliPorDoc.has(doc)) continue;
+    if (!doc) continue;
+    const existenteId = cliPorDoc.get(doc);
+    if (existenteId) {
+      // Já existe: carimba a proveniência (idempotente — backfill dos antigos).
+      await db
+        .update(clientes)
+        .set({ origem: "digitalgrid", origemSincronizadoEm: new Date() })
+        .where(eq(clientes.id, existenteId));
+      continue;
+    }
     const nome = str(e.name) ?? `Cliente ${doc}`;
     const tipo = e.document_type === "CPF" ? "prosumidor" : "cliente";
     const [row] = await db
       .insert(clientes)
-      .values({ nome, documento: doc, tipo, status: "ativo" })
+      .values({
+        nome,
+        documento: doc,
+        tipo,
+        status: "ativo",
+        origem: "digitalgrid",
+        origemSincronizadoEm: new Date(),
+      })
       .returning({ id: clientes.id });
     cliPorDoc.set(doc, row.id);
     clientesCriados += 1;
@@ -182,10 +198,19 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
 
   // 4) UCs (chave: codigoInstalacao; cliente via owner; cria cliente se faltar) -
   const ucRows = await db.select().from(unidadesConsumidoras);
-  const ucCodigos = new Set(ucRows.map((u) => u.codigoInstalacao));
+  const ucIdPorCodigo = new Map(ucRows.map((u) => [u.codigoInstalacao, u.id]));
   for (const inst of installations) {
     const numero = str(inst.number);
-    if (!numero || ucCodigos.has(numero)) continue;
+    if (!numero) continue;
+    const ucExistenteId = ucIdPorCodigo.get(numero);
+    if (ucExistenteId) {
+      // Já existe: carimba a proveniência (idempotente — backfill dos antigos).
+      await db
+        .update(unidadesConsumidoras)
+        .set({ origem: "digitalgrid", origemSincronizadoEm: new Date() })
+        .where(eq(unidadesConsumidoras.id, ucExistenteId));
+      continue;
+    }
 
     const ownerDoc = onlyDigits(inst.owner);
     let clienteId = ownerDoc ? cliPorDoc.get(ownerDoc) : undefined;
@@ -199,6 +224,8 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
           documento: ownerDoc,
           tipo: "cliente",
           status: "ativo",
+          origem: "digitalgrid",
+          origemSincronizadoEm: new Date(),
         })
         .returning({ id: clientes.id });
       clienteId = row.id;
@@ -206,14 +233,19 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
       clientesCriados += 1;
     }
 
-    await db.insert(unidadesConsumidoras).values({
-      clienteId,
-      codigoInstalacao: numero,
-      distribuidoraId: acharDistribuidora(inst.distributor),
-      consumoMedioKwh: 0,
-      ativo: !numero.includes("CANCEL"),
-    });
-    ucCodigos.add(numero);
+    const [ucRow] = await db
+      .insert(unidadesConsumidoras)
+      .values({
+        clienteId,
+        codigoInstalacao: numero,
+        distribuidoraId: acharDistribuidora(inst.distributor),
+        consumoMedioKwh: 0,
+        ativo: !numero.includes("CANCEL"),
+        origem: "digitalgrid",
+        origemSincronizadoEm: new Date(),
+      })
+      .returning({ id: unidadesConsumidoras.id });
+    ucIdPorCodigo.set(numero, ucRow.id);
     ucsCriadas += 1;
   }
 

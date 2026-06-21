@@ -329,6 +329,37 @@ h2 {
   grid-column: 1 / -1;
 }
 
+/* Conteúdo extra do modal de cadastro (proveniência, anexos, histórico). */
+.crud-extras {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.origem-banner {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.origem-banner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--warning);
+}
+
+.origem-banner p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
 .module-hero {
   display: grid;
   grid-template-columns: 1fr;

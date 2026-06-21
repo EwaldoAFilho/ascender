@@ -49,6 +49,12 @@ type Props = {
   rows: CrudRow[];
   onSave: (input: Record<string, unknown>) => Promise<ActionResult>;
   onDelete: (id: string) => Promise<ActionResult>;
+  /**
+   * Conteúdo extra renderizado dentro do modal ao EDITAR um registro existente,
+   * indexado por id (proveniência, anexos, histórico…). JSX pré-renderizado no
+   * servidor — pode ser um client component (ex.: ficha do cliente).
+   */
+  extras?: Record<string, ReactNode>;
 };
 
 export function CrudSection({
@@ -58,6 +64,7 @@ export function CrudSection({
   rows,
   onSave,
   onDelete,
+  extras,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -259,6 +266,9 @@ export function CrudSection({
                   </label>
                 ))}
               </div>
+              {editingId && extras?.[editingId] ? (
+                <div className="crud-extras">{extras[editingId]}</div>
+              ) : null}
               {error ? (
                 <p style={{ color: "var(--danger)", fontWeight: 800, marginTop: 12 }}>
                   {error}
