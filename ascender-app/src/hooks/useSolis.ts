@@ -5,9 +5,11 @@ import {
   fetchAlarms,
   fetchCollectors,
   fetchGeneration,
+  fetchHistoricoAlarmes,
   fetchHistoricoFrota,
   fetchIntegrationStatus,
   fetchSyncStatus,
+  fetchUptimeColetores,
   fetchInverters,
   fetchStations,
   type GenerationPeriod,
@@ -59,6 +61,22 @@ export function useSyncStatus() {
   return useQuery({
     queryKey: ["soliscloud", "sync-status"],
     queryFn: fetchSyncStatus,
+    refetchInterval: REFRESH_INTERVAL,
+  });
+}
+
+export function useUptimeColetores() {
+  return useQuery({
+    queryKey: ["soliscloud", "uptime-coletores"],
+    queryFn: fetchUptimeColetores,
+    refetchInterval: REFRESH_INTERVAL,
+  });
+}
+
+export function useHistoricoAlarmes() {
+  return useQuery({
+    queryKey: ["soliscloud", "historico-alarmes"],
+    queryFn: fetchHistoricoAlarmes,
     refetchInterval: REFRESH_INTERVAL,
   });
 }

@@ -1,4 +1,8 @@
 import type {
+  AlarmeHistorico,
+  UptimeColetor,
+} from "@/lib/soliscloud/telemetria-db";
+import type {
   CollectorMonitor,
   InverterTelemetry,
   SolisAlarm,
@@ -63,6 +67,14 @@ export function fetchHistoricoFrota() {
 
 export function fetchSyncStatus() {
   return getJson<{ iso: string | null }>("/api/soliscloud/sync-status");
+}
+
+export function fetchUptimeColetores() {
+  return getJson<UptimeColetor[]>("/api/soliscloud/uptime-coletores");
+}
+
+export function fetchHistoricoAlarmes() {
+  return getJson<AlarmeHistorico[]>("/api/soliscloud/historico-alarmes");
 }
 
 export type IntegrationStatus = {

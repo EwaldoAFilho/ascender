@@ -160,6 +160,88 @@ export async function ultimaTelemetriaEm(): Promise<string | null> {
   return r?.at ? new Date(r.at).toISOString() : null;
 }
 
+export type UptimeColetor = {
+  sn: string;
+  usinaNome: string;
+  total: number;
+  online: number;
+  pct: number;
+};
+
+/**
+ * Disponibilidade (uptime) de cada coletor nas últimas `horas`: fração dos
+ * snapshots em que esteve "online". Só o histórico permite — cresce com o tempo.
+ */
+export async function uptimeColetores(horas = 24): Promise<UptimeColetor[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      sn: telemetriaColetor.sn,
+      usinaNome: usinas.nome,
+      total: sql<number>`count(*)`,
+      online: sql<number>`count(*) filter (where ${telemetriaColetor.estado} = 'online')`,
+    })
+    .from(telemetriaColetor)
+    .leftJoin(usinas, eq(usinas.id, telemetriaColetor.usinaId))
+    .where(sql`${telemetriaColetor.capturadoEm} > now() - make_interval(hours => ${horas})`)
+    .groupBy(telemetriaColetor.sn, usinas.nome)
+    .orderBy(telemetriaColetor.sn);
+
+  return rows.map((r) => {
+    const total = Number(r.total);
+    const online = Number(r.online);
+    return {
+      sn: r.sn,
+      usinaNome: r.usinaNome ?? "—",
+      total,
+      online,
+      pct: total > 0 ? (online / total) * 100 : 0,
+    };
+  });
+}
+
+export type AlarmeHistorico = {
+  alarmId: string;
+  usinaNome: string;
+  deviceSn: string;
+  nivel: string;
+  mensagem: string;
+  status: string;
+  atualizadoEm: string | null;
+  resolvidoEm: string | null;
+};
+
+/** Linha do tempo de alarmes (todos os que já existiram), mais recentes no topo. */
+export async function historicoAlarmes(limite = 60): Promise<AlarmeHistorico[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      alarmId: alarmes.alarmId,
+      usinaNome: usinas.nome,
+      deviceSn: alarmes.deviceSn,
+      nivel: alarmes.nivel,
+      mensagem: alarmes.mensagem,
+      status: alarmes.status,
+      atualizadoEm: alarmes.atualizadoEm,
+      resolvidoEm: alarmes.resolvidoEm,
+    })
+    .from(alarmes)
+    .leftJoin(usinas, eq(usinas.id, alarmes.usinaId))
+    .orderBy(desc(alarmes.atualizadoEm))
+    .limit(limite);
+
+  return rows.map((r) => ({
+    alarmId: r.alarmId,
+    usinaNome: r.usinaNome ?? "—",
+    deviceSn: r.deviceSn ?? "",
+    nivel: r.nivel,
+    mensagem: r.mensagem ?? "",
+    status: r.status,
+    atualizadoEm: r.atualizadoEm ? new Date(r.atualizadoEm).toISOString() : null,
+    resolvidoEm: r.resolvidoEm ? new Date(r.resolvidoEm).toISOString() : null,
+  }));
+}
+
 function fmtHora(d: Date | null | undefined): string {
   if (!d) return "";
   try {

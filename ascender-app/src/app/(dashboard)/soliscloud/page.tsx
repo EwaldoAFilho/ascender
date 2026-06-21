@@ -11,12 +11,18 @@ import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import {
   useAlarms,
   useCollectors,
+  useHistoricoAlarmes,
   useHistoricoFrota,
   useInverters,
   useStations,
   useSyncStatus,
+  useUptimeColetores,
 } from "@/hooks/useSolis";
-import { numberFormatter } from "@/lib/dashboard-data";
+import { numberFormatter, tempoRelativo } from "@/lib/dashboard-data";
+import type {
+  AlarmeHistorico,
+  UptimeColetor,
+} from "@/lib/soliscloud/telemetria-db";
 import type { Collector, InverterTelemetry } from "@/types/soliscloud";
 
 const loadingStyle = { color: "var(--muted)", margin: 0 } as const;
@@ -35,6 +41,8 @@ export default function SolisCloudPage() {
   const collectors = useCollectors();
   const historico = useHistoricoFrota();
   const sync = useSyncStatus();
+  const uptime = useUptimeColetores();
+  const histAlarmes = useHistoricoAlarmes();
 
   const stationList = useMemo(() => stations.data ?? [], [stations.data]);
   const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
@@ -184,6 +192,68 @@ export default function SolisCloudPage() {
     [stationNameById],
   );
 
+  const uptimeColumns = useMemo<DataColumn<UptimeColetor>[]>(
+    () => [
+      { key: "sn", header: "Serial (SN)", value: (c) => c.sn },
+      { key: "estacao", header: "Estação", value: (c) => c.usinaNome },
+      {
+        key: "uptime",
+        header: "Uptime 24h",
+        align: "right",
+        value: (c) => c.pct,
+        render: (c) => (
+          <span
+            className={
+              c.pct >= 95
+                ? "positive-value"
+                : c.pct < 80
+                  ? "negative-value"
+                  : ""
+            }
+          >
+            {numberFormatter.format(c.pct)}%
+          </span>
+        ),
+      },
+      {
+        key: "leituras",
+        header: "Leituras (online/total)",
+        align: "right",
+        value: (c) => c.online,
+        render: (c) => `${c.online}/${c.total}`,
+      },
+    ],
+    [],
+  );
+
+  const alarmeColumns = useMemo<DataColumn<AlarmeHistorico>[]>(
+    () => [
+      {
+        key: "quando",
+        header: "Atualizado",
+        value: (a) => a.atualizadoEm ?? "",
+        render: (a) => tempoRelativo(a.atualizadoEm),
+      },
+      { key: "usina", header: "Usina", value: (a) => a.usinaNome },
+      { key: "device", header: "Device", value: (a) => a.deviceSn },
+      { key: "nivel", header: "Nível", value: (a) => a.nivel },
+      { key: "msg", header: "Mensagem", value: (a) => a.mensagem },
+      {
+        key: "status",
+        header: "Status",
+        value: (a) => a.status,
+        render: (a) => (
+          <span
+            className={`status status-${a.status === "resolvido" ? "online" : a.status === "aberto" ? "offline" : "aguardando"}`}
+          >
+            {a.status}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
+
   return (
     <>
       {sync.data ? (
@@ -299,6 +369,31 @@ export default function SolisCloudPage() {
         )}
       </section>
 
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Disponibilidade dos coletores (24h)</h2>
+            <p>% do tempo online no período, do histórico no banco — cresce ao longo do tempo.</p>
+          </div>
+        </div>
+        {uptime.isPending ? (
+          <p style={loadingStyle}>Carregando disponibilidade…</p>
+        ) : !uptime.data || uptime.data.length === 0 ? (
+          <p style={loadingStyle}>
+            Coletando dados… a disponibilidade aparece conforme o worker roda.
+          </p>
+        ) : (
+          <DataTable
+            columns={uptimeColumns}
+            rows={uptime.data}
+            rowKey={(c) => c.sn}
+            fileName="uptime-coletores"
+            initialSort={{ key: "uptime", dir: "asc" }}
+            emptyMessage="Sem dados de disponibilidade."
+          />
+        )}
+      </section>
+
       <section className="dashboard-grid">
         {stations.isPending ? (
           <PanelSkeleton title="Energia de hoje por usina" />
@@ -352,6 +447,28 @@ export default function SolisCloudPage() {
           <ErrorState error={alarms.error} onRetry={() => alarms.refetch()} />
         ) : (
           <AlarmsByStation alarms={alarmList} stationNameById={stationNameById} />
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Histórico de alarmes</h2>
+            <p>Todos os alarmes já registrados, mais recentes primeiro.</p>
+          </div>
+        </div>
+        {histAlarmes.isPending ? (
+          <p style={loadingStyle}>Carregando histórico…</p>
+        ) : !histAlarmes.data || histAlarmes.data.length === 0 ? (
+          <EmptyState message="Nenhum alarme registrado." />
+        ) : (
+          <DataTable
+            columns={alarmeColumns}
+            rows={histAlarmes.data}
+            rowKey={(a) => a.alarmId}
+            fileName="alarmes"
+            emptyMessage="Nenhum alarme."
+          />
         )}
       </section>
 

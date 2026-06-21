@@ -103,9 +103,10 @@ Postgres lida com dezenas de milhões tranquilamente. Conforme crescer (anos),
    Análise leem o estado atual (DISTINCT ON) via `telemetria-db.ts` /
    `getTelemetriaPorStation`. Geração (curva por estação) segue ao vivo —
    pendência menor.
-3. ✅ **Histórico (feita, base)** — "Potência da frota (24h)" na SolisCloud, dos
-   snapshots. Próximas visões (uptime de coletores, linha do tempo de alarmes,
-   realizado × esperado por dia) ficam para quando o histórico engrossar.
+3. ✅ **Histórico/relatórios (feita)** — na SolisCloud, do banco: "Potência da
+   frota (24h)", **uptime dos coletores (24h)** e **histórico de alarmes**; selo
+   "atualizado há X" nas telas de operação. Falta: realizado × esperado por dia
+   (e tudo ganha corpo com o tempo).
 4. ✅ **Robustez (feita)** — `sync_runs` em todos os crons (helper
    `registrarSyncRun`); retry/backoff no Digital Grid. Pendentes p/ escala:
    scheduler Node, advisory lock e particionamento por tempo.
