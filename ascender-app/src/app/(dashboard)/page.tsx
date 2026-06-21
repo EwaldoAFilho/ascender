@@ -1,30 +1,19 @@
 import { FrescorTelemetria } from "@/components/FrescorTelemetria";
-import { ModuleGrid } from "@/components/ModuleGrid";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
-import { GenerationChart } from "@/components/GenerationChart";
 import {
-  getHistoricoGeracaoMensal,
   getTelemetriaPorStation,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
 import { ultimaTelemetriaEm } from "@/lib/soliscloud/telemetria-db";
-import { getResumoFaturasDg } from "@/lib/digitalgrid/queries";
-import {
-  formatCompetencia,
-  moneyFormatter,
-  numberFormatter,
-} from "@/lib/dashboard-data";
-import type { GenerationSeries } from "@/lib/api/soliscloud";
+import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [usinas, tele, hist, fat, coletaEm] = await Promise.all([
+  const [usinas, tele, coletaEm] = await Promise.all([
     getUsinasComTelemetria(),
     getTelemetriaPorStation(),
-    getHistoricoGeracaoMensal(),
-    getResumoFaturasDg(),
     ultimaTelemetriaEm(),
   ]);
 
@@ -47,24 +36,6 @@ export default async function OverviewPage() {
   const online = estacoes.filter((e) => e.state === "online").length;
   const alarme = estacoes.filter((e) => e.state === "alarm").length;
   const offline = estacoes.filter((e) => e.state === "offline").length;
-
-  const now = new Date();
-  const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const receitaMes =
-    hist.porMes.find((m) => m.competencia === mesAtual)?.receita ?? 0;
-
-  const serieMes: GenerationSeries = {
-    period: "month",
-    unit: "kWh",
-    points: hist.porMes.map((m) => ({
-      label: formatCompetencia(m.competencia),
-      value: m.geracaoKwh,
-      money: m.receita,
-    })),
-    totalKwh: hist.totalKwh,
-    totalMoney: hist.totalReceita,
-    peakKw: null,
-  };
 
   return (
     <>
@@ -94,10 +65,6 @@ export default async function OverviewPage() {
               <span>Gerado no mês</span>
               <strong>{numberFormatter.format(mes)} kWh</strong>
             </div>
-            <div className="readout">
-              <span>Receita no mês</span>
-              <strong>{moneyFormatter.format(receitaMes)}</strong>
-            </div>
           </div>
           <div className="cockpit-chips">
             <span className="status status-online">{online} online</span>
@@ -110,8 +77,6 @@ export default async function OverviewPage() {
           </div>
         </div>
       </section>
-
-      <ModuleGrid />
 
       <section className="panel">
         <div className="panel-header">
@@ -150,36 +115,6 @@ export default async function OverviewPage() {
             ))}
           </div>
         )}
-      </section>
-
-      <section className="split-grid">
-        <section className="panel">
-          <div className="panel-header">
-            <h2>Ritmo do mês</h2>
-          </div>
-          <GenerationChart series={serieMes} />
-        </section>
-        <section className="panel">
-          <div className="panel-header">
-            <h2>Financeiro</h2>
-          </div>
-          <div className="summary-list">
-            <div>
-              <span>Em aberto</span>
-              <strong style={{ color: "var(--warning)" }}>
-                {moneyFormatter.format(fat.emAberto)}
-              </strong>
-            </div>
-            <div>
-              <span>Recebido</span>
-              <strong>{moneyFormatter.format(fat.pago)}</strong>
-            </div>
-            <div>
-              <span>Faturas</span>
-              <strong>{fat.qtd}</strong>
-            </div>
-          </div>
-        </section>
       </section>
     </>
   );

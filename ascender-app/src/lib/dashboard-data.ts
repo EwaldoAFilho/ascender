@@ -149,7 +149,7 @@ export const modules: Module[] = [
 ];
 
 export const viewTitles: Record<ViewId, string> = {
-  overview: "Mapa navegavel",
+  overview: "Operacao ao vivo",
   executivo: "Dashboard executivo",
   cadastros: "Cadastros operacionais",
   soliscloud: "Operacao SolisCloud",
@@ -161,8 +161,8 @@ export const viewTitles: Record<ViewId, string> = {
 };
 
 export const viewSubtitles: Record<ViewId, string> = {
-  overview: "Escolha um modulo para navegar pelos dashboards da ASCENDER.",
-  executivo: "Consolidacao para leitura rapida de diretoria e operacao.",
+  overview: "Potencia agora e estado da frota, em tempo real.",
+  executivo: "Consolidado de meta, geracao do ano e financeiro para a diretoria.",
   cadastros: "Dados mestres, com conciliacao automatica a partir do Digital Grid.",
   soliscloud:
     "Telemetria real de estacoes, inversores, energia e alarmes da SolisCloud.",
