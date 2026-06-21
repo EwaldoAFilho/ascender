@@ -79,10 +79,6 @@ export default function SolisCloudPage() {
     () => stationList.reduce((s, t) => s + t.dayEnergyKwh, 0),
     [stationList],
   );
-  const energiaMes = useMemo(
-    () => stationList.reduce((s, t) => s + t.monthEnergyKwh, 0),
-    [stationList],
-  );
 
   // Faixa de saúde da frota — verde quando tudo certo, vermelho/âmbar quando
   // há datalogger mudo ou usina em alerta. É o primeiro olhar da operação.
@@ -96,11 +92,6 @@ export default function SolisCloudPage() {
       label: "Energia hoje",
       value: stations.isSuccess ? `${numberFormatter.format(energiaHoje)} kWh` : "—",
       hint: "geração do dia",
-    },
-    {
-      label: "Energia no mês",
-      value: stations.isSuccess ? `${numberFormatter.format(energiaMes)} kWh` : "—",
-      hint: "acumulado",
     },
     {
       label: "Comunicação",
@@ -376,40 +367,25 @@ export default function SolisCloudPage() {
             )}
           </section>
 
-          <section className="dashboard-grid">
-            {stations.isPending ? (
-              <PanelSkeleton title="Energia de hoje por usina" />
-            ) : stations.isError ? (
-              <ErrorState
-                title="Energia de hoje por usina"
-                error={stations.error}
-                onRetry={() => stations.refetch()}
-              />
-            ) : (
-              <BarList
-                title="Energia de hoje por usina"
-                rows={stationList.map((t) => ({
-                  label: t.stationName ?? t.stationId,
-                  value: t.dayEnergyKwh,
-                  caption: "geração de hoje",
-                }))}
-                formatter={(value) => `${numberFormatter.format(value)} kWh`}
-              />
-            )}
-            {stations.isSuccess ? (
-              <BarList
-                title="Energia do mês por usina"
-                rows={stationList.map((t) => ({
-                  label: t.stationName ?? t.stationId,
-                  value: t.monthEnergyKwh,
-                  caption: "acumulado no mês",
-                }))}
-                formatter={(value) => `${numberFormatter.format(value)} kWh`}
-              />
-            ) : (
-              <PanelSkeleton title="Energia do mês por usina" />
-            )}
-          </section>
+          {stations.isPending ? (
+            <PanelSkeleton title="Energia de hoje por usina" />
+          ) : stations.isError ? (
+            <ErrorState
+              title="Energia de hoje por usina"
+              error={stations.error}
+              onRetry={() => stations.refetch()}
+            />
+          ) : (
+            <BarList
+              title="Energia de hoje por usina"
+              rows={stationList.map((t) => ({
+                label: t.stationName ?? t.stationId,
+                value: t.dayEnergyKwh,
+                caption: "geração de hoje",
+              }))}
+              formatter={(value) => `${numberFormatter.format(value)} kWh`}
+            />
+          )}
 
           <section className="panel">
             <div className="panel-header">

@@ -65,15 +65,6 @@ export default async function UsinasPage() {
     },
   ];
 
-  const geracaoRows = vinculadas
-    .map((l) => ({
-      label: l.nome,
-      value: l.realizadoMesKwh ?? 0,
-      caption: l.estacaoNome ?? "",
-    }))
-    .filter((r) => r.value > 0)
-    .sort((a, b) => b.value - a.value);
-
   const aderenciaRows = vinculadas
     .filter((l) => l.aderenciaPct != null)
     .map((l) => ({
@@ -109,18 +100,11 @@ export default async function UsinasPage() {
         </section>
       ) : null}
 
-      <section className="dashboard-grid">
-        <BarList
-          title="Geração do mês por usina (real)"
-          rows={geracaoRows}
-          formatter={(v) => `${n(v)} kWh`}
-        />
-        <BarList
-          title="Aderência realizado × esperado"
-          rows={aderenciaRows}
-          formatter={(v) => `${n(v)}%`}
-        />
-      </section>
+      <BarList
+        title="Aderência realizado × esperado"
+        rows={aderenciaRows}
+        formatter={(v) => `${n(v)}%`}
+      />
 
       <UsinasTable linhas={linhas} />
     </>
