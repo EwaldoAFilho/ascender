@@ -209,6 +209,97 @@ export async function geracaoDiariaFrota(dias = 14): Promise<GeracaoDia[]> {
   });
 }
 
+/**
+ * Curva de geração de uma estação, lida do banco (sync-first):
+ * - day  → potência por horário, dos snapshots de hoje (kW);
+ * - month→ geração por dia do mês (pico de energia_dia por dia), dos snapshots;
+ * - year → geração mensal do ano, de medicoes_geracao.
+ * Tudo no fuso de São Paulo, sempre o período corrente.
+ */
+export async function curvaGeracaoBanco(
+  stationId: string,
+  period: "day" | "month" | "year",
+): Promise<GenerationSeries> {
+  const db = getDb();
+
+  if (period === "year") {
+    const res = await db.execute(sql`
+      SELECT to_char(to_date(m.competencia, 'YYYY-MM'), 'MM/YYYY') AS label,
+             m.geracao_kwh::float8 AS value,
+             m.receita::float8 AS money
+      FROM medicoes_geracao m
+      JOIN usinas u ON u.id = m.usina_id
+      WHERE u.station_id_soliscloud = ${stationId}
+        AND m.competencia LIKE to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'YYYY') || '-%'
+      ORDER BY m.competencia
+    `);
+    const points = (
+      res.rows as Array<{ label: string; value: number; money: number | null }>
+    ).map((r) => ({
+      label: r.label,
+      value: Number(r.value),
+      money: r.money == null ? null : Number(r.money),
+    }));
+    return {
+      period,
+      unit: "kWh",
+      points,
+      totalKwh: points.reduce((s, p) => s + p.value, 0),
+      totalMoney: points.some((p) => p.money != null)
+        ? points.reduce((s, p) => s + (p.money ?? 0), 0)
+        : null,
+      peakKw: null,
+    };
+  }
+
+  if (period === "month") {
+    const res = await db.execute(sql`
+      SELECT to_char(d, 'DD') AS label, maxdia::float8 AS value
+      FROM (
+        SELECT (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date AS d,
+               max(energia_dia_kwh) AS maxdia
+        FROM telemetria_estacao
+        WHERE station_id = ${stationId}
+          AND to_char(capturado_em AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM')
+              = to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM')
+        GROUP BY (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date
+      ) sub ORDER BY d
+    `);
+    const points = (res.rows as Array<{ label: string; value: number }>).map(
+      (r) => ({ label: r.label, value: Number(r.value), money: null }),
+    );
+    return {
+      period,
+      unit: "kWh",
+      points,
+      totalKwh: points.reduce((s, p) => s + p.value, 0),
+      totalMoney: null,
+      peakKw: null,
+    };
+  }
+
+  // day
+  const res = await db.execute(sql`
+    SELECT to_char(capturado_em AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI') AS label,
+           potencia_kw::float8 AS value
+    FROM telemetria_estacao
+    WHERE station_id = ${stationId}
+      AND (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date = (now() AT TIME ZONE 'America/Sao_Paulo')::date
+    ORDER BY capturado_em
+  `);
+  const points = (res.rows as Array<{ label: string; value: number }>).map(
+    (r) => ({ label: r.label, value: Number(r.value), money: null }),
+  );
+  return {
+    period,
+    unit: "kW",
+    points,
+    totalKwh: null,
+    totalMoney: null,
+    peakKw: points.reduce((m, p) => Math.max(m, p.value), 0),
+  };
+}
+
 export type UptimeColetor = {
   sn: string;
   usinaNome: string;

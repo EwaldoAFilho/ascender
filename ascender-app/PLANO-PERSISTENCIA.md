@@ -99,10 +99,9 @@ Postgres lida com dezenas de milhões tranquilamente. Conforme crescer (anos),
 1. ✅ **Schema + worker (feita)** — 5 tabelas (migration 0010); `db:sync-telemetria`
    (estações, inversores, coletores, alarmes); serviço `sync-telemetria` no
    compose (10 min); grava `sync_runs`.
-2. ✅ **Telas leem do banco (feita)** — Início, Executivo, Usinas, SolisCloud e
-   Análise leem o estado atual (DISTINCT ON) via `telemetria-db.ts` /
-   `getTelemetriaPorStation`. Geração (curva por estação) segue ao vivo —
-   pendência menor.
+2. ✅ **Telas leem do banco (feita)** — Início, Executivo, Usinas, SolisCloud,
+   Análise e **Geração** (curva dia/mês dos snapshots, ano de medicoes_geracao)
+   leem do banco. Nenhuma tela bate mais na SolisCloud ao vivo.
 3. ✅ **Histórico/relatórios (feita)** — na SolisCloud, do banco: "Potência da
    frota (24h)", **uptime dos coletores (24h)** e **histórico de alarmes**; selo
    "atualizado há X" nas telas de operação. Falta: realizado × esperado por dia
@@ -113,8 +112,9 @@ Postgres lida com dezenas de milhões tranquilamente. Conforme crescer (anos),
 
 ## Decisões (resolvidas na implementação)
 
-- **Curva intradiária**: ✅ dos snapshots de 10 min (a "Potência da frota (24h)"
-  usa isso). A curva por estação da tela Geração ainda é ao vivo.
+- **Curva intradiária**: ✅ dos snapshots de 10 min — usada na "Potência da frota
+  (24h)" e na **curva por estação da tela Geração** (dia/mês). O ano vem de
+  medicoes_geracao.
 - **Worker**: ✅ shell-loop no compose (serviço `sync-telemetria`). Migrar para
   node-cron fica para a robustez futura.
 - **Fallback ao vivo**: ✅ por ora, 100% banco — se o worker parar, as telas
