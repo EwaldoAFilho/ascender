@@ -3,26 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DownloadCloud } from "lucide-react";
+import { useToast } from "@/components/ToastProvider";
 import { importarUsinasSolis } from "@/lib/cadastros/actions";
 
 export function ImportarUsinasSolis() {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function run() {
     setBusy(true);
-    setMsg(null);
     const r = await importarUsinasSolis();
     setBusy(false);
     if (r.ok) {
-      setMsg({
-        ok: true,
-        text: `Importação concluída: ${r.criadas ?? 0} nova(s), ${r.atualizadas ?? 0} atualizada(s) de ${r.total ?? 0} estações.`,
-      });
       router.refresh();
+      toast({
+        message: `Importação concluída: ${r.criadas ?? 0} nova(s), ${r.atualizadas ?? 0} atualizada(s) de ${r.total ?? 0} estações.`,
+        duration: 7000,
+      });
     } else {
-      setMsg({ ok: false, text: r.error });
+      toast({ message: r.error, variant: "error" });
     }
   }
 
@@ -47,17 +47,6 @@ export function ImportarUsinasSolis() {
           {busy ? "Importando…" : "Importar da SolisCloud"}
         </button>
       </div>
-      {msg ? (
-        <p
-          style={{
-            marginTop: 10,
-            fontWeight: 800,
-            color: msg.ok ? "var(--success)" : "var(--danger)",
-          }}
-        >
-          {msg.text}
-        </p>
-      ) : null}
     </section>
   );
 }

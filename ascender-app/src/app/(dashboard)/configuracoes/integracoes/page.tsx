@@ -10,8 +10,7 @@ import {
 } from "@/lib/api/soliscloud";
 import { DigitalGridCard } from "@/components/DigitalGridCard";
 import { errorMessage } from "@/components/states";
-
-type Feedback = { kind: "ok" | "error"; text: string } | null;
+import { useToast } from "@/components/ToastProvider";
 
 function formatDateTime(iso: string | null): string {
   if (!iso) return "—";
@@ -38,7 +37,7 @@ export default function ConfiguracoesIntegracoesPage() {
   const [showSecret, setShowSecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback>(null);
+  const toast = useToast();
 
   const data = credentials.data;
   const configured = data?.configured ?? false;
@@ -54,13 +53,12 @@ export default function ConfiguracoesIntegracoesPage() {
   }
 
   async function handleSave() {
-    setFeedback(null);
     if (!keyId.trim()) {
-      setFeedback({ kind: "error", text: "Informe o KeyId." });
+      toast({ message: "Informe o KeyId.", variant: "error" });
       return;
     }
     if (!keySecret.trim() && !configured) {
-      setFeedback({ kind: "error", text: "Informe o KeySecret." });
+      toast({ message: "Informe o KeySecret.", variant: "error" });
       return;
     }
     setSaving(true);
@@ -71,17 +69,16 @@ export default function ConfiguracoesIntegracoesPage() {
         baseUrl: baseUrl.trim() || undefined,
       });
       setKeySecret("");
-      setFeedback({ kind: "ok", text: "Credenciais salvas." });
+      toast({ message: "Credenciais salvas." });
       await credentials.refetch();
     } catch (error) {
-      setFeedback({ kind: "error", text: errorMessage(error) });
+      toast({ message: errorMessage(error), variant: "error" });
     } finally {
       setSaving(false);
     }
   }
 
   async function handleTest(useTyped: boolean) {
-    setFeedback(null);
     setTesting(true);
     try {
       const result = await testConnection(
@@ -94,19 +91,15 @@ export default function ConfiguracoesIntegracoesPage() {
           : undefined,
       );
       if (result.ok) {
-        setFeedback({
-          kind: "ok",
-          text: `Conectado — ${result.stationCount ?? 0} usina(s) encontrada(s).`,
+        toast({
+          message: `Conectado — ${result.stationCount ?? 0} usina(s) encontrada(s).`,
         });
       } else {
-        setFeedback({
-          kind: "error",
-          text: result.error ?? "Falha ao conectar.",
-        });
+        toast({ message: result.error ?? "Falha ao conectar.", variant: "error" });
       }
       if (!useTyped) await credentials.refetch();
     } catch (error) {
-      setFeedback({ kind: "error", text: errorMessage(error) });
+      toast({ message: errorMessage(error), variant: "error" });
     } finally {
       setTesting(false);
     }
@@ -218,18 +211,6 @@ export default function ConfiguracoesIntegracoesPage() {
               />
             </label>
           </div>
-          {feedback ? (
-            <p
-              style={{
-                marginTop: 12,
-                fontWeight: 800,
-                color:
-                  feedback.kind === "ok" ? "var(--success)" : "var(--danger)",
-              }}
-            >
-              {feedback.text}
-            </p>
-          ) : null}
           <div className="form-actions">
             <button type="button" onClick={handleSave} disabled={saving}>
               {saving ? "Salvando…" : "Salvar"}

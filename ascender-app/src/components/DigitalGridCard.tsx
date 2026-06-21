@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CircleDollarSign, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/components/ToastProvider";
 import { fetchDgStatus, saveDgToken, testDg } from "@/lib/api/digitalgrid";
 
 function formatDateTime(iso: string | null): string {
@@ -28,7 +29,7 @@ export function DigitalGridCard() {
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [fb, setFb] = useState<{ ok: boolean; text: string } | null>(null);
+  const toast = useToast();
 
   const d = status.data;
   const configured = d?.configured ?? false;
@@ -43,26 +44,27 @@ export function DigitalGridCard() {
   }
 
   async function salvar() {
-    setFb(null);
     if (!token.trim()) {
-      setFb({ ok: false, text: "Cole o token do Digital Grid." });
+      toast({ message: "Cole o token do Digital Grid.", variant: "error" });
       return;
     }
     setSaving(true);
     try {
       await saveDgToken({ token: token.trim(), baseUrl: baseUrl.trim() || undefined });
       setToken("");
-      setFb({ ok: true, text: "Token salvo." });
+      toast({ message: "Token salvo." });
       await status.refetch();
     } catch (e) {
-      setFb({ ok: false, text: e instanceof Error ? e.message : "Erro ao salvar." });
+      toast({
+        message: e instanceof Error ? e.message : "Erro ao salvar.",
+        variant: "error",
+      });
     } finally {
       setSaving(false);
     }
   }
 
   async function testar(useTyped: boolean) {
-    setFb(null);
     setTesting(true);
     try {
       const r = await testDg(
@@ -71,16 +73,15 @@ export function DigitalGridCard() {
           : undefined,
       );
       if (r.ok) {
-        setFb({
-          ok: true,
-          text: `Conectado via ${r.scheme}${r.count != null ? ` — ${r.count} agente(s)` : ""}.`,
+        toast({
+          message: `Conectado via ${r.scheme}${r.count != null ? ` — ${r.count} agente(s)` : ""}.`,
         });
       } else {
-        setFb({ ok: false, text: r.error ?? "Falha ao conectar." });
+        toast({ message: r.error ?? "Falha ao conectar.", variant: "error" });
       }
       if (!useTyped) await status.refetch();
     } catch (e) {
-      setFb({ ok: false, text: e instanceof Error ? e.message : "Erro." });
+      toast({ message: e instanceof Error ? e.message : "Erro.", variant: "error" });
     } finally {
       setTesting(false);
     }
@@ -160,18 +161,6 @@ export function DigitalGridCard() {
           />
         </label>
       </div>
-
-      {fb ? (
-        <p
-          style={{
-            marginTop: 12,
-            fontWeight: 800,
-            color: fb.ok ? "var(--success)" : "var(--danger)",
-          }}
-        >
-          {fb.text}
-        </p>
-      ) : null}
 
       <div className="form-actions">
         <button type="button" onClick={salvar} disabled={saving}>
