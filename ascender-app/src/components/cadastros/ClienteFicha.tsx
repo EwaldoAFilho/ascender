@@ -10,6 +10,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
+import { useConfirm } from "@/components/ConfirmProvider";
 import {
   excluirAnexoCliente,
   getFichaCliente,
@@ -75,6 +76,7 @@ export function ClienteFicha({
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const confirm = useConfirm();
 
   const carregar = useCallback(async () => {
     const dados = await getFichaCliente(clienteId);
@@ -115,7 +117,13 @@ export function ClienteFicha({
   }
 
   async function onExcluir(id: string, nome: string) {
-    if (!window.confirm(`Excluir o anexo "${nome}"?`)) return;
+    const ok = await confirm({
+      title: "Excluir anexo",
+      message: `Excluir o anexo "${nome}"?`,
+      confirmLabel: "Excluir",
+      danger: true,
+    });
+    if (!ok) return;
     setErro(null);
     const res = await excluirAnexoCliente(id);
     if (res.ok) await carregar();

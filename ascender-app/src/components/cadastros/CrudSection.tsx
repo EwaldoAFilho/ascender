@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { useConfirm } from "@/components/ConfirmProvider";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -77,6 +78,7 @@ export function CrudSection({
   extras,
 }: Props) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -124,14 +126,25 @@ export function CrudSection({
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Excluir este registro?")) return;
+    const ok = await confirm({
+      title: `Excluir ${singular}`,
+      message: "Excluir este registro? Esta ação não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(true);
     const result = await onDelete(id);
     setBusy(false);
     if (result.ok) {
       router.refresh();
     } else {
-      window.alert(result.error);
+      await confirm({
+        title: "Não foi possível excluir",
+        message: result.error,
+        confirmLabel: "OK",
+        hideCancel: true,
+      });
     }
   }
 

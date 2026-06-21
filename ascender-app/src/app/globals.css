@@ -345,7 +345,7 @@ h2 {
   border-radius: 10px;
   background: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
-  color: var(--text);
+  color: var(--ink);
   font-size: 13px;
 }
 
@@ -1241,6 +1241,40 @@ th {
 .btn-secondary.danger:hover {
   border-color: var(--danger);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  background: var(--danger);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  filter: brightness(0.94);
+}
+
+/* Diálogo de confirmação (substitui window.confirm/alert). */
+.confirm-modal {
+  max-width: 440px;
+}
+
+.confirm-titulo {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.confirm-msg {
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 20px;
 }
 
 .table-actions {

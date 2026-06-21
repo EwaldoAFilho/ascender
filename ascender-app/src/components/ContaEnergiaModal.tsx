@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Trash2, UploadCloud, X, Zap } from "lucide-react";
+import { useConfirm } from "@/components/ConfirmProvider";
 import { formatData, moneyFormatter } from "@/lib/dashboard-data";
 
 type Tributos = { pis: number | null; cofins: number | null; icms: number | null };
@@ -77,6 +78,7 @@ export function ContaEnergiaModal({
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const confirm = useConfirm();
 
   async function carregar() {
     setLoading(true);
@@ -128,7 +130,13 @@ export function ContaEnergiaModal({
   }
 
   async function excluir() {
-    if (!window.confirm("Excluir a conta anexada desta fatura?")) return;
+    const ok = await confirm({
+      title: "Excluir conta",
+      message: "Excluir a conta de energia anexada a esta fatura?",
+      confirmLabel: "Excluir",
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(true);
     setErro(null);
     try {
