@@ -50,6 +50,11 @@ const columns: DataColumn<FaturaDgRow>[] = [
     value: (r) => r.cliente ?? "—",
   },
   {
+    key: "installation",
+    header: "Instalação (UC)",
+    value: (r) => r.installationNumber ?? "—",
+  },
+  {
     key: "consumo",
     header: "Consumo",
     align: "right",
