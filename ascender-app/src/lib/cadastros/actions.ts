@@ -109,6 +109,7 @@ const clienteSchema = z.object({
     .transform((v) => (v && v.trim() ? v.trim() : "ativo")),
   email: optText,
   responsavel: optText,
+  dadosAdicionais: optText,
 });
 
 export async function saveCliente(input: unknown): Promise<ActionResult> {

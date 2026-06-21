@@ -21,6 +21,16 @@ export type CrudField =
   | {
       name: string;
       label: string;
+      type: "textarea";
+      required?: boolean;
+      placeholder?: string;
+      rows?: number;
+      /** Ocupa a linha inteira do grid (default true para textarea). */
+      fullWidth?: boolean;
+    }
+  | {
+      name: string;
+      label: string;
       type: "select";
       options: Option[];
       required?: boolean;
@@ -211,9 +221,26 @@ export function CrudSection({
             <form onSubmit={handleSave}>
               <div className="form-grid">
                 {fields.map((field) => (
-                  <label className="form-field" key={field.name}>
+                  <label
+                    className={`form-field${
+                      field.type === "textarea" && field.fullWidth !== false
+                        ? " full-span"
+                        : ""
+                    }`}
+                    key={field.name}
+                  >
                     <span>{field.label}</span>
-                    {field.type === "select" ? (
+                    {field.type === "textarea" ? (
+                      <textarea
+                        rows={field.rows ?? 4}
+                        value={values[field.name] ?? ""}
+                        required={field.required}
+                        placeholder={field.placeholder}
+                        onChange={(e) =>
+                          setValues((v) => ({ ...v, [field.name]: e.target.value }))
+                        }
+                      />
+                    ) : field.type === "select" ? (
                       <select
                         value={values[field.name] ?? ""}
                         required={field.required}

@@ -76,6 +76,13 @@ export default async function ClientesCadastroPage() {
           },
           { name: "email", label: "E-mail financeiro", type: "text" },
           { name: "responsavel", label: "Responsável", type: "text" },
+          {
+            name: "dadosAdicionais",
+            label: "Dados adicionais",
+            type: "textarea",
+            rows: 4,
+            placeholder: "Anotações livres sobre o cliente…",
+          },
         ]}
         columns={["Cliente", "Documento", "Tipo", "Status", "Origem"]}
         rows={rows.map((c) => ({
@@ -94,6 +101,7 @@ export default async function ClientesCadastroPage() {
             status: c.status,
             email: c.email ?? "",
             responsavel: c.responsavel ?? "",
+            dadosAdicionais: c.dadosAdicionais ?? "",
           },
         }))}
         extras={extras}

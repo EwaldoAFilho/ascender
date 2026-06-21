@@ -82,6 +82,8 @@ export const clientes = pgTable("clientes", {
   status: text("status").notNull().default("ativo"), // ativo | inativo
   email: text("email"),
   responsavel: text("responsavel"),
+  // Texto livre para anotações do cliente (manual).
+  dadosAdicionais: text("dados_adicionais"),
   // Proveniência do registro: manual ou de qual integração veio.
   origem: text("origem").notNull().default("manual"), // manual | digitalgrid | soliscloud
   origemSincronizadoEm: timestamp("origem_sincronizado_em", {
