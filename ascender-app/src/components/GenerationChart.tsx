@@ -21,7 +21,7 @@ export function GenerationChart({ series }: { series: GenerationSeries }) {
   const isDay = series.period === "day";
   const data = series.points.map((p) => ({
     label: p.label,
-    value: Math.round(p.value * 100) / 100,
+    value: p.value == null ? null : Math.round(p.value * 100) / 100,
   }));
 
   const tooltip = (

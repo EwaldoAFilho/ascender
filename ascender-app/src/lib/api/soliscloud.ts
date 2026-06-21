@@ -158,7 +158,9 @@ export type GenerationPeriod = "day" | "month" | "year";
 export type GenerationSeries = {
   period: GenerationPeriod;
   unit: "kW" | "kWh";
-  points: { label: string; value: number; money: number | null }[];
+  // value pode ser null em buckets sem leitura (ex.: madrugada/futuro no dia) —
+  // o gráfico desenha lacuna, mantendo o eixo de 00:00 a 23:59.
+  points: { label: string; value: number | null; money: number | null }[];
   totalKwh: number | null;
   totalMoney: number | null;
   peakKw: number | null;

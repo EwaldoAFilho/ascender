@@ -278,25 +278,57 @@ export async function curvaGeracaoBanco(
     };
   }
 
-  // day
+  // day — grade fixa de 00:00 a 23:45 (buckets de 15 min) no fuso de São Paulo,
+  // para o eixo cobrir o dia inteiro (meia-noite a meia-noite). Cada bucket leva
+  // a média da potência dos snapshots que caíram nele; buckets sem leitura ficam
+  // NULL (lacuna no gráfico). Na operação normal o worker captura a noite com
+  // potência 0, formando a base; só fica vazio onde realmente não há dado.
   const res = await db.execute(sql`
-    SELECT to_char(capturado_em AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI') AS label,
-           potencia_kw::float8 AS value
-    FROM telemetria_estacao
-    WHERE station_id = ${stationId}
-      AND (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date = (now() AT TIME ZONE 'America/Sao_Paulo')::date
-    ORDER BY capturado_em
+    WITH lim AS (
+      SELECT date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AS dia_ini
+    ),
+    grade AS (
+      SELECT gs AS bucket
+      FROM lim, generate_series(
+        (SELECT dia_ini FROM lim),
+        (SELECT dia_ini FROM lim) + interval '1 day' - interval '15 min',
+        interval '15 min'
+      ) AS gs
+    ),
+    snaps AS (
+      SELECT (SELECT dia_ini FROM lim)
+             + floor(extract(epoch FROM
+                 ((capturado_em AT TIME ZONE 'America/Sao_Paulo')
+                  - (SELECT dia_ini FROM lim))) / 900) * interval '15 min' AS bucket,
+             avg(potencia_kw) AS value
+      FROM telemetria_estacao
+      WHERE station_id = ${stationId}
+        AND (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date
+            = (SELECT dia_ini FROM lim)::date
+      GROUP BY 1
+    )
+    SELECT to_char(g.bucket, 'HH24:MI') AS label, s.value::float8 AS value
+    FROM grade g
+    LEFT JOIN snaps s ON s.bucket = g.bucket
+    ORDER BY g.bucket
   `);
-  const points = (res.rows as Array<{ label: string; value: number }>).map(
-    (r) => ({ label: r.label, value: Number(r.value), money: null }),
-  );
+  const points = (
+    res.rows as Array<{ label: string; value: number | null }>
+  ).map((r) => ({
+    label: r.label,
+    value: r.value == null ? null : Number(r.value),
+    money: null,
+  }));
   return {
     period,
     unit: "kW",
     points,
     totalKwh: null,
     totalMoney: null,
-    peakKw: points.reduce((m, p) => Math.max(m, p.value), 0),
+    peakKw: points.reduce(
+      (m, p) => (p.value != null && p.value > m ? p.value : m),
+      0,
+    ),
   };
 }
 
