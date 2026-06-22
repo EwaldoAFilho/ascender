@@ -36,13 +36,24 @@ export type OperationalOverview = {
   overdueInvoices: number;
 };
 
-function horaSaoPaulo(date: Date): number {
-  const s = new Intl.DateTimeFormat("en-GB", {
-    hour: "2-digit",
+/**
+ * `true` se `date` cai na janela solar aproximada (06:00–18:00, São Paulo).
+ * Exposta para **simulação determinística** (sem depender do relógio do
+ * servidor). Granularidade de HORA, intervalo **[06, 18)**: 06:00 = dia;
+ * 18:00 = noite; 05:59 = noite; 17:59 = dia. Usa `formatToParts` (robusto em
+ * Docker/Node com ICU completo, já usado no resto do app) e, se o `Intl` não
+ * devolver a hora, assume **dia** (conservador — não mascara offline).
+ */
+export function isSolarWindowAt(date: Date): boolean {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
     hourCycle: "h23",
     timeZone: "America/Sao_Paulo",
-  }).format(date);
-  return parseInt(s, 10);
+  }).formatToParts(date);
+  const raw = parts.find((p) => p.type === "hour")?.value;
+  const hora = raw != null ? Number.parseInt(raw, 10) : NaN;
+  if (!Number.isFinite(hora)) return true; // [indefinido] → assume dia
+  return hora >= SOLAR_WINDOW.startHour && hora < SOLAR_WINDOW.endHour;
 }
 
 /**
@@ -58,9 +69,7 @@ export async function getOperationalOverview(): Promise<OperationalOverview> {
     contarFaturasVencidasDg().catch(() => 0),
   ]);
 
-  const hora = horaSaoPaulo(new Date());
-  const isSolarWindow =
-    hora >= SOLAR_WINDOW.startHour && hora < SOLAR_WINDOW.endHour;
+  const isSolarWindow = isSolarWindowAt(new Date());
 
   const lastTelemetryAgeMinutes = ultimaComm
     ? Math.max(
