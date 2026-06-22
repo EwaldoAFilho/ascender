@@ -3150,7 +3150,8 @@ th {
 
 .cmp-usina-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  /* min(100%, 320px) evita estouro horizontal em telas < 320px */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: var(--sp-5);
 }
 

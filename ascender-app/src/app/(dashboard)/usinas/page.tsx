@@ -78,10 +78,10 @@ export default async function UsinasPage() {
   // Exception-based: as 5 usinas mais abaixo da meta (apenas com meta cadastrada
   // e aderência < 100%, pior primeiro). Não compara usina sem meta.
   const temMeta = vinculadas.filter((l) => (l.esperadoMesKwh ?? 0) > 0);
-  const abaixoMeta = temMeta
+  const abaixoMetaTodas = temMeta
     .filter((l) => (l.aderenciaPct ?? 0) < 100)
-    .sort((a, b) => (a.aderenciaPct ?? 0) - (b.aderenciaPct ?? 0))
-    .slice(0, 5);
+    .sort((a, b) => (a.aderenciaPct ?? 0) - (b.aderenciaPct ?? 0));
+  const abaixoMeta = abaixoMetaTodas.slice(0, 5);
 
   return (
     <>
@@ -135,18 +135,26 @@ export default async function UsinasPage() {
             Todas as usinas com meta estão dentro da meta até hoje.
           </p>
         ) : (
-          <div className="cmp-usina-grid">
-            {abaixoMeta.map((l) => (
-              <div className="cmp-usina" key={l.id}>
-                <span className="cmp-usina-nome">{l.nome}</span>
-                <ComparisonChart
-                  realizado={l.realizadoMesKwh ?? 0}
-                  esperado={l.esperadoMesKwh ?? 0}
-                  unidade="kWh"
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="cmp-usina-grid">
+              {abaixoMeta.map((l) => (
+                <div className="cmp-usina" key={l.id}>
+                  <span className="cmp-usina-nome">{l.nome}</span>
+                  <ComparisonChart
+                    realizado={l.realizadoMesKwh ?? 0}
+                    esperado={l.esperadoMesKwh ?? 0}
+                    unidade="kWh"
+                  />
+                </div>
+              ))}
+            </div>
+            {abaixoMetaTodas.length > abaixoMeta.length ? (
+              <p style={{ color: "var(--muted)", fontSize: 13, margin: "12px 0 0" }}>
+                + {abaixoMetaTodas.length - abaixoMeta.length} outra(s) abaixo da
+                meta — ver tabela abaixo.
+              </p>
+            ) : null}
+          </>
         )}
       </section>
 
