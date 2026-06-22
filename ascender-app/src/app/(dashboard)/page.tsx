@@ -10,19 +10,24 @@ import {
 } from "@/lib/cadastros/queries";
 import { getHealthScore } from "@/lib/operacao/health-score";
 import { getIncidents } from "@/lib/operacao/incidents";
-import { ultimaTelemetriaEm } from "@/lib/soliscloud/telemetria-db";
+import { getOperationalOverview } from "@/lib/operacao/operational-overview";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [usinas, tele, coletaEm, health, incidents] = await Promise.all([
+  // Uma única leitura operacional compartilhada por Health Score e Centro de
+  // Atenção (em paralelo com os dados do cockpit/frota).
+  const [usinas, tele, overview] = await Promise.all([
     getUsinasComTelemetria(),
     getTelemetriaPorStation(),
-    ultimaTelemetriaEm(),
-    getHealthScore(),
-    getIncidents(),
+    getOperationalOverview(),
   ]);
+  const [health, incidents] = await Promise.all([
+    getHealthScore(overview),
+    getIncidents(overview),
+  ]);
+  const coletaEm = overview.lastTelemetryIso;
 
   const estacoes = Array.from(tele.mapa.values()).sort(
     (a, b) => b.currentPowerKw - a.currentPowerKw,

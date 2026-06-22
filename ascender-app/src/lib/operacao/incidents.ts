@@ -1,9 +1,7 @@
-import { contarFaturasVencidasDg } from "@/lib/digitalgrid/queries";
 import {
-  lerColetoresDoBanco,
-  lerEstacoesDoBanco,
-  ultimaTelemetriaEm,
-} from "@/lib/soliscloud/telemetria-db";
+  getOperationalOverview,
+  type OperationalOverview,
+} from "@/lib/operacao/operational-overview";
 
 export type IncidentSeverity = "critical" | "warning" | "info";
 
@@ -54,6 +52,9 @@ export type IncidentsInput = {
   silentCollectors: Array<{ sn: string; plant?: string }>;
   lastCommAgeMinutes: number | null;
   overdueInvoices: number;
+  /** true = dia (janela solar). Default true. À noite, offline de usina vira um
+   *  único item informativo (sem geração esperada). Coletor segue inalterado. */
+  isSolarWindow?: boolean;
 };
 
 /**
@@ -78,16 +79,31 @@ export function buildIncidents(input: IncidentsInput): OperationalIncident[] {
     return out;
   }
 
-  for (const p of input.offlinePlants) {
+  const solar = input.isSolarWindow ?? true;
+  if (solar) {
+    // Dia: cada usina offline é um incidente crítico (sem comunicação/produção).
+    for (const p of input.offlinePlants) {
+      out.push({
+        id: `offline-${p.stationId}`,
+        severity: "critical",
+        source: "telemetria",
+        title: "Usina offline",
+        description: p.updateTime
+          ? `Sem comunicação. Última coleta: ${p.updateTime}.`
+          : "Sem comunicação com a usina.",
+        targetLabel: p.name,
+        href: "/soliscloud",
+        actionLabel: "Ver operação",
+      });
+    }
+  } else if (input.offlinePlants.length > 0) {
+    // Noite: agrega num único item informativo (ausência de geração esperada).
     out.push({
-      id: `offline-${p.stationId}`,
-      severity: "critical",
+      id: "sem-geracao-noturno",
+      severity: "info",
       source: "telemetria",
-      title: "Usina offline",
-      description: p.updateTime
-        ? `Sem comunicação. Última coleta: ${p.updateTime}.`
-        : "Sem comunicação com a usina.",
-      targetLabel: p.name,
+      title: "Sem geração (fora da janela solar)",
+      description: `${input.offlinePlants.length} usina(s) sem geração — esperado fora do horário solar. Coletores/alarmes seguem monitorados.`,
       href: "/soliscloud",
       actionLabel: "Ver operação",
     });
@@ -145,54 +161,42 @@ export function buildIncidents(input: IncidentsInput): OperationalIncident[] {
   return ordenarIncidentes(out);
 }
 
+/** Mapeia o overview (snapshot único) para a entrada da função pura. */
+export function incidentsInputFromOverview(
+  ov: OperationalOverview,
+): IncidentsInput {
+  const nomePorStation = new Map(ov.plants.map((p) => [p.stationId, p.name]));
+  return {
+    totalPlants: ov.plants.length,
+    offlinePlants: ov.plants
+      .filter((p) => p.state === "offline")
+      .map((p) => ({
+        stationId: p.stationId,
+        name: p.name,
+        updateTime: p.updateTime,
+      })),
+    alarmPlants: ov.plants
+      .filter((p) => p.state === "alarm")
+      .map((p) => ({ stationId: p.stationId, name: p.name })),
+    silentCollectors: ov.collectors
+      .filter((c) => c.state === "offline")
+      .map((c) => ({
+        sn: c.sn,
+        plant: c.plantId ? (nomePorStation.get(c.plantId) ?? c.plantId) : undefined,
+      })),
+    lastCommAgeMinutes: ov.lastTelemetryAgeMinutes,
+    overdueInvoices: ov.overdueInvoices,
+    isSolarWindow: ov.isSolarWindow,
+  };
+}
+
 /**
- * Camada de leitura: apura os incidentes no banco (somente leitura) reusando os
- * mesmos dados do Health Score, agora detalhados por entidade.
+ * Incidentes a partir do overview. Sem `overview`, lê uma vez via
+ * `getOperationalOverview()` (compatível). Com `overview` recebido, NÃO faz I/O.
  */
-export async function getIncidents(): Promise<OperationalIncident[]> {
-  const [estacoes, coletores, ultimaComm, vencidas] = await Promise.all([
-    lerEstacoesDoBanco(),
-    lerColetoresDoBanco(),
-    ultimaTelemetriaEm(),
-    contarFaturasVencidasDg().catch(() => 0),
-  ]);
-
-  const nomePorStation = new Map(
-    estacoes.map((e) => [e.stationId, e.stationName ?? e.stationId]),
-  );
-
-  const offlinePlants = estacoes
-    .filter((e) => e.state === "offline")
-    .map((e) => ({
-      stationId: e.stationId,
-      name: e.stationName ?? e.stationId,
-      updateTime: e.updateTime || undefined,
-    }));
-
-  const alarmPlants = estacoes
-    .filter((e) => e.state === "alarm")
-    .map((e) => ({ stationId: e.stationId, name: e.stationName ?? e.stationId }));
-
-  const silentCollectors = coletores.coletores
-    .filter((c) => c.state === "offline")
-    .map((c) => ({
-      sn: c.sn,
-      plant: c.plantId ? (nomePorStation.get(c.plantId) ?? c.plantId) : undefined,
-    }));
-
-  const lastCommAgeMinutes = ultimaComm
-    ? Math.max(
-        0,
-        Math.round((Date.now() - new Date(ultimaComm).getTime()) / 60000),
-      )
-    : null;
-
-  return buildIncidents({
-    totalPlants: estacoes.length,
-    offlinePlants,
-    alarmPlants,
-    silentCollectors,
-    lastCommAgeMinutes,
-    overdueInvoices: vencidas ?? 0,
-  });
+export async function getIncidents(
+  overview?: OperationalOverview,
+): Promise<OperationalIncident[]> {
+  const ov = overview ?? (await getOperationalOverview());
+  return buildIncidents(incidentsInputFromOverview(ov));
 }
