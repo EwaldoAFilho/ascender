@@ -1,10 +1,12 @@
 import { AdherenceRow } from "@/components/AdherenceRow";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { GenerationChart } from "@/components/GenerationChart";
+import { GenerationHeatmap } from "@/components/GenerationHeatmap";
 import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
 import { HealthScore } from "@/components/operacao/HealthScore";
 import {
+  geracaoPorUsinaMes,
   getHistoricoGeracaoMensal,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
@@ -20,11 +22,12 @@ import type { GenerationSeries } from "@/lib/api/soliscloud";
 export const dynamic = "force-dynamic";
 
 export default async function ExecutivoPage() {
-  const [usinas, hist, fat, health] = await Promise.all([
+  const [usinas, hist, fat, health, heatmap] = await Promise.all([
     getUsinasComTelemetria(),
     getHistoricoGeracaoMensal(),
     getResumoFaturasDg(),
     getHealthScore(),
+    geracaoPorUsinaMes(),
   ]);
 
   const comEsperado = usinas.linhas.filter((l) => (l.esperadoMesKwh ?? 0) > 0);
@@ -168,6 +171,24 @@ export default async function ExecutivoPage() {
           </div>
           <GenerationChart series={serieMes} />
         </section>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Mapa de geração (usina × mês)</h2>
+            <p>
+              Geração mensal por usina (kWh) no ano — quanto mais forte a cor,
+              maior a geração. Célula vazia = sem registro.
+            </p>
+          </div>
+        </div>
+        <GenerationHeatmap
+          columns={heatmap.competencias}
+          rows={heatmap.linhas}
+          currentCompetencia={mesAtual}
+          unidade="kWh"
+        />
       </section>
     </>
   );

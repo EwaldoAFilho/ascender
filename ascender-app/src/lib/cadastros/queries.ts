@@ -178,6 +178,47 @@ export async function getHistoricoGeracaoMensal() {
   return { porMes, totalKwh, totalReceita };
 }
 
+export type HeatmapGeracao = {
+  competencias: string[]; // "AAAA-MM" ordenadas
+  linhas: { usina: string; valores: (number | null)[] }[]; // por competência
+};
+
+/**
+ * Geração mensal por usina (medicoes_geracao, [real]) montada como matriz
+ * usina × competência para o heatmap. Célula sem registro = null ("sem dado",
+ * não zero). Somente leitura.
+ */
+export async function geracaoPorUsinaMes(): Promise<HeatmapGeracao> {
+  // Limita ao ano corrente (o sync de geração só traz o ano atual; sem o filtro,
+  // ao virar o ano as colunas se acumulariam). Somente leitura.
+  const ano = String(new Date().getFullYear());
+  const rows = await getDb()
+    .select({
+      usina: usinas.nome,
+      competencia: medicoesGeracao.competencia,
+      geracaoKwh: sql<number>`coalesce(sum(${medicoesGeracao.geracaoKwh}), 0)`,
+    })
+    .from(medicoesGeracao)
+    .innerJoin(usinas, eq(usinas.id, medicoesGeracao.usinaId))
+    .where(sql`${medicoesGeracao.competencia} like ${`${ano}-%`}`)
+    .groupBy(usinas.nome, medicoesGeracao.competencia)
+    .orderBy(asc(usinas.nome), asc(medicoesGeracao.competencia));
+
+  const competenciasSet = new Set<string>();
+  const porUsina = new Map<string, Map<string, number>>();
+  for (const r of rows) {
+    competenciasSet.add(r.competencia);
+    if (!porUsina.has(r.usina)) porUsina.set(r.usina, new Map());
+    porUsina.get(r.usina)!.set(r.competencia, Number(r.geracaoKwh));
+  }
+  const competencias = [...competenciasSet].sort();
+  const linhas = [...porUsina.entries()].map(([usina, mapa]) => ({
+    usina,
+    valores: competencias.map((c) => (mapa.has(c) ? (mapa.get(c) as number) : null)),
+  }));
+  return { competencias, linhas };
+}
+
 export async function getResumoFaturas() {
   const rows = await getDb()
     .select({ status: faturas.status, valorBoleto: faturas.valorBoleto })
