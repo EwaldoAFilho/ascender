@@ -2772,3 +2772,127 @@ th {
     align-items: flex-start;
   }
 }
+
+/* ============================================================= */
+/* Fase 2B — Centro de Atenção (incidentes operacionais)         */
+/* ============================================================= */
+
+.attention-center {
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+.attention-empty {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  color: var(--sev-ok);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.attention-more {
+  margin: var(--sp-2) 0 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+
+.incident-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.incident-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+}
+.incident-item.sev-critical {
+  border-left-color: var(--sev-critical);
+}
+.incident-item.sev-warning {
+  border-left-color: var(--sev-warning);
+}
+.incident-item.sev-info {
+  border-left-color: var(--sev-info);
+}
+
+.incident-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.incident-item.sev-critical .incident-icon {
+  color: var(--sev-critical);
+}
+.incident-item.sev-warning .incident-icon {
+  color: var(--sev-warning);
+}
+.incident-item.sev-info .incident-icon {
+  color: var(--sev-info);
+}
+
+.incident-body {
+  min-width: 0;
+  flex: 1;
+}
+.incident-top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.incident-top strong {
+  color: var(--heading);
+  font-size: var(--fs-sm);
+}
+.incident-target {
+  color: var(--ink);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+}
+.incident-age {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.incident-desc {
+  display: block;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  margin-top: 2px;
+}
+
+.incident-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  color: var(--brand-gold);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.incident-action:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+  .incident-item {
+    flex-wrap: wrap;
+  }
+  .incident-action {
+    margin-left: auto;
+  }
+}
