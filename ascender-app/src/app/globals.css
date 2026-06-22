@@ -52,6 +52,57 @@
   --warning: #f5c451;
 }
 
+/* ===== Fase 1 — tokens aditivos (não substituem nada acima) ===== */
+:root {
+  /* Escala tipográfica */
+  --fs-display: 2.2rem;
+  --fs-h1: 1.6rem;
+  --fs-h2: 1.08rem;
+  --fs-body: 0.95rem;
+  --fs-sm: 0.85rem;
+  --fs-xs: 0.75rem;
+  --fw-regular: 400;
+  --fw-medium: 600;
+  --fw-bold: 800;
+  --fw-black: 900;
+
+  /* Escala de espaçamento (4/8/12/16/24/32/48) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* Raios */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* Elevação */
+  --elev-1: 0 1px 2px rgba(11, 31, 44, 0.06);
+  --elev-2: 0 6px 16px rgba(11, 31, 44, 0.1);
+  --elev-3: 0 14px 32px rgba(11, 31, 44, 0.16);
+
+  /* Severidade — mapeia para as semânticas já existentes */
+  --sev-critical: var(--danger);
+  --sev-warning: var(--warning);
+  --sev-ok: var(--success);
+  --sev-info: #1d6fb8;
+  --sev-neutral: var(--muted);
+}
+
+:root[data-theme="dark"] {
+  /* Leve aumento de contraste do texto secundário (alvo WCAG AA) */
+  --muted: #b4c2cb;
+  --sev-info: #5aa9e6;
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --elev-2: 0 8px 20px rgba(0, 0, 0, 0.22);
+  --elev-3: 0 16px 36px rgba(0, 0, 0, 0.3);
+}
+
 * {
   box-sizing: border-box;
 }
