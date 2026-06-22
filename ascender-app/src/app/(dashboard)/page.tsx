@@ -2,23 +2,26 @@ import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
+import { AttentionCenter } from "@/components/operacao/AttentionCenter";
 import { HealthScore } from "@/components/operacao/HealthScore";
 import {
   getTelemetriaPorStation,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
 import { getHealthScore } from "@/lib/operacao/health-score";
+import { getIncidents } from "@/lib/operacao/incidents";
 import { ultimaTelemetriaEm } from "@/lib/soliscloud/telemetria-db";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [usinas, tele, coletaEm, health] = await Promise.all([
+  const [usinas, tele, coletaEm, health, incidents] = await Promise.all([
     getUsinasComTelemetria(),
     getTelemetriaPorStation(),
     ultimaTelemetriaEm(),
     getHealthScore(),
+    getIncidents(),
   ]);
 
   const estacoes = Array.from(tele.mapa.values()).sort(
@@ -96,6 +99,8 @@ export default async function OverviewPage() {
           hint="potência atual ÷ capacidade"
         />
       </section>
+
+      <AttentionCenter incidents={incidents} />
 
       <section className="panel">
         <div className="panel-header">
