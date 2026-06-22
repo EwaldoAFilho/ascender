@@ -29,11 +29,18 @@ export function ComparisonChart({
 
   const max = Math.max(realizado, esperado, 1);
   const pct = (realizado / esperado) * 100 - 100; // delta vs meta
+  const naMeta = Math.abs(pct) < 0.5; // arredonda para 0%
   const tone = pct >= 0 ? "ok" : pct >= -15 ? "warn" : "bad";
-  const DeltaIcon = pct > 0.5 ? ArrowUpRight : pct < -0.5 ? ArrowDownRight : Minus;
-  const deltaTxt = `${pct >= 0 ? "+" : ""}${fmt(pct)}% ${
-    pct >= 0 ? "acima da meta" : "abaixo da meta"
-  }`;
+  const DeltaIcon = naMeta
+    ? Minus
+    : pct > 0
+      ? ArrowUpRight
+      : ArrowDownRight;
+  const deltaTxt = naMeta
+    ? "na meta"
+    : `${pct >= 0 ? "+" : ""}${fmt(pct)}% ${
+        pct >= 0 ? "acima da meta" : "abaixo da meta"
+      }`;
 
   return (
     <div className="comparison-chart">
