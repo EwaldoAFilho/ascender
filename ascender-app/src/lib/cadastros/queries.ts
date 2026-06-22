@@ -189,6 +189,9 @@ export type HeatmapGeracao = {
  * não zero). Somente leitura.
  */
 export async function geracaoPorUsinaMes(): Promise<HeatmapGeracao> {
+  // Limita ao ano corrente (o sync de geração só traz o ano atual; sem o filtro,
+  // ao virar o ano as colunas se acumulariam). Somente leitura.
+  const ano = String(new Date().getFullYear());
   const rows = await getDb()
     .select({
       usina: usinas.nome,
@@ -197,6 +200,7 @@ export async function geracaoPorUsinaMes(): Promise<HeatmapGeracao> {
     })
     .from(medicoesGeracao)
     .innerJoin(usinas, eq(usinas.id, medicoesGeracao.usinaId))
+    .where(sql`${medicoesGeracao.competencia} like ${`${ano}-%`}`)
     .groupBy(usinas.nome, medicoesGeracao.competencia)
     .orderBy(asc(usinas.nome), asc(medicoesGeracao.competencia));
 
