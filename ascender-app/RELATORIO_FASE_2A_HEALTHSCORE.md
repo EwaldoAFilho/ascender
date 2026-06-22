@@ -41,9 +41,10 @@ Começa em 100 e subtrai penalidades (detalhe e justificativa no
 `score = clamp(round(100 − penalidades), 0, 100)`
 
 **Status:** ≥85 `healthy` · 60–84 `attention` · <60 `critical`, com regras de
-proteção: qualquer offline nunca é `healthy`; ≥30% offline ⇒ `critical`;
-telemetria > 60 min ⇒ no mínimo `attention`; sem telemetria ⇒ `attention` e nota
-exibida como **"—"** (nunca 0 nem 100).
+proteção: qualquer offline nunca é `healthy`; **qualquer alarme nunca é
+`healthy`** (mínimo `attention`, sem virar crítico por um alarme isolado); ≥30%
+offline ⇒ `critical`; telemetria > 60 min ⇒ no mínimo `attention`; sem telemetria
+⇒ `attention` e nota exibida como **"—"** (nunca 0 nem 100), em **tom neutro/info**.
 
 ## 4. Dados usados (todos leitura no banco)
 
@@ -113,6 +114,23 @@ necessidade de alteração adicional.
 - **Sem mock** criado.
 - **Sem migração** de banco.
 - **Sem alteração** de API externa, autenticação, rotas ou regra de negócio.
+
+## 8.1 Ajustes aplicados após a revisão visual (branch `ux/fase-2a-healthscore`)
+
+Pequenos, seguros e reversíveis — sem iniciar Fase 2B:
+
+1. **Início:** removido o `MetricCard` "Usinas online" (a contagem já aparece no
+   HealthScore e nos chips do cockpit). Mantidos "Capacidade instalada" e
+   "Aproveitamento agora".
+2. **Sem telemetria:** mantém `noData=true` e o `"—"`; apresentação mudou para
+   **tom neutro/info** (antes âmbar), pois é estado *desconhecido*, não alerta.
+   Rótulo segue "Sem telemetria".
+3. **Alarme ativo (regra de produto aprovada):** uma ou mais usinas em alarme
+   força status mínimo `attention` (rótulo deixa de ser "Operação saudável");
+   a nota pode seguir alta e **um alarme isolado não torna `critical`**.
+
+`computeHealthScore()` segue **pura**; nada de endpoints/auth/rotas/regra de
+negócio fora do HealthScore foi tocado.
 
 ## 9. Próximos passos sugeridos — Fase 2B
 

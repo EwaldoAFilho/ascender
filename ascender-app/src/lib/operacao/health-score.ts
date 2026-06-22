@@ -131,6 +131,10 @@ export function computeHealthScore(input: HealthInput): HealthScoreResult {
 
   // Regras de proteção (evitam nota enganosa).
   if (offlinePlants > 0 && status === "healthy") status = "attention";
+  // Qualquer usina em alarme rebaixa para no mínimo "attention" (nota pode
+  // seguir alta, mas o rótulo não pode ser "Operação saudável"). Um alarme
+  // isolado NÃO torna crítico.
+  if (plantsWithAlarm > 0 && status === "healthy") status = "attention";
   if (totalPlants > 0 && offlinePlants / totalPlants >= 0.3) status = "critical";
   if (
     lastCommAgeMinutes != null &&

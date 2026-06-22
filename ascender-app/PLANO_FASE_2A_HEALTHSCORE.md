@@ -59,11 +59,16 @@ score = clamp( round(100 − pOffline − pAlarme − pColetores − pAtraso −
 
 ### Regras de proteção (evitam nota enganosa)
 1. **Qualquer usina offline** ⇒ status nunca é `healthy` (mínimo `attention`).
-2. **≥ 30% das usinas offline** ⇒ status `critical` independente do score.
-3. **Telemetria > 60 min atrasada** ⇒ mínimo `attention` (os contadores "online"
+2. **Qualquer usina em alarme** ⇒ status nunca é `healthy` (mínimo `attention`).
+   A nota pode seguir alta, mas o rótulo não será "Operação saudável". Um alarme
+   isolado **não** torna `critical`.
+3. **≥ 30% das usinas offline** ⇒ status `critical` independente do score.
+4. **Telemetria > 60 min atrasada** ⇒ mínimo `attention` (os contadores "online"
    podem estar velhos — não dá para afirmar saúde).
-4. **Sem telemetria** (0 usinas / sem `max(capturado_em)`) ⇒ status `attention`,
+5. **Sem telemetria** (0 usinas / sem `max(capturado_em)`) ⇒ status `attention`,
    rótulo "Sem telemetria", e a nota é exibida como **"—"** (não como 100 nem 0).
+   Apresentação em **tom neutro/info** (não âmbar de alerta), pois é um estado
+   *desconhecido*, não um problema.
 
 ---
 
