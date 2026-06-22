@@ -8,9 +8,11 @@ import {
   getTelemetriaPorStation,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
+import { OperationalTimeline } from "@/components/operacao/OperationalTimeline";
 import { getHealthScore } from "@/lib/operacao/health-score";
 import { getIncidents } from "@/lib/operacao/incidents";
 import { getOperationalOverview } from "@/lib/operacao/operational-overview";
+import { getTimeline } from "@/lib/operacao/timeline";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -23,9 +25,10 @@ export default async function OverviewPage() {
     getTelemetriaPorStation(),
     getOperationalOverview(),
   ]);
-  const [health, incidents] = await Promise.all([
+  const [health, incidents, timeline] = await Promise.all([
     getHealthScore(overview),
     getIncidents(overview),
+    getTimeline(overview),
   ]);
   const coletaEm = overview.lastTelemetryIso;
 
@@ -106,6 +109,8 @@ export default async function OverviewPage() {
       </section>
 
       <AttentionCenter incidents={incidents} />
+
+      <OperationalTimeline events={timeline} />
 
       <section className="panel">
         <div className="panel-header">

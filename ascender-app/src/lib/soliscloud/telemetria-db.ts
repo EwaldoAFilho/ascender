@@ -2,6 +2,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   alarmes,
+  syncRuns,
   telemetriaColetor,
   telemetriaEstacao,
   telemetriaInversor,
@@ -382,6 +383,46 @@ export type AlarmeHistorico = {
   atualizadoEm: string | null;
   resolvidoEm: string | null;
 };
+
+export type SyncRunRecente = {
+  id: string;
+  job: string;
+  status: string; // ok | erro
+  iniciadoEm: string;
+  terminadoEm: string | null;
+  itens: number;
+  mensagem: string | null;
+};
+
+/** Execuções recentes dos workers (sync_runs), mais recentes primeiro. */
+export async function listarSyncRunsRecentes(
+  limite = 8,
+): Promise<SyncRunRecente[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      id: syncRuns.id,
+      job: syncRuns.job,
+      status: syncRuns.status,
+      iniciadoEm: syncRuns.iniciadoEm,
+      terminadoEm: syncRuns.terminadoEm,
+      itens: syncRuns.itens,
+      mensagem: syncRuns.mensagem,
+    })
+    .from(syncRuns)
+    .orderBy(desc(syncRuns.iniciadoEm))
+    .limit(limite);
+
+  return rows.map((r) => ({
+    id: r.id,
+    job: r.job,
+    status: r.status,
+    iniciadoEm: new Date(r.iniciadoEm).toISOString(),
+    terminadoEm: r.terminadoEm ? new Date(r.terminadoEm).toISOString() : null,
+    itens: r.itens,
+    mensagem: r.mensagem,
+  }));
+}
 
 /** Linha do tempo de alarmes (todos os que já existiram), mais recentes no topo. */
 export async function historicoAlarmes(limite = 60): Promise<AlarmeHistorico[]> {
