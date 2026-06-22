@@ -1,4 +1,5 @@
 import { FrescorTelemetria } from "@/components/FrescorTelemetria";
+import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
 import { StatusBanner } from "@/components/StatusBanner";
@@ -84,6 +85,25 @@ export default async function OverviewPage() {
             ) : null}
           </div>
         </div>
+      </section>
+
+      <section className="metric-card-grid">
+        <MetricCard
+          label="Capacidade instalada"
+          value={`${numberFormatter.format(capacidadeKw)} kWp`}
+          hint="potência nominal do parque"
+        />
+        <MetricCard
+          label="Aproveitamento agora"
+          value={capacidadeKw > 0 ? `${Math.round(pctCapacidade)}%` : "—"}
+          hint="potência atual ÷ capacidade"
+        />
+        <MetricCard
+          label="Usinas online"
+          value={`${online}/${estacoes.length}`}
+          hint="em tempo real"
+          tone={offline > 0 ? "critical" : alarme > 0 ? "warn" : "ok"}
+        />
       </section>
 
       <section className="panel">

@@ -1,5 +1,6 @@
 import { AdherenceRow } from "@/components/AdherenceRow";
 import { GenerationChart } from "@/components/GenerationChart";
+import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
 import {
   getHistoricoGeracaoMensal,
@@ -94,22 +95,25 @@ export default async function ExecutivoPage() {
         </div>
       </section>
 
-      <section className="signal-row">
-        <article className="signal">
-          <span className="lbl">Geração no ano</span>
-          <span className="val">{numberFormatter.format(hist.totalKwh)} kWh</span>
-          <span className="hint">Histórico SolisCloud</span>
-        </article>
-        <article className="signal">
-          <span className="lbl">Receita no ano</span>
-          <span className="val">{moneyFormatter.format(hist.totalReceita)}</span>
-          <span className="hint">Estimada pela geração</span>
-        </article>
-        <article className="signal">
-          <span className="lbl">Parque instalado</span>
-          <span className="val">{numberFormatter.format(parqueKwp)} kWp</span>
-          <span className="hint">{usinas.linhas.length} usina(s)</span>
-        </article>
+      <section className="metric-card-grid">
+        <MetricCard
+          label="Geração no ano"
+          value={`${numberFormatter.format(hist.totalKwh)} kWh`}
+          hint="Histórico SolisCloud"
+          trend={hist.porMes.map((m) => m.geracaoKwh)}
+        />
+        <MetricCard
+          label="Receita no ano"
+          value={moneyFormatter.format(hist.totalReceita)}
+          hint="Estimada pela geração"
+          tone="ok"
+          trend={hist.porMes.map((m) => m.receita)}
+        />
+        <MetricCard
+          label="Parque instalado"
+          value={`${numberFormatter.format(parqueKwp)} kWp`}
+          hint={`${usinas.linhas.length} usina(s)`}
+        />
       </section>
 
       <section className="split-grid">
