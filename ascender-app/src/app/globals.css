@@ -2609,3 +2609,76 @@ th {
 .table-wrap tbody tr.row-ok {
   box-shadow: inset 3px 0 0 var(--sev-ok);
 }
+
+/* ============================================================= */
+/* Fase 1 — StatusBanner (faixa de status da operação)           */
+/* ============================================================= */
+
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  margin-bottom: var(--sp-4);
+}
+
+.status-banner-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.status-banner-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.status-banner-body strong {
+  color: var(--heading);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-black);
+}
+.status-banner-body span {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.status-banner-badges {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.status-banner.sev-ok {
+  border-left-color: var(--sev-ok);
+}
+.status-banner.sev-ok .status-banner-icon {
+  color: var(--sev-ok);
+}
+.status-banner.sev-warning {
+  border-left-color: var(--sev-warning);
+}
+.status-banner.sev-warning .status-banner-icon {
+  color: var(--sev-warning);
+}
+.status-banner.sev-critical {
+  border-left-color: var(--sev-critical);
+}
+.status-banner.sev-critical .status-banner-icon {
+  color: var(--sev-critical);
+}
+
+@media (max-width: 620px) {
+  .status-banner {
+    flex-wrap: wrap;
+  }
+  .status-banner-badges {
+    margin-left: 0;
+    width: 100%;
+  }
+}

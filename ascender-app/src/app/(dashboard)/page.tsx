@@ -1,6 +1,7 @@
 import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
+import { StatusBanner } from "@/components/StatusBanner";
 import {
   getTelemetriaPorStation,
   getUsinasComTelemetria,
@@ -39,6 +40,13 @@ export default async function OverviewPage() {
 
   return (
     <>
+      <StatusBanner
+        online={online}
+        alarme={alarme}
+        offline={offline}
+        total={estacoes.length}
+      />
+
       <section className="cockpit">
         <PowerRing
           pct={pctCapacidade}
