@@ -1,9 +1,7 @@
-import { contarFaturasVencidasDg } from "@/lib/digitalgrid/queries";
 import {
-  lerColetoresDoBanco,
-  lerEstacoesDoBanco,
-  ultimaTelemetriaEm,
-} from "@/lib/soliscloud/telemetria-db";
+  getOperationalOverview,
+  type OperationalOverview,
+} from "@/lib/operacao/operational-overview";
 
 export type HealthStatus = "healthy" | "attention" | "critical";
 
@@ -38,6 +36,12 @@ export type HealthInput = {
   silentCollectors?: number;
   lastCommAgeMinutes?: number | null;
   overdueInvoices?: number;
+  /**
+   * true = dentro da janela solar (dia). Default true (comportamento da 2A).
+   * À noite (false), usina `offline` é tratada como ausência de geração esperada
+   * (não penaliza nem vira crítico) — coletor/alarme seguem penalizando.
+   */
+  isSolarWindow?: boolean;
 };
 
 // Pesos máximos por fator (documentados em PLANO_FASE_2A_HEALTHSCORE.md).
@@ -78,6 +82,7 @@ export function computeHealthScore(input: HealthInput): HealthScoreResult {
     lastCommAgeMinutes,
     overdueInvoices,
   } = input;
+  const solar = input.isSolarWindow ?? true;
 
   const counters: HealthScoreResult["counters"] = {
     onlinePlants,
@@ -107,7 +112,9 @@ export function computeHealthScore(input: HealthInput): HealthScoreResult {
   }
 
   const base = Math.max(totalPlants, 1);
-  const pOffline = (offlinePlants / base) * W_OFFLINE;
+  // À noite (fora da janela solar) a usina offline = sem geração esperada → não
+  // penaliza. O datalogger (coletor) offline segue penalizando abaixo.
+  const pOffline = solar ? (offlinePlants / base) * W_OFFLINE : 0;
   const pAlarm = (plantsWithAlarm / base) * W_ALARM;
   const pColl =
     totalCollectors && totalCollectors > 0
@@ -129,13 +136,15 @@ export function computeHealthScore(input: HealthInput): HealthScoreResult {
   let status: HealthStatus =
     score >= 85 ? "healthy" : score >= 60 ? "attention" : "critical";
 
-  // Regras de proteção (evitam nota enganosa).
-  if (offlinePlants > 0 && status === "healthy") status = "attention";
+  // Regras de proteção (evitam nota enganosa). As de offline só valem de dia —
+  // à noite, usina offline é ausência de geração esperada.
+  if (solar && offlinePlants > 0 && status === "healthy") status = "attention";
   // Qualquer usina em alarme rebaixa para no mínimo "attention" (nota pode
   // seguir alta, mas o rótulo não pode ser "Operação saudável"). Um alarme
   // isolado NÃO torna crítico.
   if (plantsWithAlarm > 0 && status === "healthy") status = "attention";
-  if (totalPlants > 0 && offlinePlants / totalPlants >= 0.3) status = "critical";
+  if (solar && totalPlants > 0 && offlinePlants / totalPlants >= 0.3)
+    status = "critical";
   if (
     lastCommAgeMinutes != null &&
     lastCommAgeMinutes > 60 &&
@@ -153,11 +162,19 @@ export function computeHealthScore(input: HealthInput): HealthScoreResult {
 
   const reasons: HealthReason[] = [];
   if (offlinePlants > 0) {
-    reasons.push({
-      severity: "critical",
-      title: "Usinas offline",
-      description: `${offlinePlants} de ${totalPlants} usina(s) sem comunicação.`,
-    });
+    reasons.push(
+      solar
+        ? {
+            severity: "critical",
+            title: "Usinas offline",
+            description: `${offlinePlants} de ${totalPlants} usina(s) sem comunicação.`,
+          }
+        : {
+            severity: "info",
+            title: "Sem geração (fora da janela solar)",
+            description: `${offlinePlants} usina(s) sem geração — esperado fora do horário solar.`,
+          },
+    );
   }
   if (totalCollectors && (silentCollectors ?? 0) > 0) {
     reasons.push({
@@ -198,38 +215,29 @@ export function computeHealthScore(input: HealthInput): HealthScoreResult {
   return { score, status, label, noData: false, reasons, counters };
 }
 
+/** Mapeia o overview (snapshot único) para a entrada da função pura. */
+export function healthInputFromOverview(ov: OperationalOverview): HealthInput {
+  return {
+    totalPlants: ov.plants.length,
+    onlinePlants: ov.plants.filter((p) => p.state === "online").length,
+    offlinePlants: ov.plants.filter((p) => p.state === "offline").length,
+    plantsWithAlarm: ov.plants.filter((p) => p.state === "alarm").length,
+    totalCollectors: ov.collectorSummary.total,
+    silentCollectors: ov.collectorSummary.offline,
+    lastCommAgeMinutes: ov.lastTelemetryAgeMinutes,
+    overdueInvoices: ov.overdueInvoices,
+    isSolarWindow: ov.isSolarWindow,
+  };
+}
+
 /**
- * Camada de leitura: apura os fatores no banco (somente leitura) e devolve o
- * Health Score. Início e Executivo chamam esta mesma função (nota consistente).
+ * Health Score a partir do overview. Sem `overview`, lê uma vez via
+ * `getOperationalOverview()` (compatível com o uso anterior). Com `overview`
+ * recebido, NÃO faz I/O (permite a página compartilhar uma única leitura).
  */
-export async function getHealthScore(): Promise<HealthScoreResult> {
-  const [estacoes, coletores, ultimaComm, vencidas] = await Promise.all([
-    lerEstacoesDoBanco(),
-    lerColetoresDoBanco(),
-    ultimaTelemetriaEm(),
-    contarFaturasVencidasDg().catch(() => null),
-  ]);
-
-  const totalPlants = estacoes.length;
-  const onlinePlants = estacoes.filter((e) => e.state === "online").length;
-  const offlinePlants = estacoes.filter((e) => e.state === "offline").length;
-  const plantsWithAlarm = estacoes.filter((e) => e.state === "alarm").length;
-
-  const lastCommAgeMinutes = ultimaComm
-    ? Math.max(
-        0,
-        Math.round((Date.now() - new Date(ultimaComm).getTime()) / 60000),
-      )
-    : null;
-
-  return computeHealthScore({
-    totalPlants,
-    onlinePlants,
-    offlinePlants,
-    plantsWithAlarm,
-    totalCollectors: coletores.resumo.total,
-    silentCollectors: coletores.resumo.offline,
-    lastCommAgeMinutes,
-    overdueInvoices: vencidas ?? undefined,
-  });
+export async function getHealthScore(
+  overview?: OperationalOverview,
+): Promise<HealthScoreResult> {
+  const ov = overview ?? (await getOperationalOverview());
+  return computeHealthScore(healthInputFromOverview(ov));
 }
