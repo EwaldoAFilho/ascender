@@ -2464,3 +2464,109 @@ th {
 .btn-ghost:hover {
   background: var(--accent-soft);
 }
+
+/* ============================================================= */
+/* Fase 1 — MetricCard (big number + delta + sparkline)          */
+/* ============================================================= */
+
+.metric-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.metric-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+
+.metric-card.tone-ok::before,
+.metric-card.tone-warn::before,
+.metric-card.tone-critical::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+.metric-card.tone-ok::before { background: var(--sev-ok); }
+.metric-card.tone-warn::before { background: var(--sev-warning); }
+.metric-card.tone-critical::before { background: var(--sev-critical); }
+
+.metric-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.metric-card-label {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metric-card-icon {
+  display: inline-flex;
+  color: var(--brand-gold);
+}
+
+.metric-card-value {
+  color: var(--heading);
+  font-size: 1.7rem;
+  font-weight: var(--fw-black);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-card-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.metric-card-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+}
+.metric-card-delta.is-good {
+  color: var(--sev-ok);
+  background: color-mix(in srgb, var(--sev-ok) 14%, transparent);
+}
+.metric-card-delta.is-bad {
+  color: var(--sev-critical);
+  background: color-mix(in srgb, var(--sev-critical) 12%, transparent);
+}
+.metric-card-delta.is-flat {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+.metric-card-hint {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+
+.metric-card-spark {
+  margin-left: auto;
+  opacity: 0.9;
+}
