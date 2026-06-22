@@ -65,8 +65,9 @@ function Gauge({
  * Apresentação pura — recebe o resultado já calculado por `getHealthScore()`.
  */
 export function HealthScore({ result }: { result: HealthScoreResult }) {
-  const sev = STATUS_SEV[result.status];
-  const color = `var(--sev-${sev === "ok" ? "ok" : sev})`;
+  // Sem telemetria é um estado NEUTRO (desconhecido), não um alerta âmbar.
+  const sev = result.noData ? "info" : STATUS_SEV[result.status];
+  const color = `var(--sev-${sev})`;
   const topReasons = result.reasons.slice(0, 3);
 
   return (

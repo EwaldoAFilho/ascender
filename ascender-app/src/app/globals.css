@@ -2708,6 +2708,9 @@ th {
 .healthscore.sev-critical {
   border-left-color: var(--sev-critical);
 }
+.healthscore.sev-info {
+  border-left-color: var(--sev-info);
+}
 
 .hs-gauge-wrap {
   flex-shrink: 0;

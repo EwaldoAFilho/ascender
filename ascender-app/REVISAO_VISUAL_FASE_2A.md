@@ -54,11 +54,12 @@ Confirmações importantes da lógica:
 
 ---
 
-## 3. Problemas encontrados / ajustes finos recomendados
+## 3. Problemas encontrados / ajustes finos
 
-> Apenas **recomendações** — nada implementado nesta revisão (Fase 2B não iniciada).
+> §3.1, §3.2 e §3.3 foram **APLICADOS** na branch `ux/fase-2a-healthscore` após a
+> revisão (mudanças pequenas e reversíveis; Fase 2B não iniciada).
 
-### 3.1 ⚠ Duplicação leve na Início — "usinas online"
+### 3.1 ✅ APLICADO — Duplicação leve na Início — "usinas online"
 A contagem de usinas online aparece em **três** lugares na Início:
 1. nos **motivos** do HealthScore (quando saudável: "N usina(s) online…");
 2. no `MetricCard` **"Usinas online"** (faixa da Fase 1);
@@ -68,17 +69,17 @@ A contagem de usinas online aparece em **três** lugares na Início:
 + chips já cobrem), mantendo os cards de "Capacidade instalada" e "Aproveitamento
 agora" (esses não duplicam). Reduz ruído sem perder informação.
 
-### 3.2 ⚠ Cor do estado "sem telemetria"
+### 3.2 ✅ APLICADO — Cor do estado "sem telemetria"
 Hoje `noData` usa `status="attention"` → **âmbar**, que lê como "aviso". "Sem
 dados" é mais um estado **neutro/desconhecido** do que um alerta.
 **Recomendação:** usar cor **neutra/info** (`--sev-info`) para o caso `noData`,
 mantendo o "—". Ajuste pequeno e seguro (só apresentação).
 
-### 3.3 ⚠ Alarme ativo não rebaixa o status (decisão de produto)
-Um alarme isolado mantém "Operação saudável" com nota alta (ex.: 1 alarme em 10 →
-~98, healthy). Pode ser intencional (alarme ≠ parada), mas vale decidir:
-**alarme ativo deveria forçar no mínimo "atenção"?** É uma regra de produto —
-deixo como pergunta, sem alterar.
+### 3.3 ✅ APLICADO — Alarme ativo rebaixa o status (decisão de produto)
+Decisão aprovada: **qualquer usina em alarme força status mínimo `attention`**
+(o rótulo deixa de ser "Operação saudável"). A nota pode seguir alta e **um
+alarme isolado não torna `critical`**. Regra documentada no
+`PLANO_FASE_2A_HEALTHSCORE.md` e no `RELATORIO_FASE_2A_HEALTHSCORE.md`.
 
 ### 3.4 Observação — dois blocos "grandes" no topo
 Início e Executivo passam a ter HealthScore + cockpit (PowerRing) empilhados no
@@ -104,13 +105,11 @@ topo. Não é problema, mas vale o **olho humano** confirmar que o respiro
 - **Lógica e contrato (estados, "—", salvaguardas):** ✔ aprovados por código.
 - **Renderização, temas e responsividade:** 👁 **pendente de conferência visual
   humana** no ambiente real (não pude capturar telas aqui).
-- **Ajustes finos recomendados:** §3.1 (duplicação "usinas online") e §3.2 (cor do
-  estado sem telemetria) são pequenos e seguros; §3.3 é decisão de produto.
+- **Ajustes finos:** §3.1, §3.2 e §3.3 **aplicados** nesta branch (ver §3).
 
-**Veredito:** **Aprovado em código; aguardando o "ok" visual humano.** Sugiro:
-1. fazer a conferência visual (4 telas × 2 temas + mobile) usando este checklist;
-2. decidir sobre os ajustes §3.1–§3.3;
-3. então liberar a Fase 2B (AttentionCenter).
-
-> Posso, se você quiser, aplicar já os ajustes §3.1 e §3.2 (pequenos, seguros)
-> ainda dentro desta branch antes da Fase 2B — sem iniciar nada novo.
+**Veredito:** **Aprovado em código (com os ajustes §3.1–§3.3 aplicados);
+aguardando o "ok" visual humano.** Sugiro:
+1. fazer a conferência visual (4 telas × 2 temas + mobile) usando este checklist,
+   já com os ajustes (sem o card "Usinas online"; sem-telemetria em tom neutro;
+   alarme rebaixando para "atenção");
+2. então liberar a Fase 2B (AttentionCenter).

@@ -95,12 +95,6 @@ export default async function OverviewPage() {
           value={capacidadeKw > 0 ? `${Math.round(pctCapacidade)}%` : "—"}
           hint="potência atual ÷ capacidade"
         />
-        <MetricCard
-          label="Usinas online"
-          value={`${online}/${estacoes.length}`}
-          hint="em tempo real"
-          tone={offline > 0 ? "critical" : alarme > 0 ? "warn" : "ok"}
-        />
       </section>
 
       <section className="panel">
