@@ -1,4 +1,5 @@
 import { AdherenceRow } from "@/components/AdherenceRow";
+import { ComparisonChart } from "@/components/ComparisonChart";
 import { GenerationChart } from "@/components/GenerationChart";
 import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
@@ -119,6 +120,19 @@ export default async function ExecutivoPage() {
           value={`${numberFormatter.format(parqueKwp)} kWp`}
           hint={`${usinas.linhas.length} usina(s)`}
         />
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Realizado × meta (mês até hoje)</h2>
+            <p>
+              Geração realizada no mês comparada à meta proporcional aos dias
+              decorridos (apenas usinas com meta definida).
+            </p>
+          </div>
+        </div>
+        <ComparisonChart realizado={realTot} esperado={espTot} unidade="kWh" />
       </section>
 
       <section className="split-grid">
