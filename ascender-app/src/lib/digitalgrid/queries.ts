@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   clientes,
@@ -60,6 +60,23 @@ export async function getResumoFaturasDg(): Promise<{
   const total = rows.reduce((s, r) => s + (r.total ?? 0), 0);
   const pago = rows.reduce((s, r) => s + (r.pago ?? 0), 0);
   return { total, pago, emAberto: Math.max(0, total - pago), qtd: rows.length };
+}
+
+/**
+ * Conta faturas vencidas e ainda não quitadas (leitura agregada, sem regra de
+ * negócio nova): vencimento anterior a hoje (fuso de São Paulo) e valor pago
+ * menor que o total. Usado pelo Health Score.
+ */
+export async function contarFaturasVencidasDg(): Promise<number> {
+  const [r] = await getDb()
+    .select({ n: sql<number>`count(*)` })
+    .from(faturasDg)
+    .where(
+      sql`${faturasDg.vencimento} is not null
+          and ${faturasDg.vencimento} < to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD')
+          and coalesce(${faturasDg.valorPago}, 0) < coalesce(${faturasDg.valorTotal}, 0)`,
+    );
+  return Number(r?.n ?? 0);
 }
 
 export async function getUltimaSyncFaturasDg(): Promise<string | null> {

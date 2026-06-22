@@ -2,21 +2,23 @@ import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
-import { StatusBanner } from "@/components/StatusBanner";
+import { HealthScore } from "@/components/operacao/HealthScore";
 import {
   getTelemetriaPorStation,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
+import { getHealthScore } from "@/lib/operacao/health-score";
 import { ultimaTelemetriaEm } from "@/lib/soliscloud/telemetria-db";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [usinas, tele, coletaEm] = await Promise.all([
+  const [usinas, tele, coletaEm, health] = await Promise.all([
     getUsinasComTelemetria(),
     getTelemetriaPorStation(),
     ultimaTelemetriaEm(),
+    getHealthScore(),
   ]);
 
   const estacoes = Array.from(tele.mapa.values()).sort(
@@ -41,12 +43,7 @@ export default async function OverviewPage() {
 
   return (
     <>
-      <StatusBanner
-        online={online}
-        alarme={alarme}
-        offline={offline}
-        total={estacoes.length}
-      />
+      <HealthScore result={health} />
 
       <section className="cockpit">
         <PowerRing

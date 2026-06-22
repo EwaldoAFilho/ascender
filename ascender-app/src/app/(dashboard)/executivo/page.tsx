@@ -2,11 +2,13 @@ import { AdherenceRow } from "@/components/AdherenceRow";
 import { GenerationChart } from "@/components/GenerationChart";
 import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
+import { HealthScore } from "@/components/operacao/HealthScore";
 import {
   getHistoricoGeracaoMensal,
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
 import { getResumoFaturasDg } from "@/lib/digitalgrid/queries";
+import { getHealthScore } from "@/lib/operacao/health-score";
 import {
   formatCompetencia,
   moneyFormatter,
@@ -17,10 +19,11 @@ import type { GenerationSeries } from "@/lib/api/soliscloud";
 export const dynamic = "force-dynamic";
 
 export default async function ExecutivoPage() {
-  const [usinas, hist, fat] = await Promise.all([
+  const [usinas, hist, fat, health] = await Promise.all([
     getUsinasComTelemetria(),
     getHistoricoGeracaoMensal(),
     getResumoFaturasDg(),
+    getHealthScore(),
   ]);
 
   const comEsperado = usinas.linhas.filter((l) => (l.esperadoMesKwh ?? 0) > 0);
@@ -57,6 +60,8 @@ export default async function ExecutivoPage() {
 
   return (
     <>
+      <HealthScore result={health} />
+
       <section className="cockpit">
         <PowerRing
           pct={temAderencia ? aderGlobal : 0}
