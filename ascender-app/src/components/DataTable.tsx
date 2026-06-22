@@ -33,6 +33,8 @@ type Props<T> = {
   pageSize?: number; // 0 = sem paginação
   emptyMessage?: string;
   initialSort?: { key: string; dir: "asc" | "desc" };
+  /** Realce de severidade por linha (opcional). Não altera dados nem ordenação. */
+  rowTone?: (row: T) => "critical" | "warn" | "ok" | undefined;
 };
 
 function compareValues(a: string | number, b: string | number): number {
@@ -57,6 +59,7 @@ export function DataTable<T>({
   pageSize = 25,
   emptyMessage = "Nenhum registro.",
   initialSort,
+  rowTone,
 }: Props<T>) {
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(initialSort?.key ?? null);
@@ -251,8 +254,10 @@ export function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              visible.map((row, i) => (
-                <tr key={rowKey(row, i)}>
+              visible.map((row, i) => {
+                const tone = rowTone?.(row);
+                return (
+                <tr key={rowKey(row, i)} className={tone ? `row-${tone}` : undefined}>
                   {columns.map((col) => (
                     <td
                       key={col.key}
@@ -263,7 +268,8 @@ export function DataTable<T>({
                     </td>
                   ))}
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

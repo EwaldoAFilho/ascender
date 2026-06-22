@@ -199,6 +199,10 @@ export function FaturasDgTable({
         fileName="faturas"
         initialSort={{ key: "competencia", dir: "desc" }}
         emptyMessage="Nenhuma fatura para os filtros selecionados."
+        rowTone={(r) => {
+          const s = r.paymentStatus.toLowerCase();
+          return s.includes("venc") || s.includes("atras") ? "critical" : undefined;
+        }}
       />
 
       {contaFatura ? (

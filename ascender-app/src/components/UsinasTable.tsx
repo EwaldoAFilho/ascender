@@ -106,6 +106,13 @@ export function UsinasTable({ linhas }: { linhas: UsinaLinha[] }) {
         pageSize={0}
         initialSort={{ key: "realizado", dir: "desc" }}
         emptyMessage="Nenhuma usina cadastrada."
+        rowTone={(l) =>
+          l.statusReal === "offline"
+            ? "critical"
+            : l.statusReal === "alarm"
+              ? "warn"
+              : undefined
+        }
       />
     </section>
   );

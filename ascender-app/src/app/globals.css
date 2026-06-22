@@ -2570,3 +2570,42 @@ th {
   margin-left: auto;
   opacity: 0.9;
 }
+
+/* ============================================================= */
+/* Fase 1 — DataTable: densidade, zebra, sticky, linha crítica   */
+/* ============================================================= */
+
+@media (min-width: 761px) {
+  /* Cabeçalho fixo ao rolar a página (leitura de tabelas longas) */
+  .table-wrap thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  /* Zebra sutil */
+  .table-wrap tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--surface-soft) 45%, transparent);
+  }
+  /* Hover de linha */
+  .table-wrap tbody tr:hover {
+    background: var(--accent-soft);
+  }
+  /* Respiro um pouco maior nas células */
+  .table-wrap th,
+  .table-wrap td {
+    padding: 12px 12px;
+  }
+}
+
+/* Realce de severidade por linha (desktop e mobile) — opt-in via rowTone */
+.table-wrap tbody tr.row-critical {
+  background: color-mix(in srgb, var(--sev-critical) 9%, transparent);
+  box-shadow: inset 3px 0 0 var(--sev-critical);
+}
+.table-wrap tbody tr.row-warn {
+  background: color-mix(in srgb, var(--sev-warning) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--sev-warning);
+}
+.table-wrap tbody tr.row-ok {
+  box-shadow: inset 3px 0 0 var(--sev-ok);
+}
