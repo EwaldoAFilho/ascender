@@ -3167,3 +3167,102 @@ th {
   font-size: var(--fs-sm);
   font-weight: var(--fw-black);
 }
+
+/* ============================================================= */
+/* Fase 2E — GenerationHeatmap (usina × mês)                     */
+/* ============================================================= */
+
+.heatmap-empty,
+.hm-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+}
+
+.heatmap-grid {
+  display: grid;
+  gap: 3px;
+  min-width: min-content;
+}
+
+.hm-corner {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+}
+
+.hm-colhead {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--muted);
+  text-align: center;
+  padding: 4px 6px;
+  white-space: nowrap;
+  align-self: end;
+}
+
+.hm-rowhead {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--heading);
+  padding: 0 10px 0 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.hm-cell {
+  min-height: 30px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.hm-cell.is-empty {
+  border-style: dashed;
+}
+
+.hm-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--sp-3);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.hm-legend-label {
+  white-space: nowrap;
+}
+.hm-legend-bar {
+  width: 120px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand-gold) 12%, var(--surface-soft)),
+    var(--brand-gold)
+  );
+}
+.hm-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px dashed var(--line);
+  background: var(--surface-soft);
+  display: inline-block;
+}
