@@ -1,4 +1,5 @@
 import { BarList } from "@/components/BarList";
+import { ComparisonChart } from "@/components/ComparisonChart";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { UsinasTable } from "@/components/UsinasTable";
 import { getUsinasComTelemetria } from "@/lib/cadastros/queries";
@@ -74,6 +75,14 @@ export default async function UsinasPage() {
     }))
     .sort((a, b) => b.value - a.value);
 
+  // Exception-based: as 5 usinas mais abaixo da meta (apenas com meta cadastrada
+  // e aderência < 100%, pior primeiro). Não compara usina sem meta.
+  const temMeta = vinculadas.filter((l) => (l.esperadoMesKwh ?? 0) > 0);
+  const abaixoMetaTodas = temMeta
+    .filter((l) => (l.aderenciaPct ?? 0) < 100)
+    .sort((a, b) => (a.aderenciaPct ?? 0) - (b.aderenciaPct ?? 0));
+  const abaixoMeta = abaixoMetaTodas.slice(0, 5);
+
   return (
     <>
       <SummaryStrip items={kpis} />
@@ -105,6 +114,49 @@ export default async function UsinasPage() {
         rows={aderenciaRows}
         formatter={(v) => `${n(v)}%`}
       />
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Abaixo da meta — atenção</h2>
+            <p>
+              Usinas mais abaixo da meta até hoje (kWh realizado × meta), pior
+              primeiro. Apenas usinas com meta definida.
+            </p>
+          </div>
+        </div>
+        {temMeta.length === 0 ? (
+          <p style={{ color: "var(--muted)", margin: 0 }}>
+            Defina metas de geração em Cadastros › Usinas para comparar realizado
+            × meta.
+          </p>
+        ) : abaixoMeta.length === 0 ? (
+          <p style={{ color: "var(--success)", margin: 0, fontWeight: 700 }}>
+            Todas as usinas com meta estão dentro da meta até hoje.
+          </p>
+        ) : (
+          <>
+            <div className="cmp-usina-grid">
+              {abaixoMeta.map((l) => (
+                <div className="cmp-usina" key={l.id}>
+                  <span className="cmp-usina-nome">{l.nome}</span>
+                  <ComparisonChart
+                    realizado={l.realizadoMesKwh ?? 0}
+                    esperado={l.esperadoMesKwh ?? 0}
+                    unidade="kWh"
+                  />
+                </div>
+              ))}
+            </div>
+            {abaixoMetaTodas.length > abaixoMeta.length ? (
+              <p style={{ color: "var(--muted)", fontSize: 13, margin: "12px 0 0" }}>
+                + {abaixoMetaTodas.length - abaixoMeta.length} outra(s) abaixo da
+                meta — ver tabela abaixo.
+              </p>
+            ) : null}
+          </>
+        )}
+      </section>
 
       <UsinasTable linhas={linhas} />
     </>
