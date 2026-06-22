@@ -69,6 +69,8 @@ export function listUsinas() {
       codigoInstalacao: usinas.codigoInstalacao,
       modulos: usinas.modulos,
       inversores: usinas.inversores,
+      latitude: usinas.latitude,
+      longitude: usinas.longitude,
       origem: usinas.origem,
       origemSincronizadoEm: usinas.origemSincronizadoEm,
     })

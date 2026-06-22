@@ -154,6 +154,9 @@ export const usinas = pgTable("usinas", {
   codigoInstalacao: text("codigo_instalacao"), // UC
   modulos: text("modulos"), // ex.: "164 × 600 W"
   inversores: text("inversores"), // ex.: "Solis 30 kW + Solis 37,5 kW"
+  // Coordenadas para o mapa por pinos (manuais, opcionais). Fase 3B-A.
+  latitude: doublePrecision("latitude"), // -90..90
+  longitude: doublePrecision("longitude"), // -180..180
   origem: text("origem").notNull().default("manual"), // manual | digitalgrid | soliscloud
   origemSincronizadoEm: timestamp("origem_sincronizado_em", {
     withTimezone: true,

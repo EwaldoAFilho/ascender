@@ -84,6 +84,18 @@ export default async function UsinasCadastroPage() {
         { name: "bairro", label: "Bairro", type: "text" },
         { name: "estado", label: "Estado (UF)", type: "text" },
         { name: "cep", label: "CEP", type: "text" },
+        {
+          name: "latitude",
+          label: "Latitude (-90 a 90)",
+          type: "number",
+          placeholder: "ex.: -15.793889",
+        },
+        {
+          name: "longitude",
+          label: "Longitude (-180 a 180)",
+          type: "number",
+          placeholder: "ex.: -47.882778",
+        },
         { name: "codigoCliente", label: "Cód. cliente", type: "text" },
         {
           name: "codigoInstalacao",
@@ -139,9 +151,12 @@ export default async function UsinasCadastroPage() {
         "Potência",
         "Esperado/mês",
         "SolisCloud",
+        "Geo",
         "Status",
       ]}
-      rows={rows.map((u) => ({
+      rows={rows.map((u) => {
+        const temCoords = u.latitude != null && u.longitude != null;
+        return {
         id: u.id,
         cells: [
           u.nome,
@@ -149,6 +164,7 @@ export default async function UsinasCadastroPage() {
           `${u.potenciaKwp} kWp`,
           `${numberFormatter.format(u.geracaoEsperadaKwhMes)} kWh`,
           u.stationIdSoliscloud ?? "-",
+          temCoords ? "📍" : "—",
           u.status,
         ],
         sortValues: [
@@ -157,6 +173,7 @@ export default async function UsinasCadastroPage() {
           u.potenciaKwp,
           u.geracaoEsperadaKwhMes,
           u.stationIdSoliscloud ?? "-",
+          temCoords ? 1 : 0,
           u.status,
         ],
         values: {
@@ -166,6 +183,8 @@ export default async function UsinasCadastroPage() {
           bairro: u.bairro ?? "",
           estado: u.estado ?? "",
           cep: u.cep ?? "",
+          latitude: u.latitude != null ? String(u.latitude) : "",
+          longitude: u.longitude != null ? String(u.longitude) : "",
           codigoCliente: u.codigoCliente ?? "",
           codigoInstalacao: u.codigoInstalacao ?? "",
           potenciaKwp: String(u.potenciaKwp),
@@ -176,7 +195,8 @@ export default async function UsinasCadastroPage() {
           stationIdSoliscloud: u.stationIdSoliscloud ?? "",
           status: u.status,
         },
-      }))}
+        };
+      })}
       extras={extras}
       />
     </>
