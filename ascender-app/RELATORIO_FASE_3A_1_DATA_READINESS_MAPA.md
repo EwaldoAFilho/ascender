@@ -7,6 +7,37 @@ schema.
 
 ---
 
+## RESULTADO REAL DA PRODUÇÃO (preenchido) e DECISÃO
+
+Execução do `db:map-readiness` na produção (8 usinas):
+
+| Métrica | Valor | % |
+|---|---|---|
+| total | 8 | 100% |
+| com UF | 5 | **63%** |
+| com CEP | 5 | 63% |
+| CEP 8 dígitos válido | 5 | 63% |
+| CEP inválido | 0 | 0% |
+| com endereço | 5 | 63% |
+| endereço ok (não-curto) | 5 | 63% |
+| com bairro | 5 | 63% |
+| **sem nenhum dado geográfico** | **3** | **38%** |
+
+- **UFs existentes:** DF = 3, GO = 2 (todas válidas).
+- **Sem geo:** UFV - BEBETO QE 17, UFV - BEIRA RIO, UFV - CINARA.
+
+### Decisão (com base nos números)
+- **Mapa por UF — NÃO recomendado agora:** cobertura de UF de apenas **63%** e só
+  **2 estados** → mapa por UF ficaria **pobre/incompleto**.
+- **Geocodificação automática — ADIADA:** não fazer agora (risco/ToS/privacidade;
+  e endereços só em 63%).
+- **Mapa por pinos — RECOMENDADO (caminho B, premium e controlado):** **latitude/
+  longitude persistidos e editáveis manualmente**.
+- **Próximo passo:** **Fase 3B-A** — adicionar `latitude/longitude` (nullable) e
+  permitir preenchimento manual no cadastro de usinas (sem mapa ainda).
+
+---
+
 ## 0. Limite de ambiente (honestidade)
 
 - **Não tenho acesso à produção (VPS `srv1769779`)** a partir deste ambiente.

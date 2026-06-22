@@ -53,6 +53,21 @@ const optText = z
     return t ? t : null;
   });
 
+// Coordenada opcional: vazio → null; senão número finito dentro da faixa.
+const optCoord = (min: number, max: number, nome: string) =>
+  z.any().transform((v, ctx) => {
+    if (v === null || v === undefined || String(v).trim() === "") return null;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < min || n > max) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${nome} deve estar entre ${min} e ${max}.`,
+      });
+      return z.NEVER;
+    }
+    return n;
+  });
+
 // ===== Distribuidoras =====
 
 const distribuidoraSchema = z.object({
@@ -314,6 +329,8 @@ const usinaSchema = z.object({
   codigoInstalacao: optText,
   modulos: optText,
   inversores: optText,
+  latitude: optCoord(-90, 90, "Latitude"),
+  longitude: optCoord(-180, 180, "Longitude"),
 });
 
 export async function saveUsina(input: unknown): Promise<ActionResult> {

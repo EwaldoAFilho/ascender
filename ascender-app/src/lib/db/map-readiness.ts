@@ -23,14 +23,19 @@ async function main() {
   const cols = await db.execute(sql`
     SELECT column_name FROM information_schema.columns
     WHERE table_name = 'usinas'
-      AND column_name IN ('estado', 'cep', 'endereco', 'bairro')
+      AND column_name IN ('estado', 'cep', 'endereco', 'bairro', 'latitude', 'longitude')
   `);
   const presentes = new Set(
     (cols.rows as Array<{ column_name: string }>).map((r) => r.column_name),
   );
-  const faltando = ["estado", "cep", "endereco", "bairro"].filter(
-    (c) => !presentes.has(c),
-  );
+  const faltando = [
+    "estado",
+    "cep",
+    "endereco",
+    "bairro",
+    "latitude",
+    "longitude",
+  ].filter((c) => !presentes.has(c));
 
   console.log("\n=== PRONTIDÃO DE DADOS GEOGRÁFICOS — USINAS (somente leitura) ===\n");
 
@@ -57,7 +62,10 @@ async function main() {
         count(*) FILTER (WHERE coalesce(endereco,'') <> '' AND length(trim(endereco)) < 10)::int AS endereco_curto,
         count(*) FILTER (WHERE coalesce(bairro,'') <> '')::int AS com_bairro,
         count(*) FILTER (WHERE coalesce(estado,'') = '' AND coalesce(cep,'') = ''
-              AND coalesce(endereco,'') = '' AND coalesce(bairro,'') = '')::int AS sem_geo
+              AND coalesce(endereco,'') = '' AND coalesce(bairro,'') = '')::int AS sem_geo,
+        count(*) FILTER (WHERE latitude IS NOT NULL)::int AS com_lat,
+        count(*) FILTER (WHERE longitude IS NOT NULL)::int AS com_lon,
+        count(*) FILTER (WHERE latitude IS NOT NULL AND longitude IS NOT NULL)::int AS com_coords
       FROM usinas
     `)
   ).rows[0] as Record<string, unknown>;
@@ -72,6 +80,9 @@ async function main() {
   const endCurto = num(cov.endereco_curto);
   const comBairro = num(cov.com_bairro);
   const semGeo = num(cov.sem_geo);
+  const comLat = num(cov.com_lat);
+  const comLon = num(cov.com_lon);
+  const comCoords = num(cov.com_coords);
   const endOk = Math.max(0, comEnd - endCurto); // endereço preenchido e não-curto
 
   console.log("COBERTURA");
@@ -85,6 +96,10 @@ async function main() {
   console.log(`  endereço ok     : ${endOk} (${pct(endOk)})`);
   console.log(`  com bairro      : ${comBairro} (${pct(comBairro)})`);
   console.log(`  SEM dado geo    : ${semGeo} (${pct(semGeo)})`);
+  console.log("\nCOORDENADAS (mapa por pino)");
+  console.log(`  com latitude    : ${comLat} (${pct(comLat)})`);
+  console.log(`  com longitude   : ${comLon} (${pct(comLon)})`);
+  console.log(`  com AMBAS (pronta p/ pino) : ${comCoords} (${pct(comCoords)})`);
 
   // ----- Distribuição por UF + UFs inválidas -----
   const ufRows = (
@@ -169,7 +184,10 @@ async function main() {
     for (const l of linhas) console.log("  " + l);
     console.log(
       "  • Para experiência PREMIUM: caminho B (pinos com latitude/longitude\n" +
-        "    persistidos via geocodificação batch + lat/long editável no cadastro).",
+        "    persistidos — preenchimento manual no cadastro, sem geocodificação).",
+    );
+    console.log(
+      `  • ${comCoords} de ${total} usina(s) já com lat+long (prontas para pino).`,
     );
   }
 
