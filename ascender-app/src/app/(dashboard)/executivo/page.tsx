@@ -67,11 +67,12 @@ export default async function ExecutivoPage() {
         <PowerRing
           pct={temAderencia ? aderGlobal : 0}
           centerValue={temAderencia ? numberFormatter.format(aderGlobal) : "—"}
-          unit={temAderencia ? "% da meta" : ""}
+          unit={temAderencia ? "% da meta até hoje" : ""}
           sublabel={
-            temAderencia
-              ? `Realizado ${numberFormatter.format(realTot)} / meta até hoje ${numberFormatter.format(espTot)} kWh`
-              : "Defina a meta de geração das usinas"
+            // Foco na % de aderência. Os kWh realizado × meta ficam no painel
+            // ComparisonChart logo abaixo (evita duplicar números). Sem meta, não
+            // repete o "Defina a meta…" (que o ComparisonChart já mostra).
+            temAderencia ? "Realizado ÷ meta até hoje" : "Sem meta cadastrada"
           }
           tone={temAderencia ? tone : "brand"}
         />
