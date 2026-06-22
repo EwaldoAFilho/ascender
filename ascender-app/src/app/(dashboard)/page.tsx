@@ -108,9 +108,10 @@ export default async function OverviewPage() {
         />
       </section>
 
-      <AttentionCenter incidents={incidents} />
-
-      <OperationalTimeline events={timeline} />
+      <div className="split-grid operation-split">
+        <AttentionCenter incidents={incidents} />
+        <OperationalTimeline events={timeline} />
+      </div>
 
       <section className="panel">
         <div className="panel-header">

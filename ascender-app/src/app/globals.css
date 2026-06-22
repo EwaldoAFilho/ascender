@@ -3019,3 +3019,17 @@ th {
 .tl-action:hover {
   opacity: 0.8;
 }
+
+/* ============================================================= */
+/* Fase 2C-C — Início: Centro de Atenção + Timeline lado a lado  */
+/* ============================================================= */
+
+/* Reaproveita o .split-grid (2 col no desktop, 1 col no mobile). Alinha os
+   painéis ao topo (sem esticar o mais curto) e remove a margem inferior deles,
+   deixando o espaçamento por conta do grid. */
+.operation-split {
+  align-items: start;
+}
+.operation-split > .panel {
+  margin-bottom: 0;
+}
