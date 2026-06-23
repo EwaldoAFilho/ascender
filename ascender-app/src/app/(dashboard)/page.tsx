@@ -2,6 +2,7 @@ import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { MetricCard } from "@/components/MetricCard";
 import { PowerRing } from "@/components/PowerRing";
 import { StationCard } from "@/components/StationCard";
+import { EmptyState } from "@/components/states";
 import { AttentionCenter } from "@/components/operacao/AttentionCenter";
 import { HealthScore } from "@/components/operacao/HealthScore";
 import {
@@ -132,10 +133,7 @@ export default async function OverviewPage() {
           </div>
         </div>
         {estacoes.length === 0 ? (
-          <p style={{ color: "var(--muted)", margin: 0 }}>
-            Nenhuma telemetria. Configure a SolisCloud em Configurações ›
-            Integrações.
-          </p>
+          <EmptyState message="Nenhuma telemetria. Configure a SolisCloud em Configurações › Integrações." />
         ) : (
           <div className="station-strip">
             {estacoes.map((e) => (

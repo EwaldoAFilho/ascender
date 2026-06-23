@@ -1,5 +1,6 @@
 import { RateioDgTable, type RateioDgRow } from "@/components/RateioDgTable";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
+import { EmptyState } from "@/components/states";
 import {
   getUltimaSyncRateioDg,
   listRateioDg,
@@ -75,11 +76,7 @@ export default async function RateioPage() {
           <div className="panel-header">
             <h2>Rateio por unidade consumidora</h2>
           </div>
-          <p style={{ color: "var(--muted)" }}>
-            Nenhuma cota sincronizada ainda. Configure o token em Configurações ›
-            Integrações e aguarde a próxima sincronização (ou rode
-            <code> npm run db:sync-rateio-dg</code>).
-          </p>
+          <EmptyState message="Nenhuma cota sincronizada ainda. Configure o token em Configurações › Integrações e aguarde a próxima sincronização (ou rode npm run db:sync-rateio-dg)." />
         </section>
       ) : (
         <RateioDgTable rows={rows} />

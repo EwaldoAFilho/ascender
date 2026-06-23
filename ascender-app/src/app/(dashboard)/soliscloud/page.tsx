@@ -458,10 +458,11 @@ export default function SolisCloudPage() {
             ) : stationList.length === 0 ? (
               <EmptyState message="Nenhuma estação retornada pela SolisCloud." />
             ) : stationsFiltradas.length === 0 ? (
-              <p style={loadingStyle}>
-                Nenhuma usina no filtro “
-                {filtroEstado ? filtroLabel[filtroEstado] : ""}”.
-              </p>
+              <EmptyState
+                message={`Nenhuma usina no filtro “${
+                  filtroEstado ? filtroLabel[filtroEstado] : ""
+                }”.`}
+              />
             ) : (
               <div className="telemetry-grid">
                 {stationsFiltradas.map((telemetry) => (

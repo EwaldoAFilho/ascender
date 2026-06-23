@@ -1,6 +1,7 @@
 import { FaturasDgTable, type FaturaDgRow } from "@/components/FaturasDgTable";
 import { ImportarBoletosLote } from "@/components/ImportarBoletosLote";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
+import { EmptyState } from "@/components/states";
 import {
   getClientePorInstalacao,
   getUltimaSyncFaturasDg,
@@ -97,11 +98,7 @@ export default async function FinanceiroPage() {
           <div className="panel-header">
             <h2>Faturas (Digital Grid)</h2>
           </div>
-          <p style={{ color: "var(--muted)" }}>
-            Nenhuma fatura sincronizada ainda. Configure o token em Configurações ›
-            Integrações e aguarde a próxima sincronização (ou rode
-            <code> npm run db:sync-faturas-dg</code>).
-          </p>
+          <EmptyState message="Nenhuma fatura sincronizada ainda. Configure o token em Configurações › Integrações e aguarde a próxima sincronização (ou rode npm run db:sync-faturas-dg)." />
         </section>
       ) : (
         <FaturasDgTable rows={rows} comConta={comConta} />

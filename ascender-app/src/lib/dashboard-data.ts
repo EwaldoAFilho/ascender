@@ -77,7 +77,7 @@ export const modules: Module[] = [
     id: "executivo",
     title: "Executivo",
     description:
-      "Indicadores consolidados de geracao, financeiro, potencia atual e economia.",
+      "Indicadores consolidados de geração, financeiro, potência atual e economia.",
     source: "SolisCloud + Digital Grid",
     icon: LayoutDashboard,
     href: "/executivo",
@@ -86,8 +86,8 @@ export const modules: Module[] = [
     id: "cadastros",
     title: "Cadastros",
     description:
-      "Telas de manutencao para clientes, UCs, usinas, contratos e fontes externas.",
-    source: "Cadastro + conciliacao Digital Grid",
+      "Telas de manutenção para clientes, UCs, usinas, contratos e fontes externas.",
+    source: "Cadastro + conciliação Digital Grid",
     icon: ClipboardList,
     href: "/cadastros",
     scope: "desktop",
@@ -96,7 +96,7 @@ export const modules: Module[] = [
     id: "soliscloud",
     title: "SolisCloud",
     description:
-      "Telemetria de usinas, inversores, disponibilidade e alertas tecnicos.",
+      "Telemetria de usinas, inversores, disponibilidade e alertas técnicos.",
     source: "API SolisCloud",
     icon: Zap,
     href: "/soliscloud",
@@ -105,7 +105,7 @@ export const modules: Module[] = [
     id: "usinas",
     title: "Usinas",
     description:
-      "Cadastro operacional, potencia, identificadores externos e previsto x realizado.",
+      "Cadastro operacional, potência, identificadores externos e previsto x realizado.",
     source: "SolisCloud + cadastro",
     icon: Sun,
     href: "/usinas",
@@ -122,7 +122,7 @@ export const modules: Module[] = [
   {
     id: "financeiro",
     title: "Financeiro",
-    description: "Faturas, boletos, vencimentos, pagamentos e inadimplencia.",
+    description: "Faturas, boletos, vencimentos, pagamentos e inadimplência.",
     source: "Digital Grid",
     icon: ReceiptText,
     href: "/financeiro",
@@ -131,7 +131,7 @@ export const modules: Module[] = [
     id: "propostas",
     title: "Propostas",
     description:
-      "Simulacao comercial por consumo, tarifa, desconto e economia estimada.",
+      "Simulação comercial por consumo, tarifa, desconto e economia estimada.",
     source: "Simulador comercial",
     icon: FileText,
     href: "/propostas",
@@ -139,9 +139,9 @@ export const modules: Module[] = [
   },
   {
     id: "integracoes",
-    title: "Integracoes",
+    title: "Integrações",
     description:
-      "Fontes de dados, endpoints SolisCloud e status de sincronizacao.",
+      "Fontes de dados, endpoints SolisCloud e status de sincronização.",
     source: "SolisCloud + Digital Grid",
     icon: Cable,
     href: "/integracoes",
@@ -149,27 +149,27 @@ export const modules: Module[] = [
 ];
 
 export const viewTitles: Record<ViewId, string> = {
-  overview: "Operacao ao vivo",
+  overview: "Operação ao vivo",
   executivo: "Dashboard executivo",
   cadastros: "Cadastros operacionais",
-  soliscloud: "Operacao SolisCloud",
+  soliscloud: "Operação SolisCloud",
   usinas: "Performance de usinas",
-  rateio: "Rateio e compensacao",
-  financeiro: "Financeiro e cobranca",
+  rateio: "Rateio e compensação",
+  financeiro: "Financeiro e cobrança",
   propostas: "Propostas comerciais",
-  integracoes: "Integracoes e contratos",
+  integracoes: "Integrações e contratos",
 };
 
 export const viewSubtitles: Record<ViewId, string> = {
-  overview: "Potencia agora e estado da frota, em tempo real.",
-  executivo: "Consolidado de meta, geracao do ano e financeiro para a diretoria.",
-  cadastros: "Dados mestres, com conciliacao automatica a partir do Digital Grid.",
+  overview: "Potência agora e estado da frota, em tempo real.",
+  executivo: "Consolidado de meta, geração do ano e financeiro para a diretoria.",
+  cadastros: "Dados mestres, com conciliação automática a partir do Digital Grid.",
   soliscloud:
-    "Telemetria real de estacoes, inversores, energia e alarmes da SolisCloud.",
-  usinas: "Visao de cadastro e desempenho mensal por usina.",
+    "Telemetria real de estações, inversores, energia e alarmes da SolisCloud.",
+  usinas: "Visão de cadastro e desempenho mensal por usina.",
   rateio: "Rateio real por cliente e unidade consumidora (Digital Grid).",
   financeiro: "Faturas reais sincronizadas do Digital Grid.",
   propostas:
     "Base inicial para sugerir oportunidades comerciais e gerar propostas.",
-  integracoes: "Mapa tecnico das fontes que alimentam o sistema.",
+  integracoes: "Mapa técnico das fontes que alimentam o sistema.",
 };
