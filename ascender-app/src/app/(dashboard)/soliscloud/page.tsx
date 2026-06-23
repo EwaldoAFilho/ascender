@@ -7,7 +7,11 @@ import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState, ErrorState, PanelSkeleton } from "@/components/states";
 import { FrescorTelemetria } from "@/components/FrescorTelemetria";
 import { GenerationChart } from "@/components/GenerationChart";
+import { StatusBanner } from "@/components/StatusBanner";
+import { AttentionCenter } from "@/components/operacao/AttentionCenter";
+import { StatTile } from "@/components/operacao/StatTile";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
+import type { OperationalIncident } from "@/lib/operacao/incidents";
 import {
   useAlarms,
   useCollectors,
@@ -46,6 +50,16 @@ export default function SolisCloudPage() {
   const uptime = useUptimeColetores();
   const histAlarmes = useHistoricoAlarmes();
   const [view, setView] = useState<View>("operacao");
+  const [filtroEstado, setFiltroEstado] = useState<
+    null | "online" | "alarm" | "offline"
+  >(null);
+  const toggleFiltro = (e: "online" | "alarm" | "offline") =>
+    setFiltroEstado((prev) => (prev === e ? null : e));
+  const filtroLabel: Record<"online" | "alarm" | "offline", string> = {
+    online: "online",
+    alarm: "alarme",
+    offline: "offline",
+  };
 
   const stationList = useMemo(() => stations.data ?? [], [stations.data]);
   const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
@@ -79,6 +93,100 @@ export default function SolisCloudPage() {
     () => stationList.reduce((s, t) => s + t.dayEnergyKwh, 0),
     [stationList],
   );
+
+  // Contadores NOC/SOC por estado da estação.
+  const online = useMemo(
+    () => stationList.filter((s) => s.state === "online").length,
+    [stationList],
+  );
+  const emAlarme = useMemo(
+    () => stationList.filter((s) => s.state === "alarm").length,
+    [stationList],
+  );
+  const offline = useMemo(
+    () => stationList.filter((s) => s.state === "offline").length,
+    [stationList],
+  );
+  const coletoresMudos = collectorData?.resumo.offline ?? 0;
+
+  // Estações filtradas pelo tile clicado.
+  const stationsFiltradas = useMemo(
+    () =>
+      filtroEstado
+        ? stationList.filter((s) => s.state === filtroEstado)
+        : stationList,
+    [stationList, filtroEstado],
+  );
+
+  // Incidentes montados no cliente (reaproveitando AttentionCenter/IncidentItem).
+  // Mesma regra solar/noturna da camada de servidor: à noite, usina offline =
+  // ausência de geração esperada (info), não crítico. Coletor/alarme inalterados.
+  const incidentes = useMemo<OperationalIncident[]>(() => {
+    let solar = true;
+    try {
+      const h = Number(
+        new Intl.DateTimeFormat("en-US", {
+          hour: "numeric",
+          hourCycle: "h23",
+          timeZone: "America/Sao_Paulo",
+        })
+          .formatToParts(new Date())
+          .find((p) => p.type === "hour")?.value,
+      );
+      solar = !Number.isFinite(h) || (h >= 6 && h < 18);
+    } catch {
+      solar = true;
+    }
+
+    const out: OperationalIncident[] = [];
+    const off = stationList.filter((s) => s.state === "offline");
+    if (solar) {
+      for (const s of off) {
+        out.push({
+          id: `off-${s.stationId}`,
+          severity: "critical",
+          source: "telemetria",
+          title: "Usina offline",
+          description: s.updateTime
+            ? `Sem comunicação. Última coleta: ${s.updateTime}.`
+            : "Sem comunicação com a usina.",
+          targetLabel: s.stationName ?? s.stationId,
+          href: "/usinas",
+        });
+      }
+    } else if (off.length > 0) {
+      out.push({
+        id: "off-noturno",
+        severity: "info",
+        source: "telemetria",
+        title: "Sem geração (fora da janela solar)",
+        description: `${off.length} usina(s) sem geração — esperado fora do horário solar.`,
+      });
+    }
+    for (const s of stationList.filter((s) => s.state === "alarm")) {
+      out.push({
+        id: `alm-${s.stationId}`,
+        severity: "warning",
+        source: "alarme",
+        title: "Usina em alarme",
+        description: "Alarme ativo na usina.",
+        targetLabel: s.stationName ?? s.stationId,
+        href: "/soliscloud",
+      });
+    }
+    for (const c of coletores.filter((c) => c.state === "offline")) {
+      out.push({
+        id: `col-${c.sn}`,
+        severity: "warning",
+        source: "coletor",
+        title: "Coletor sem comunicação",
+        description: `Datalogger ${c.sn} offline.`,
+        targetLabel: stationNameById.get(c.plantId) ?? c.sn,
+      });
+    }
+    const ordem: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+    return out.sort((a, b) => (ordem[a.severity] ?? 3) - (ordem[b.severity] ?? 3));
+  }, [stationList, coletores, stationNameById]);
 
   // Faixa de saúde da frota — verde quando tudo certo, vermelho/âmbar quando
   // há datalogger mudo ou usina em alerta. É o primeiro olhar da operação.
@@ -272,7 +380,54 @@ export default function SolisCloudPage() {
 
       {view === "operacao" ? (
         <>
-          <SummaryStrip items={kpis} />
+          {stations.isSuccess ? (
+            <StatusBanner
+              online={online}
+              alarme={emAlarme}
+              offline={offline}
+              total={stationList.length}
+            />
+          ) : null}
+
+          <div className="stat-tile-row">
+            <StatTile
+              label="Online"
+              value={stations.isSuccess ? online : "—"}
+              tone="ok"
+              active={filtroEstado === "online"}
+              onClick={() => toggleFiltro("online")}
+            />
+            <StatTile
+              label="Em alarme"
+              value={stations.isSuccess ? emAlarme : "—"}
+              tone={emAlarme > 0 ? "warn" : "neutral"}
+              active={filtroEstado === "alarm"}
+              onClick={() => toggleFiltro("alarm")}
+            />
+            <StatTile
+              label="Offline"
+              value={stations.isSuccess ? offline : "—"}
+              tone={offline > 0 ? "critical" : "neutral"}
+              active={filtroEstado === "offline"}
+              onClick={() => toggleFiltro("offline")}
+            />
+            <StatTile
+              label="Coletores mudos"
+              value={collectors.isSuccess ? coletoresMudos : "—"}
+              tone={coletoresMudos > 0 ? "warn" : "neutral"}
+              hint="dataloggers"
+            />
+            <StatTile
+              label="Alarmes ativos"
+              value={alarms.isSuccess ? usinasComAtivo : "—"}
+              tone={usinasComAtivo > 0 ? "warn" : "neutral"}
+              hint="usinas"
+            />
+          </div>
+
+          <AttentionCenter incidents={incidentes} />
+
+          <SummaryStrip items={kpis.slice(0, 2)} />
 
           <section className="panel">
             <div className="panel-header">
@@ -281,7 +436,19 @@ export default function SolisCloudPage() {
                 <p>Do banco (worker a cada ~10 min). Estado atual de cada usina.</p>
               </div>
               <span>
-                {stations.isSuccess ? `${stationList.length} usina(s)` : "—"}
+                {filtroEstado ? (
+                  <button
+                    type="button"
+                    className="btn-link"
+                    onClick={() => setFiltroEstado(null)}
+                  >
+                    filtro: {filtroLabel[filtroEstado]} · limpar
+                  </button>
+                ) : stations.isSuccess ? (
+                  `${stationList.length} usina(s)`
+                ) : (
+                  "—"
+                )}
               </span>
             </div>
             {stations.isPending ? (
@@ -290,9 +457,14 @@ export default function SolisCloudPage() {
               <ErrorState error={stations.error} onRetry={() => stations.refetch()} />
             ) : stationList.length === 0 ? (
               <EmptyState message="Nenhuma estação retornada pela SolisCloud." />
+            ) : stationsFiltradas.length === 0 ? (
+              <p style={loadingStyle}>
+                Nenhuma usina no filtro “
+                {filtroEstado ? filtroLabel[filtroEstado] : ""}”.
+              </p>
             ) : (
               <div className="telemetry-grid">
-                {stationList.map((telemetry) => (
+                {stationsFiltradas.map((telemetry) => (
                   <article key={telemetry.stationId} className="telemetry-card">
                     <div className="telemetry-head">
                       <strong>
