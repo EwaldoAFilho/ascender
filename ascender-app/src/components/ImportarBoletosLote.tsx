@@ -41,9 +41,6 @@ export function ImportarBoletosLote() {
   const [erro, setErro] = useState<string | null>(null);
   const [resultados, setResultados] = useState<Resultado[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Só fecha por clique no fundo quando o pressionar começou no fundo — evita
-  // fechar ao selecionar texto e soltar o mouse fora do modal.
-  const downNoFundo = useRef(false);
 
   function abrir() {
     setFiles([]);
@@ -99,22 +96,13 @@ export function ImportarBoletosLote() {
       </button>
 
       {open ? (
-        <div
-          className="modal-overlay"
-          role="presentation"
-          onMouseDown={(e) => {
-            downNoFundo.current = e.target === e.currentTarget;
-          }}
-          onClick={(e) => {
-            if (downNoFundo.current && e.target === e.currentTarget) fechar();
-          }}
-        >
+        <div className="modal-overlay" role="presentation">
           <div
             className="modal"
             role="dialog"
             aria-modal="true"
             aria-label="Importar boletos em lote"
-            style={{ maxWidth: "min(760px, 96vw)" }}
+            style={{ maxWidth: "min(920px, 96vw)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">
