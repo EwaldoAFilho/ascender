@@ -67,6 +67,8 @@ type Props = {
    * servidor — pode ser um client component (ex.: ficha do cliente).
    */
   extras?: Record<string, ReactNode>;
+  /** Quando true, a 1ª coluna vira um link que abre o modal de edição. */
+  clickableFirstColumn?: boolean;
 };
 
 export function CrudSection({
@@ -77,6 +79,7 @@ export function CrudSection({
   onSave,
   onDelete,
   extras,
+  clickableFirstColumn = false,
 }: Props) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -162,7 +165,19 @@ export function CrudSection({
         const cell = row.cells[i];
         return typeof cell === "string" || typeof cell === "number" ? cell : "";
       },
-      render: (row: CrudRow) => row.cells[i],
+      render: (row: CrudRow) =>
+        clickableFirstColumn && i === 0 ? (
+          <button
+            type="button"
+            className="crud-link-cell"
+            onClick={() => openEdit(row)}
+            title={`Editar ${singular}`}
+          >
+            {row.cells[i]}
+          </button>
+        ) : (
+          row.cells[i]
+        ),
     })),
     {
       key: "acoes",

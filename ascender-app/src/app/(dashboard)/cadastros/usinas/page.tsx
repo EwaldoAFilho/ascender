@@ -70,6 +70,7 @@ export default async function UsinasCadastroPage() {
       <ImportarUsinasSolis />
       <CrudSection
       singular="usina"
+      clickableFirstColumn
       onSave={saveUsina}
       onDelete={deleteUsina}
       fields={[

@@ -1479,6 +1479,23 @@ th {
   color: var(--danger);
 }
 
+/* Nome clicável em tabelas de cadastro (abre o modal de edição). */
+.crud-link-cell {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  color: var(--brand-gold);
+  cursor: pointer;
+}
+
+.crud-link-cell:hover {
+  text-decoration: underline;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
