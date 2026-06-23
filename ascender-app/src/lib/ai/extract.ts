@@ -31,6 +31,7 @@ const CONTA_SCHEMA = {
     ano: NUM,
     mes: NUM,
     cliente: STR,
+    cnpj: STR,
     vencimento: STR,
     valor: NUM,
     notaFiscal: STR,
@@ -71,6 +72,7 @@ const CONTA_SCHEMA = {
     "ano",
     "mes",
     "cliente",
+    "cnpj",
     "vencimento",
     "valor",
     "notaFiscal",
@@ -102,6 +104,7 @@ const INSTRUCAO = [
   "números como número decimal com ponto (sem separador de milhar, sem 'R$' e sem 'kWh');",
   "use null quando o campo não existir na fatura.",
   "installationNumber = número da unidade consumidora (UC), apenas os dígitos.",
+  "cnpj = CNPJ ou CPF do titular da conta, apenas os dígitos (null se não houver).",
   "valor = TOTAL A PAGAR da fatura.",
   "Para o SCEE (geração distribuída/créditos), preencha os campos do layout que",
   "existir na fatura — excedente/créditos/saldo OU saldo anterior/transf/injetado/",
@@ -274,6 +277,13 @@ function asComp(v: unknown): string | null {
   return s && /^\d{4}-\d{2}$/.test(s) ? s : null;
 }
 
+function asDoc(v: unknown): string | null {
+  const s = asStr(v);
+  if (!s) return null;
+  const d = s.replace(/\D/g, "");
+  return d.length === 11 || d.length === 14 ? d : null;
+}
+
 function asDate(v: unknown): string | null {
   const s = asStr(v);
   return s && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
@@ -307,6 +317,7 @@ function toContaParsed(obj: Record<string, unknown>): ContaParsed {
     ano,
     mes,
     cliente: asStr(obj.cliente),
+    cnpj: asDoc(obj.cnpj),
     vencimento: asDate(obj.vencimento),
     valor: asNum(obj.valor),
     notaFiscal: asStr(obj.notaFiscal),

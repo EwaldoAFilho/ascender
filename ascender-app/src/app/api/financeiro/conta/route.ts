@@ -54,6 +54,7 @@ export async function POST(request: Request) {
   }
 
   const faturaDgId = String(form.get("faturaDgId") ?? "");
+  const force = String(form.get("force") ?? "") === "true";
   const file = form.get("file");
   if (!faturaDgId) {
     return NextResponse.json({ error: "faturaDgId obrigatório." }, { status: 400 });
@@ -75,8 +76,21 @@ export async function POST(request: Request) {
   }
 
   try {
-    const parsed = await salvarContaEnergia(faturaDgId, nome, mimeType, buffer);
-    return NextResponse.json({ ok: true, parsed });
+    const result = await salvarContaEnergia(
+      faturaDgId,
+      nome,
+      mimeType,
+      buffer,
+      force,
+    );
+    if (result.status === "divergencia") {
+      return NextResponse.json({
+        ok: true,
+        divergencia: result.divergencia,
+        parsed: result.parsed,
+      });
+    }
+    return NextResponse.json({ ok: true, parsed: result.parsed });
   } catch (error) {
     return NextResponse.json(
       {

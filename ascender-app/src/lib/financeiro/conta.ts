@@ -1,5 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { parseContaComIA } from "@/lib/ai/extract";
+import { getDocumentoPorInstalacao } from "@/lib/digitalgrid/queries";
 import { getDb } from "@/lib/db";
 import { contasEnergia, faturasDg } from "@/lib/db/schema";
 import { parseContaNeoenergia, type ContaParsed } from "./parse-conta";
@@ -23,6 +24,7 @@ function mergePreferIa(ia: ContaParsed, regex: ContaParsed): ContaParsed {
     ano: ia.ano ?? regex.ano,
     mes: ia.mes ?? regex.mes,
     cliente: ia.cliente ?? regex.cliente,
+    cnpj: ia.cnpj ?? regex.cnpj,
     vencimento: ia.vencimento ?? regex.vencimento,
     valor: ia.valor ?? regex.valor,
     notaFiscal: ia.notaFiscal ?? regex.notaFiscal,
@@ -126,15 +128,83 @@ export type ContaEnergiaPublica = Awaited<
   ReturnType<typeof getContaEnergia>
 >;
 
+export type DivergenciaConta = {
+  mensagem: string;
+  ucPdf: string | null;
+  compPdf: string | null;
+  ucFatura: string | null;
+  compFatura: string | null;
+};
+
+export type SalvarContaResult =
+  | { status: "ok"; parsed: ContaParsed }
+  | {
+      status: "divergencia";
+      divergencia: DivergenciaConta;
+      parsed: ContaParsed;
+    };
+
+async function getFaturaChave(
+  faturaDgId: string,
+): Promise<{ uc: string | null; competencia: string | null } | null> {
+  const rows = await getDb()
+    .select({
+      uc: faturasDg.installationNumber,
+      competencia: faturasDg.competencia,
+    })
+    .from(faturasDg)
+    .where(eq(faturasDg.id, faturaDgId));
+  const r = rows[0];
+  return r ? { uc: r.uc, competencia: r.competencia } : null;
+}
+
+// Guarda de divergência (individual): a UC/competência lidas do PDF batem com a
+// fatura que o usuário escolheu? Só sinaliza quando os dois lados têm o dado.
+function checarDivergencia(
+  parsed: ContaParsed,
+  fatura: { uc: string | null; competencia: string | null },
+): DivergenciaConta | null {
+  const ucPdf = (parsed.installationNumber ?? "").replace(/\D/g, "") || null;
+  const ucFatura = (fatura.uc ?? "").replace(/\D/g, "") || null;
+  const compPdf = parsed.competencia;
+  const compFatura = fatura.competencia || null;
+  const ucDiverge = Boolean(ucPdf && ucFatura && ucPdf !== ucFatura);
+  const compDiverge = Boolean(compPdf && compFatura && compPdf !== compFatura);
+  if (!ucDiverge && !compDiverge) return null;
+
+  const partes: string[] = [];
+  if (ucDiverge) partes.push(`UC ${ucPdf}`);
+  if (compDiverge) partes.push(`competência ${compPdf}`);
+  return {
+    mensagem: `O PDF lido aparenta ser de ${partes.join(
+      " e ",
+    )}, diferente desta fatura (UC ${ucFatura ?? "?"}, competência ${
+      compFatura ?? "?"
+    }). Anexar mesmo assim?`,
+    ucPdf,
+    compPdf,
+    ucFatura,
+    compFatura,
+  };
+}
+
 export async function salvarContaEnergia(
   faturaDgId: string,
   nome: string,
   mimeType: string,
   buffer: Buffer,
-): Promise<ContaParsed> {
+  force = false,
+): Promise<SalvarContaResult> {
   const { parsed, texto } = await extrairConta(buffer, nome);
+  if (!force) {
+    const fatura = await getFaturaChave(faturaDgId);
+    if (fatura) {
+      const divergencia = checarDivergencia(parsed, fatura);
+      if (divergencia) return { status: "divergencia", divergencia, parsed };
+    }
+  }
   await persistConta(faturaDgId, nome, mimeType, buffer, texto, parsed);
-  return parsed;
+  return { status: "ok", parsed };
 }
 
 // Persiste (upsert por fatura) o PDF + os campos já extraídos. Separado para o
@@ -224,6 +294,7 @@ export async function conciliarBoleto(
   nome: string,
   mimeType: string,
   buffer: Buffer,
+  docMap?: Map<string, string>,
 ): Promise<ConciliacaoBoleto> {
   let texto: string;
   let p: ContaParsed;
@@ -294,6 +365,23 @@ export async function conciliarBoleto(
       faturaDgId: faturaId,
       detalhe: "A fatura já tinha uma conta anexada (mantida).",
     };
+  }
+
+  // Blindagem: confere o CNPJ/CPF do titular antes de anexar. Pega UC mal lida
+  // (um dígito trocado) que coincidiria com outra UC real. Só bloqueia quando
+  // os dois lados têm o documento e eles divergem.
+  const pdfDoc = (p.cnpj ?? "").replace(/\D/g, "");
+  if (pdfDoc) {
+    const docs = docMap ?? (await getDocumentoPorInstalacao());
+    const esperado = docs.get(ucDigitos);
+    if (esperado && esperado !== pdfDoc) {
+      return {
+        ...base,
+        status: "ambiguo",
+        faturaDgId: faturaId,
+        detalhe: `CNPJ/CPF do PDF (${pdfDoc}) não confere com o titular da fatura (${esperado}). Confira manualmente.`,
+      };
+    }
   }
 
   await persistConta(faturaId, nome, mimeType, buffer, texto, p);

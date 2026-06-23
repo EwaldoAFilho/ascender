@@ -106,7 +106,7 @@ export function ContaEnergiaModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [faturaDgId]);
 
-  async function enviar(file: File) {
+  async function enviar(file: File, force = false) {
     const tinha = conta != null;
     setBusy(true);
     setErro(null);
@@ -114,6 +114,7 @@ export function ContaEnergiaModal({
       const fd = new FormData();
       fd.append("faturaDgId", faturaDgId);
       fd.append("file", file);
+      if (force) fd.append("force", "true");
       const res = await fetch("/api/financeiro/conta", {
         method: "POST",
         body: fd,
@@ -121,11 +122,22 @@ export function ContaEnergiaModal({
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setErro(data?.error ?? "Falha no envio.");
-      } else {
-        await carregar();
-        onChanged();
-        toast({ message: tinha ? "Conta substituída." : "Conta anexada." });
+        return;
       }
+      // Guarda de divergência: o PDF parece ser de outra UC/competência.
+      if (data?.divergencia && !force) {
+        const ok = await confirm({
+          title: "Conferir antes de anexar",
+          message: data.divergencia.mensagem,
+          confirmLabel: "Anexar mesmo assim",
+          danger: true,
+        });
+        if (ok) await enviar(file, true);
+        return;
+      }
+      await carregar();
+      onChanged();
+      toast({ message: tinha ? "Conta substituída." : "Conta anexada." });
     } catch {
       setErro("Falha ao enviar o arquivo.");
     } finally {

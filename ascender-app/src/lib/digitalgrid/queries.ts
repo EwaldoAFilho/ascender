@@ -48,6 +48,42 @@ export async function getClientePorInstalacao(): Promise<Map<string, string>> {
   return map;
 }
 
+/**
+ * Mapa UC (só dígitos) → documento do titular (só dígitos). Fonte: `owner_document`
+ * do rateio (Digital Grid) e `documento` do cliente cadastrado (UC → cliente),
+ * com o cadastro sobrescrevendo o rateio. Usado para conferir o CNPJ/CPF do PDF
+ * antes de anexar a conta em lote.
+ */
+export async function getDocumentoPorInstalacao(): Promise<Map<string, string>> {
+  const db = getDb();
+  const soDigitos = (s: string) => s.replace(/\D/g, "");
+  const [cadastro, rateio] = await Promise.all([
+    db
+      .select({
+        inst: unidadesConsumidoras.codigoInstalacao,
+        doc: clientes.documento,
+      })
+      .from(unidadesConsumidoras)
+      .innerJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId)),
+    db
+      .select({ inst: rateiosDg.installation, doc: rateiosDg.ownerDocument })
+      .from(rateiosDg),
+  ]);
+
+  const map = new Map<string, string>();
+  for (const r of rateio) {
+    const inst = soDigitos(r.inst ?? "");
+    const doc = soDigitos(r.doc ?? "");
+    if (inst && doc) map.set(inst, doc);
+  }
+  for (const c of cadastro) {
+    const inst = soDigitos(c.inst ?? "");
+    const doc = soDigitos(c.doc ?? "");
+    if (inst && doc) map.set(inst, doc);
+  }
+  return map;
+}
+
 export async function getResumoFaturasDg(): Promise<{
   total: number;
   pago: number;

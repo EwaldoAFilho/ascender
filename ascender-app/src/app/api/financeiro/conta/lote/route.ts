@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
+import { getDocumentoPorInstalacao } from "@/lib/digitalgrid/queries";
 import { conciliarBoleto, type ConciliacaoBoleto } from "@/lib/financeiro/conta";
 
 export const runtime = "nodejs";
@@ -32,6 +33,9 @@ export async function POST(request: Request) {
     );
   }
 
+  // Carrega o mapa UC→documento uma vez por lote (evita 1 query por arquivo).
+  const docMap = await getDocumentoPorInstalacao();
+
   const resultados: ConciliacaoBoleto[] = [];
   for (const file of arquivos) {
     const nome = file.name || "conta.pdf";
@@ -60,7 +64,7 @@ export async function POST(request: Request) {
       continue;
     }
     try {
-      resultados.push(await conciliarBoleto(nome, mimeType, buffer));
+      resultados.push(await conciliarBoleto(nome, mimeType, buffer, docMap));
     } catch {
       resultados.push({
         arquivo: nome,

@@ -19,6 +19,7 @@ export type ContaParsed = {
   ano: number | null;
   mes: number | null;
   cliente: string | null;
+  cnpj: string | null; // só dígitos (CNPJ ou CPF do titular)
   vencimento: string | null; // "AAAA-MM-DD"
   valor: number | null;
   notaFiscal: string | null;
@@ -147,6 +148,17 @@ function extractCliente(t: string): string | null {
   return nome;
 }
 
+// CNPJ/CPF do titular → só dígitos (11 = CPF, 14 = CNPJ); null caso contrário.
+function extractCnpj(t: string): string | null {
+  const m =
+    /(?:CNPJ|CPF)(?:\s*\/\s*(?:CPF|CNPJ))?\.?\s*:?\s*([\d][\d.\-/]{9,20})/i.exec(
+      t,
+    );
+  if (!m) return null;
+  const digits = m[1].replace(/\D/g, "");
+  return digits.length === 11 || digits.length === 14 ? digits : null;
+}
+
 export function parseContaNeoenergia(raw: string): ContaParsed {
   const t = raw.replace(/ /g, " ");
 
@@ -188,6 +200,7 @@ export function parseContaNeoenergia(raw: string): ContaParsed {
     ano: comp.ano,
     mes: comp.mes,
     cliente: extractCliente(t),
+    cnpj: extractCnpj(t),
     vencimento: isoDate(
       capAny(t, [
         /VENCIMENTO\s*\n?\s*(\d{2}\/\d{2}\/\d{4})/i,
