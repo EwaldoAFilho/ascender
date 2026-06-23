@@ -55,6 +55,11 @@ export default function SolisCloudPage() {
   >(null);
   const toggleFiltro = (e: "online" | "alarm" | "offline") =>
     setFiltroEstado((prev) => (prev === e ? null : e));
+  const filtroLabel: Record<"online" | "alarm" | "offline", string> = {
+    online: "online",
+    alarm: "alarme",
+    offline: "offline",
+  };
 
   const stationList = useMemo(() => stations.data ?? [], [stations.data]);
   const inverterList = useMemo(() => inverters.data ?? [], [inverters.data]);
@@ -437,7 +442,7 @@ export default function SolisCloudPage() {
                     className="btn-link"
                     onClick={() => setFiltroEstado(null)}
                   >
-                    filtro: {filtroEstado} · limpar
+                    filtro: {filtroLabel[filtroEstado]} · limpar
                   </button>
                 ) : stations.isSuccess ? (
                   `${stationList.length} usina(s)`
@@ -454,7 +459,8 @@ export default function SolisCloudPage() {
               <EmptyState message="Nenhuma estação retornada pela SolisCloud." />
             ) : stationsFiltradas.length === 0 ? (
               <p style={loadingStyle}>
-                Nenhuma usina no filtro “{filtroEstado}”.
+                Nenhuma usina no filtro “
+                {filtroEstado ? filtroLabel[filtroEstado] : ""}”.
               </p>
             ) : (
               <div className="telemetry-grid">
