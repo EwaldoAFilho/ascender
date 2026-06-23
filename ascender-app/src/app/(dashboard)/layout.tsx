@@ -34,14 +34,14 @@ function resolveHeader(pathname: string): { title: string; subtitle: string } {
   }
   if (pathname.startsWith("/configuracoes")) {
     return {
-      title: "Configuracoes",
+      title: "Configurações",
       subtitle: "Integrações de API e segurança da conta.",
     };
   }
   if (pathname.startsWith("/geracao")) {
     return {
-      title: "Historico de geracao",
-      subtitle: "Curva e producao das usinas, direto da SolisCloud.",
+      title: "Histórico de geração",
+      subtitle: "Curva e produção das usinas, direto da SolisCloud.",
     };
   }
   if (pathname.startsWith("/mapa")) {
@@ -52,7 +52,7 @@ function resolveHeader(pathname: string): { title: string; subtitle: string } {
   }
   if (pathname.startsWith("/analise")) {
     return {
-      title: "Analise de geracao",
+      title: "Análise de geração",
       subtitle: "Gráficos interativos com filtro por usina e período.",
     };
   }
