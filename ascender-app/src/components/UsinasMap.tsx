@@ -26,6 +26,26 @@ function project(lat: number, lon: number): [number, number] {
   return [clamp(x, 2, W - 2), clamp(y, 2, H - 2)];
 }
 
+// Contorno simplificado do Brasil (≈45 vértices [lon, lat]), embutido — sem rede,
+// sem API, sem dependência. Projetado pela MESMA `project()` dos pinos para que
+// contorno e pinos fiquem alinhados.
+const BRAZIL_OUTLINE: Array<[number, number]> = [
+  [-69.4, 0.7], [-67.1, 1.2], [-64.0, 4.1], [-60.0, 5.2], [-59.8, 4.3],
+  [-56.5, 1.9], [-54.2, 2.2], [-51.6, 4.1], [-50.9, 0.9], [-48.5, -1.5],
+  [-44.3, -2.5], [-41.8, -2.9], [-38.5, -3.7], [-35.2, -5.8], [-34.8, -7.3],
+  [-35.4, -9.4], [-37.0, -11.0], [-38.5, -13.0], [-39.0, -15.5], [-39.7, -18.0],
+  [-40.8, -20.8], [-41.9, -22.4], [-44.5, -23.3], [-47.0, -24.5], [-48.6, -26.2],
+  [-48.6, -28.6], [-50.5, -30.4], [-52.2, -31.9], [-53.4, -33.7], [-55.6, -30.9],
+  [-57.6, -30.2], [-56.0, -27.4], [-54.6, -25.6], [-54.3, -24.0], [-58.0, -20.0],
+  [-57.7, -16.3], [-60.2, -13.6], [-63.0, -12.0], [-65.3, -9.8], [-70.6, -11.0],
+  [-73.9, -7.5], [-72.9, -5.1], [-70.0, -4.3], [-69.9, -1.0],
+];
+
+const BRAZIL_POLYGON = BRAZIL_OUTLINE.map(([lon, lat]) => {
+  const [x, y] = project(lat, lon);
+  return `${x.toFixed(1)},${y.toFixed(1)}`;
+}).join(" ");
+
 function corStatus(status?: string | null): string {
   switch (status) {
     case "online":
@@ -66,10 +86,6 @@ export function UsinasMap({
   semCoords: string[];
   emptyMessage?: string;
 }) {
-  // linhas da retícula a cada ~10° (referência)
-  const lons = [-70, -60, -50, -40];
-  const lats = [0, -10, -20, -30];
-
   return (
     <div className="usinas-map">
       {pins.length === 0 ? (
@@ -82,38 +98,17 @@ export function UsinasMap({
             aria-label="Mapa das usinas por coordenadas"
             preserveAspectRatio="xMidYMid meet"
           >
-            {/* moldura */}
+            {/* mar (fundo do mapa) */}
             <rect
               x={PAD}
               y={PAD}
               width={W - 2 * PAD}
               height={H - 2 * PAD}
               rx={8}
-              className="map-frame"
+              className="map-sea"
             />
-            {/* retícula */}
-            {lons.map((lon) => {
-              const [x] = project(0, lon);
-              return (
-                <g key={`lon-${lon}`}>
-                  <line x1={x} y1={PAD} x2={x} y2={H - PAD} className="map-grid" />
-                  <text x={x} y={H - PAD + 14} className="map-grid-label" textAnchor="middle">
-                    {lon}°
-                  </text>
-                </g>
-              );
-            })}
-            {lats.map((lat) => {
-              const [, y] = project(lat, BBOX.lonMin);
-              return (
-                <g key={`lat-${lat}`}>
-                  <line x1={PAD} y1={y} x2={W - PAD} y2={y} className="map-grid" />
-                  <text x={PAD - 6} y={y + 3} className="map-grid-label" textAnchor="end">
-                    {lat}°
-                  </text>
-                </g>
-              );
-            })}
+            {/* contorno do Brasil (polígono local simplificado) */}
+            <polygon points={BRAZIL_POLYGON} className="map-brazil" />
             {/* pinos */}
             {pins.map((p) => {
               const [x, y] = project(p.latitude, p.longitude);
