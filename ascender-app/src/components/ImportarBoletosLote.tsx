@@ -95,7 +95,7 @@ export function ImportarBoletosLote() {
             role="dialog"
             aria-modal="true"
             aria-label="Importar boletos em lote"
-            style={{ maxWidth: 760 }}
+            style={{ maxWidth: "min(760px, 96vw)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">

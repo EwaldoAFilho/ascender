@@ -710,13 +710,15 @@ h2 {
 
 .lote-tabela {
   max-height: 360px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
 }
 
 .lote-tabela table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -739,6 +741,49 @@ h2 {
 
 .lote-tabela tr:last-child td {
   border-bottom: 0;
+}
+
+/* Larguras fixas + truncamento: cabe sem rolagem lateral em notebooks pequenos. */
+.lote-tabela th:nth-child(2),
+.lote-tabela td:nth-child(2) {
+  width: 120px;
+} /* UC */
+.lote-tabela th:nth-child(3),
+.lote-tabela td:nth-child(3) {
+  width: 74px;
+} /* Competência */
+.lote-tabela th:nth-child(5),
+.lote-tabela td:nth-child(5) {
+  width: 132px;
+} /* Resultado */
+
+.lote-tabela td:nth-child(1) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+} /* Arquivo: 1 linha com reticências (texto completo no title ao passar o mouse) */
+
+.lote-tabela td:nth-child(4),
+.lote-tabela td:nth-child(5) {
+  word-break: break-word;
+} /* Cliente e detalhe do resultado quebram em várias linhas */
+
+@media (max-width: 560px) {
+  .lote-tabela table {
+    font-size: 12px;
+  }
+  .lote-tabela th,
+  .lote-tabela td {
+    padding: 6px 7px;
+  }
+  .lote-tabela th:nth-child(2),
+  .lote-tabela td:nth-child(2) {
+    width: 96px;
+  }
+  .lote-tabela th:nth-child(5),
+  .lote-tabela td:nth-child(5) {
+    width: 104px;
+  }
 }
 
 .registry-tabs {
