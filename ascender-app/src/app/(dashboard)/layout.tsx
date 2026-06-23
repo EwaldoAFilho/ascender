@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LineChart,
   LogOut,
+  Map,
   Moon,
   Search,
   Settings,
@@ -41,6 +42,12 @@ function resolveHeader(pathname: string): { title: string; subtitle: string } {
     return {
       title: "Historico de geracao",
       subtitle: "Curva e producao das usinas, direto da SolisCloud.",
+    };
+  }
+  if (pathname.startsWith("/mapa")) {
+    return {
+      title: "Mapa das usinas",
+      subtitle: "Posição geográfica das usinas pelas coordenadas cadastradas.",
     };
   }
   if (pathname.startsWith("/analise")) {
@@ -117,6 +124,13 @@ export default function DashboardLayout({
             onClick={() => router.push("/analise")}
           >
             <BarChart3 size={18} /> Analise
+          </button>
+          <button
+            className={pathname.startsWith("/mapa") ? "active" : ""}
+            type="button"
+            onClick={() => router.push("/mapa")}
+          >
+            <Map size={18} /> Mapa
           </button>
           <button
             className={pathname.startsWith("/configuracoes") ? "active" : ""}

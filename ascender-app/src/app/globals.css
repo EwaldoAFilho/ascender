@@ -3266,3 +3266,87 @@ th {
   background: var(--surface-soft);
   display: inline-block;
 }
+
+/* ============================================================= */
+/* Fase 3B-B — Mapa das usinas (SVG, sem tiles externos)         */
+/* ============================================================= */
+
+.usinas-map {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.usinas-map-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.usinas-map-canvas {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.usinas-map-canvas svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.map-frame {
+  fill: var(--surface-soft);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.map-grid {
+  stroke: var(--line);
+  stroke-dasharray: 3 4;
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.map-grid-label {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.map-pin {
+  cursor: pointer;
+}
+/* hover portável (sem mexer no atributo r): destaca o halo do pino */
+a:hover > .map-pin circle:first-child {
+  fill-opacity: 0.4;
+}
+
+.usinas-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.usinas-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.map-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.usinas-map-sem {
+  font-size: var(--fs-sm);
+}
+.usinas-map-sem summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: var(--fw-bold);
+}
+.usinas-map-sem ul {
+  margin: var(--sp-2) 0 0;
+  padding-left: 18px;
+  color: var(--ink);
+}
