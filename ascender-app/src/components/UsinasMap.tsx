@@ -88,6 +88,7 @@ export function UsinasMap({
               y={PAD}
               width={W - 2 * PAD}
               height={H - 2 * PAD}
+              rx={8}
               className="map-frame"
             />
             {/* retícula */}

@@ -3298,7 +3298,6 @@ th {
   fill: var(--surface-soft);
   stroke: var(--line);
   stroke-width: 1;
-  rx: 8;
 }
 .map-grid {
   stroke: var(--line);
@@ -3313,13 +3312,10 @@ th {
 
 .map-pin {
   cursor: pointer;
-  transition: transform 0.1s ease;
 }
-.map-pin:hover {
-  transform-box: fill-box;
-}
-a:hover > .map-pin circle:last-child {
-  r: 6;
+/* hover portável (sem mexer no atributo r): destaca o halo do pino */
+a:hover > .map-pin circle:first-child {
+  fill-opacity: 0.4;
 }
 
 .usinas-map-legend {
