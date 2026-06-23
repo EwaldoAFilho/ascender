@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, FileWarning, X } from "lucide-react";
 import { EmptyState } from "@/components/states";
 import type { SolisAlarm } from "@/types/soliscloud";
@@ -28,6 +28,8 @@ export function AlarmsByStation({
   stationNameById: Map<string, string>;
 }) {
   const [openPlant, setOpenPlant] = useState<string | null>(null);
+  // Só fecha por clique no fundo quando o pressionar começou no fundo.
+  const downNoFundo = useRef(false);
 
   useEffect(() => {
     if (!openPlant) return;
@@ -109,7 +111,13 @@ export function AlarmsByStation({
         <div
           className="modal-overlay"
           role="presentation"
-          onClick={() => setOpenPlant(null)}
+          onMouseDown={(e) => {
+            downNoFundo.current = e.target === e.currentTarget;
+          }}
+          onClick={(e) => {
+            if (downNoFundo.current && e.target === e.currentTarget)
+              setOpenPlant(null);
+          }}
         >
           <div
             className="modal"

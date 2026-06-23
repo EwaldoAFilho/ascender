@@ -29,6 +29,8 @@ const ConfirmContext = createContext<
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [pendente, setPendente] = useState<Pendente | null>(null);
   const okRef = useRef<HTMLButtonElement>(null);
+  // Só fecha por clique no fundo quando o pressionar começou no fundo.
+  const downNoFundo = useRef(false);
 
   const confirm = useCallback(
     (o: ConfirmOptions) =>
@@ -61,7 +63,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         <div
           className="modal-overlay"
           role="presentation"
-          onClick={() => fechar(false)}
+          onMouseDown={(e) => {
+            downNoFundo.current = e.target === e.currentTarget;
+          }}
+          onClick={(e) => {
+            if (downNoFundo.current && e.target === e.currentTarget) fechar(false);
+          }}
         >
           <div
             className="modal confirm-modal"

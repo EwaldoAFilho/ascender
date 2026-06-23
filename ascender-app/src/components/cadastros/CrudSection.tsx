@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useConfirm } from "@/components/ConfirmProvider";
@@ -89,6 +95,8 @@ export function CrudSection({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Só fecha por clique no fundo quando o pressionar começou no fundo.
+  const downNoFundo = useRef(false);
 
   // Fecha o modal com Esc.
   useEffect(() => {
@@ -229,7 +237,17 @@ export function CrudSection({
       </section>
 
       {open ? (
-        <div className="modal-overlay" role="presentation" onClick={() => setOpen(false)}>
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onMouseDown={(e) => {
+            downNoFundo.current = e.target === e.currentTarget;
+          }}
+          onClick={(e) => {
+            if (downNoFundo.current && e.target === e.currentTarget)
+              setOpen(false);
+          }}
+        >
           <div
             className="modal"
             role="dialog"
