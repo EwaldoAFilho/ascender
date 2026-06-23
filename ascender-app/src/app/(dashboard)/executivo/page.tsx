@@ -167,7 +167,10 @@ export default async function ExecutivoPage() {
         </section>
         <section className="panel">
           <div className="panel-header">
-            <h2>Tendência do ano</h2>
+            <div>
+              <h2>Tendência do ano</h2>
+              <p>Geração mensal da frota (kWh) ao longo do ano.</p>
+            </div>
           </div>
           <GenerationChart series={serieMes} />
         </section>
