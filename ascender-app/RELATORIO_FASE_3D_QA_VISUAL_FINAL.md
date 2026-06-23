@@ -23,7 +23,10 @@ e reversíveis; o restante está **reportado** para sua decisão.
   `:root[data-theme="dark"]` (linhas 32 e 97); o 2º (#b4c2cb) vence. A linha 35 é
   código morto, **sem bug visível**. ✔
 
-## 2. Aplicado nesta fase (2 commits pequenos)
+## 2. Aplicado nesta fase (3 blocos pequenos)
+
+> Blocos 1 e 2 abaixo; o bloco 3 (estados vazios) está detalhado na seção
+> **"Ajuste final aplicado — EmptyState"** logo adiante.
 
 | Commit | Mudança | Risco |
 |---|---|---|
@@ -76,12 +79,15 @@ renderizável também nas páginas server.
   falso-positivo / cosmético (§1). Os **typos de acento** (alta visibilidade) já
   foram **corrigidos** (§2).
 
-### 3.2 PEQUENO-SEGURO — recomendado (NÃO aplicado; aguarda seu ok)
-- **[verificado] Estados vazios inconsistentes:** Início (`page.tsx:134`), Usinas
-  (`usinas/page.tsx:95,105,129`), Financeiro (`financeiro/page.tsx:100`), Rateio
-  (`rateio/page.tsx:78`) e o filtro vazio da SolisCloud usam `<p style={{color:
-  muted}}>` em vez do componente `<EmptyState>`. Unificar deixaria os vazios
-  premium — mas **muda a aparência** dos vazios, então prefiro sua aprovação.
+### 3.2 PEQUENO-SEGURO
+
+**Aplicado nesta fase:**
+- **[verificado] Estados vazios inconsistentes — PADRONIZADO.** Início, Usinas (3),
+  Financeiro, Rateio e o filtro vazio da SolisCloud migraram de `<p style={{color:
+  muted}}>` para `<EmptyState>`. Detalhes na seção **"Ajuste final aplicado —
+  EmptyState"**.
+
+**Recomendado (NÃO aplicado; aguarda seu ok):**
 - **[sugerido] Cor inline `var(--success)` no JSX** (`page.tsx:135`,
   `executivo:151`, `usinas:134`) em vez de `tone` do `SummaryItem`/classe.
 - **[sugerido] `SummaryStrip` fora de `.panel`** na Análise (`analise/page.tsx:164`)
@@ -114,14 +120,14 @@ renderizável também nas páginas server.
 
 | Tela | Veredito |
 |---|---|
-| Início | OK; vazio "Frota ao vivo" usa `<p>` inline (3.2). |
+| Início | OK; vazio "Frota ao vivo" **padronizado com `EmptyState`** (§EmptyState). |
 | Executivo | **corrigido** cabeçalho (§2); possível duplicidade de métrica (PowerRing × MetricCard) — design, manter. |
-| SolisCloud | OK (NOC/SOC da 3C); filtro vazio usa `<p>` (3.2). |
-| Usinas | vazios inline (3.2); densidade vertical no mobile (design). |
+| SolisCloud | OK (NOC/SOC da 3C); filtro vazio **padronizado com `EmptyState`** (§EmptyState). |
+| Usinas | vazios simples **padronizados com `EmptyState`** (§EmptyState); densidade vertical no mobile (design). |
 | Geração | OK; altura de gráfico (3.3). |
 | Análise | `SummaryStrip` fora de painel + altura de gráficos (3.2/3.3). |
-| Financeiro | vazio inline (3.2); grid de filtro mobile (3.2). |
-| Rateio | vazio inline (3.2); grid de filtro mobile (3.2). |
+| Financeiro | vazio **padronizado com `EmptyState`** (§EmptyState); grid de filtro mobile (3.2). |
+| Rateio | vazio **padronizado com `EmptyState`** (§EmptyState); grid de filtro mobile (3.2). |
 | Cadastros | OK; densidade de formulário no mobile (3.3). |
 | Mapa | OK (3B-C); sem skeleton (3.3). |
 | Configurações | **título corrigido** (§2). |
@@ -133,14 +139,18 @@ renderizável também nas páginas server.
 
 ## 6. Conclusão
 
-Aplicados **2 ajustes pequenos e seguros** (acentuação + 1 cabeçalho). **Nenhum
-bug crítico real**; os "críticos" das varreduras eram falso-positivo/cosmético.
-Os demais achados estão **classificados e reportados** (PEQUENO-SEGURO a aprovar /
-DEPOIS / RISCO) — **não** apliquei os que mudam aparência ou exigem refatoração,
-respeitando "diagnóstico-primeiro".
+Aplicados **3 blocos de ajustes pequenos e seguros**:
+1. **Acentuação** dos títulos/subtítulos de navegação (commit `fe1e985`).
+2. **Cabeçalho do Executivo** "Tendência do ano" (`<div>`+`<p>`; commit `5cd2a46`).
+3. **Padronização de estados vazios com `EmptyState`** — Início, Usinas (3),
+   Financeiro, Rateio e filtro vazio da SolisCloud (commit `9255f06`).
 
-**Sugestão de próximo passo (se aprovar):** um commit de unificação dos estados
-vazios (`EmptyState`) — o de maior ganho premium entre os PEQUENO-SEGURO.
+**Nenhum bug crítico real**; os "críticos" das varreduras eram falso-positivo/
+cosmético. Os achados restantes seguem **classificados e reportados** (PEQUENO-
+SEGURO a aprovar / DEPOIS / RISCO) — **não** apliquei os que mudam aparência além
+do escopo ou exigem refatoração, respeitando "diagnóstico-primeiro".
+
+Validação visual real (temas, mobile, contraste) permanece para **olho humano** (👁).
 
 > **Sem merge.** Branch `ux/fase-3d-qa-visual-final`. Sem features/migration/
 > endpoint/schema/auth/regra de negócio; nada removido.
