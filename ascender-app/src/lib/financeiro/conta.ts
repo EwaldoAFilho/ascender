@@ -1,4 +1,5 @@
 import { eq, sql } from "drizzle-orm";
+import { parseContaComIA } from "@/lib/ai/extract";
 import { getDb } from "@/lib/db";
 import { contasEnergia, faturasDg } from "@/lib/db/schema";
 import { parseContaNeoenergia, type ContaParsed } from "./parse-conta";
@@ -12,6 +13,67 @@ async function extractText(buffer: Buffer): Promise<string> {
   } finally {
     await parser.destroy().catch(() => {});
   }
+}
+
+// Mescla preferindo a IA; o regex preenche os campos que a IA deixou em branco.
+function mergePreferIa(ia: ContaParsed, regex: ContaParsed): ContaParsed {
+  return {
+    installationNumber: ia.installationNumber ?? regex.installationNumber,
+    competencia: ia.competencia ?? regex.competencia,
+    ano: ia.ano ?? regex.ano,
+    mes: ia.mes ?? regex.mes,
+    cliente: ia.cliente ?? regex.cliente,
+    vencimento: ia.vencimento ?? regex.vencimento,
+    valor: ia.valor ?? regex.valor,
+    notaFiscal: ia.notaFiscal ?? regex.notaFiscal,
+    codigoBarras: ia.codigoBarras ?? regex.codigoBarras,
+    leituraAnteriorData: ia.leituraAnteriorData ?? regex.leituraAnteriorData,
+    leituraData: ia.leituraData ?? regex.leituraData,
+    leituraProximaData: ia.leituraProximaData ?? regex.leituraProximaData,
+    numeroDias: ia.numeroDias ?? regex.numeroDias,
+    energiaKwh: ia.energiaKwh ?? regex.energiaKwh,
+    tributos: {
+      pis: ia.tributos.pis ?? regex.tributos.pis,
+      cofins: ia.tributos.cofins ?? regex.tributos.cofins,
+      icms: ia.tributos.icms ?? regex.tributos.icms,
+    },
+    itensFatura: ia.itensFatura.length ? ia.itensFatura : regex.itensFatura,
+    aviso: ia.aviso ?? regex.aviso,
+    sceeExcedenteKwh: ia.sceeExcedenteKwh ?? regex.sceeExcedenteKwh,
+    sceeCreditosKwh: ia.sceeCreditosKwh ?? regex.sceeCreditosKwh,
+    sceeSaldoProximoKwh: ia.sceeSaldoProximoKwh ?? regex.sceeSaldoProximoKwh,
+    sceeSaldoAnteriorKwh: ia.sceeSaldoAnteriorKwh ?? regex.sceeSaldoAnteriorKwh,
+    sceeTransfKwh: ia.sceeTransfKwh ?? regex.sceeTransfKwh,
+    sceeInjetadoKwh: ia.sceeInjetadoKwh ?? regex.sceeInjetadoKwh,
+    sceeCompensadoKwh: ia.sceeCompensadoKwh ?? regex.sceeCompensadoKwh,
+    sceeSaldoAtualKwh: ia.sceeSaldoAtualKwh ?? regex.sceeSaldoAtualKwh,
+  };
+}
+
+// Orquestra a extração: IA (provedor ativo) primeiro, regex como rede de
+// segurança. Usado tanto pelo upload individual quanto pelo lote, então os dois
+// fluxos herdam a leitura de qualquer distribuidora/PDF escaneado.
+async function extrairConta(
+  buffer: Buffer,
+): Promise<{ parsed: ContaParsed; texto: string; fonte: "ia" | "regex" }> {
+  let texto = "";
+  try {
+    texto = await extractText(buffer);
+  } catch {
+    texto = "";
+  }
+  const regex = parseContaNeoenergia(texto);
+
+  let ia: ContaParsed | null = null;
+  try {
+    ia = await parseContaComIA(buffer);
+  } catch (error) {
+    console.error("[conta] extração via IA falhou, usando regex:", error);
+    ia = null;
+  }
+
+  if (!ia) return { parsed: regex, texto, fonte: "regex" };
+  return { parsed: mergePreferIa(ia, regex), texto, fonte: "ia" };
 }
 
 // Colunas exibíveis (sem o base64 do arquivo).
@@ -57,10 +119,9 @@ export async function salvarContaEnergia(
   mimeType: string,
   buffer: Buffer,
 ): Promise<ContaParsed> {
-  const texto = await extractText(buffer);
-  const p = parseContaNeoenergia(texto);
-  await persistConta(faturaDgId, nome, mimeType, buffer, texto, p);
-  return p;
+  const { parsed, texto } = await extrairConta(buffer);
+  await persistConta(faturaDgId, nome, mimeType, buffer, texto, parsed);
+  return parsed;
 }
 
 // Persiste (upsert por fatura) o PDF + os campos já extraídos. Separado para o
@@ -152,8 +213,11 @@ export async function conciliarBoleto(
   buffer: Buffer,
 ): Promise<ConciliacaoBoleto> {
   let texto: string;
+  let p: ContaParsed;
   try {
-    texto = await extractText(buffer);
+    const r = await extrairConta(buffer);
+    texto = r.texto;
+    p = r.parsed;
   } catch {
     return {
       arquivo: nome,
@@ -165,7 +229,6 @@ export async function conciliarBoleto(
     };
   }
 
-  const p = parseContaNeoenergia(texto);
   const ucDigitos = (p.installationNumber ?? "").replace(/\D/g, "");
   const comp = p.competencia;
   const base = {
