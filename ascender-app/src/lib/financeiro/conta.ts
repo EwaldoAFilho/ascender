@@ -55,7 +55,9 @@ function mergePreferIa(ia: ContaParsed, regex: ContaParsed): ContaParsed {
 // fluxos herdam a leitura de qualquer distribuidora/PDF escaneado.
 async function extrairConta(
   buffer: Buffer,
+  label?: string,
 ): Promise<{ parsed: ContaParsed; texto: string; fonte: "ia" | "regex" }> {
+  const alvo = label ? ` arquivo="${label}"` : "";
   let texto = "";
   try {
     texto = await extractText(buffer);
@@ -66,9 +68,20 @@ async function extrairConta(
 
   let ia: ContaParsed | null = null;
   try {
-    ia = await parseContaComIA(buffer);
+    const r = await parseContaComIA(buffer);
+    if (r) {
+      ia = r.conta;
+      console.log(
+        `[conta] extração via IA OK${alvo} provider=${r.provider} model=${r.model} tokens_in=${r.usage.inputTokens ?? "?"} tokens_out=${r.usage.outputTokens ?? "?"}`,
+      );
+    } else {
+      console.log(`[conta] IA não está ativa${alvo} — usando apenas regex.`);
+    }
   } catch (error) {
-    console.error("[conta] extração via IA falhou, usando regex:", error);
+    console.error(
+      `[conta] extração via IA falhou${alvo}, usando regex:`,
+      error,
+    );
     ia = null;
   }
 
@@ -119,7 +132,7 @@ export async function salvarContaEnergia(
   mimeType: string,
   buffer: Buffer,
 ): Promise<ContaParsed> {
-  const { parsed, texto } = await extrairConta(buffer);
+  const { parsed, texto } = await extrairConta(buffer, nome);
   await persistConta(faturaDgId, nome, mimeType, buffer, texto, parsed);
   return parsed;
 }
@@ -215,7 +228,7 @@ export async function conciliarBoleto(
   let texto: string;
   let p: ContaParsed;
   try {
-    const r = await extrairConta(buffer);
+    const r = await extrairConta(buffer, nome);
     texto = r.texto;
     p = r.parsed;
   } catch {

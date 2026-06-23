@@ -5,7 +5,17 @@
 // de IA ativo (o chamador então usa só o regex).
 
 import { getActiveAiConfig } from "@/lib/ai/credentials";
+import type { AiProvider } from "@/lib/ai/providers";
 import type { ContaParsed, ItemConta } from "@/lib/financeiro/parse-conta";
+
+export type AiUsage = { inputTokens: number | null; outputTokens: number | null };
+
+export type AiExtractResult = {
+  conta: ContaParsed;
+  provider: AiProvider;
+  model: string;
+  usage: AiUsage;
+};
 
 const NUM = { type: ["number", "null"] } as const;
 const STR = { type: ["string", "null"] } as const;
@@ -125,7 +135,7 @@ async function fetchJson(
 async function callAnthropic(
   cfg: { apiKey: string; model: string; baseUrl: string },
   base64: string,
-): Promise<string> {
+): Promise<{ text: string; usage: AiUsage }> {
   const base = cfg.baseUrl.replace(/\/+$/, "");
   const { ok, status, body, raw } = await fetchJson(`${base}/v1/messages`, {
     method: "POST",
@@ -157,20 +167,28 @@ async function callAnthropic(
     }),
   });
   if (!ok) throw new Error(`Anthropic ${status}: ${raw.slice(0, 200)}`);
-  const content = (body as { content?: Array<{ type: string; text?: string }> })
-    ?.content;
-  const text = (content ?? [])
+  const data = body as {
+    content?: Array<{ type: string; text?: string }>;
+    usage?: { input_tokens?: number; output_tokens?: number };
+  };
+  const text = (data?.content ?? [])
     .filter((b) => b.type === "text" && typeof b.text === "string")
     .map((b) => b.text)
     .join("");
   if (!text) throw new Error("Resposta vazia da Anthropic.");
-  return text;
+  return {
+    text,
+    usage: {
+      inputTokens: data?.usage?.input_tokens ?? null,
+      outputTokens: data?.usage?.output_tokens ?? null,
+    },
+  };
 }
 
 async function callOpenAI(
   cfg: { apiKey: string; model: string; baseUrl: string },
   base64: string,
-): Promise<string> {
+): Promise<{ text: string; usage: AiUsage }> {
   const base = cfg.baseUrl.replace(/\/+$/, "");
   const { ok, status, body, raw } = await fetchJson(`${base}/v1/responses`, {
     method: "POST",
@@ -207,6 +225,7 @@ async function callOpenAI(
   const data = body as {
     output_text?: string;
     output?: Array<{ content?: Array<{ type: string; text?: string }> }>;
+    usage?: { input_tokens?: number; output_tokens?: number };
   };
   let text = typeof data?.output_text === "string" ? data.output_text : "";
   if (!text && Array.isArray(data?.output)) {
@@ -219,7 +238,13 @@ async function callOpenAI(
     }
   }
   if (!text) throw new Error("Resposta vazia da OpenAI.");
-  return text;
+  return {
+    text,
+    usage: {
+      inputTokens: data?.usage?.input_tokens ?? null,
+      outputTokens: data?.usage?.output_tokens ?? null,
+    },
+  };
 }
 
 // ---- normalização defensiva do JSON da IA para ContaParsed ----
@@ -316,12 +341,12 @@ function toContaParsed(obj: Record<string, unknown>): ContaParsed {
  */
 export async function parseContaComIA(
   buffer: Buffer,
-): Promise<ContaParsed | null> {
+): Promise<AiExtractResult | null> {
   const cfg = await getActiveAiConfig();
   if (!cfg) return null;
 
   const base64 = buffer.toString("base64");
-  const text =
+  const { text, usage } =
     cfg.provider === "anthropic"
       ? await callAnthropic(cfg, base64)
       : await callOpenAI(cfg, base64);
@@ -335,5 +360,10 @@ export async function parseContaComIA(
   if (!json || typeof json !== "object") {
     throw new Error("Resposta da IA não é um objeto.");
   }
-  return toContaParsed(json as Record<string, unknown>);
+  return {
+    conta: toContaParsed(json as Record<string, unknown>),
+    provider: cfg.provider,
+    model: cfg.model,
+    usage,
+  };
 }
