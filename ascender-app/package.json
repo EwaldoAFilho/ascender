@@ -18,6 +18,7 @@
     "db:conciliar-dg": "tsx src/lib/db/conciliar-dg.ts",
     "db:auditar-rateio": "tsx src/lib/db/auditar-rateio.ts",
     "db:inspecionar-rateio": "tsx src/lib/db/inspecionar-rateio.ts",
+    "db:investigar-atencao": "tsx src/lib/db/investigar-atencao.ts",
     "db:map-readiness": "tsx src/lib/db/map-readiness.ts",
     "dg:preview": "tsx src/lib/db/dg-preview.ts"
   },
