@@ -26,6 +26,10 @@ export async function gerarRelatorioAuditoria(): Promise<AuditReport> {
       "AUDITORIA_FATOR_CREDITO",
       REGRAS_OPTS_PADRAO.fatorCreditoExcessivo,
     ),
+    mesesExpiracaoScee: numEnv(
+      "AUDITORIA_MESES_EXPIRACAO",
+      REGRAS_OPTS_PADRAO.mesesExpiracaoScee,
+    ),
     // A escala do `percentual` é inferida dos dados (a confirmar empiricamente).
     fatorPercentualPara100: diagnostico.percentual.fatorPara100,
   };

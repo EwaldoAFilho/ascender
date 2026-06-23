@@ -71,6 +71,8 @@ export type RegrasOpts = {
   fatorCreditoExcessivo: number;
   /** Mínimo de competências para avaliar tendência de "crédito parado". */
   minCompetenciasTendencia: number;
+  /** Meses até o crédito SCEE expirar (ANEEL). Excedente além disso = risco real. */
+  mesesExpiracaoScee: number;
 };
 
 export const REGRAS_OPTS_PADRAO: RegrasOpts = {
@@ -79,4 +81,5 @@ export const REGRAS_OPTS_PADRAO: RegrasOpts = {
   tarifaRef: 0.98,
   fatorCreditoExcessivo: 3,
   minCompetenciasTendencia: 3,
+  mesesExpiracaoScee: 60,
 };

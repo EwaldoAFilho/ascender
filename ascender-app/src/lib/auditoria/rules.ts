@@ -150,10 +150,23 @@ export function regraSomaPercentual(
   return out;
 }
 
+/** UC que é, na verdade, um gerador/consórcio (não recebe rateio). */
+export function ehGeradoraOuConsorcio(
+  u: UcRow,
+  generatorNumbers: Set<string>,
+): boolean {
+  return (
+    generatorNumbers.has(u.codigoInstalacao) ||
+    /consorcio|cons[oó]rcio|\bases\b/i.test(u.clienteNome ?? "")
+  );
+}
+
 // #2 — UC cadastrada e ativa, sem rateio na competência recente.
+// Exclui geradoras/consórcio (que naturalmente não recebem rateio).
 export function regraUcSemRateio(
   rateios: RateioRow[],
   ucs: UcRow[],
+  generatorNumbers: Set<string>,
   opts: RegrasOpts,
 ): Finding[] {
   const recente = competenciasOrdenadas(rateios)[0] ?? null;
@@ -165,6 +178,7 @@ export function regraUcSemRateio(
   for (const u of ucs) {
     if (!u.ativo) continue;
     if (comRateio.has(u.codigoInstalacao)) continue;
+    if (ehGeradoraOuConsorcio(u, generatorNumbers)) continue;
     out.push({
       regra: "uc_sem_rateio",
       severidade: "alta",
@@ -217,7 +231,9 @@ export function regraRateioDuplicado(rateios: RateioRow[]): Finding[] {
   return out;
 }
 
-// #7 — Consumo incompatível com crédito (crédito muito acima do consumo).
+// #7 — Crédito acumulado muito acima do consumo (risco de expiração SCEE).
+// Impacto = só o EXCEDENTE além do que dá para usar em `mesesExpiracaoScee`
+// meses no ritmo de consumo atual (esse excedente expira sem ser usado).
 export function regraConsumoCreditoIncompativel(
   rateios: RateioRow[],
   opts: RegrasOpts,
@@ -232,20 +248,24 @@ export function regraConsumoCreditoIncompativel(
       r.consumoKwh > 0 &&
       r.creditosAcumulados > opts.fatorCreditoExcessivo * r.consumoKwh
     ) {
+      const usavelAteExpirar = opts.mesesExpiracaoScee * r.consumoKwh;
+      const excedente = Math.max(0, r.creditosAcumulados - usavelAteExpirar);
       out.push({
         regra: "consumo_credito_incompativel",
-        severidade: "media",
+        severidade: excedente > 0 ? "alta" : "media",
         entidade: "uc",
         entidadeRef: r.installation,
         competencia: recente,
-        titulo: `Crédito acumulado muito acima do consumo (${round2(r.creditosAcumulados)} kWh vs ${round2(r.consumoKwh)} kWh)`,
+        titulo: `Crédito ${round2(r.creditosAcumulados)} kWh ≫ consumo ${round2(r.consumoKwh)} kWh/mês (${Math.round(r.creditosAcumulados / r.consumoKwh)} meses de saldo)`,
         detalhe: {
           creditosAcumulados: round2(r.creditosAcumulados),
           consumoKwh: round2(r.consumoKwh),
-          razao: round2(r.creditosAcumulados / r.consumoKwh),
+          mesesDeSaldo: Math.round(r.creditosAcumulados / r.consumoKwh),
+          excedenteExpiraKwh: round2(excedente),
           cliente: r.ownerName,
         },
-        impactoFinanceiro: round2(r.creditosAcumulados * opts.tarifaRef),
+        // Só o excedente que NÃO será consumido em 60 meses é perda real.
+        impactoFinanceiro: round2(excedente * opts.tarifaRef),
       });
     }
   }
@@ -442,17 +462,24 @@ export function rodarRegras(
   ucs: UcRow[],
   opts: RegrasOpts,
 ): Finding[] {
+  const generatorNumbers = new Set(
+    rateios.map((r) => r.generatorNumber).filter((g): g is string => !!g),
+  );
   return [
-    ...regraSomaPercentual(rateios, opts),
-    ...regraUcSemRateio(rateios, ucs, opts),
-    ...regraRateioDuplicado(rateios),
+    ...regraUcSemRateio(rateios, ucs, generatorNumbers, opts),
     ...regraConsumoCreditoIncompativel(rateios, opts),
     ...regraFaturaSemUc(faturas, ucs),
     ...regraFaturaDuplicada(faturas),
     ...regraCompetenciaIncorreta(faturas),
     ...regraCreditoParado(rateios, opts),
-    ...diagUcSubalocada(rateios),
   ];
+  // Regras DESATIVADAS após inspeção dos dados reais (2026-06) — a semântica do
+  // Digital Grid não sustenta o alerta; funções mantidas para teste/uso futuro:
+  //  • regraSomaPercentual  — `percentage` não particiona 100% por gerador
+  //    (UCs compartilhadas entre usinas; soma dá 100/150/200%).
+  //  • regraRateioDuplicado — multi-gerador por UC é NORMAL na geração
+  //    compartilhada (confirmado pelo negócio).
+  //  • diagUcSubalocada     — `covering` é um índice/ratio do DG (0–3), não kWh.
 }
 
 export const ORDEM_SEVERIDADE: Record<Severidade, number> = {
