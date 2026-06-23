@@ -36,6 +36,39 @@ Exemplos corrigidos: Operacao→**Operação**, Potencia→**Potência**, geraca
 "Analise de geracao"→**"Análise de geração"**, "Historico de geracao"→**"Histórico
 de geração"**.
 
+## Ajuste final aplicado — EmptyState
+
+Unificação dos **estados vazios simples** que usavam `<p style={{color:
+var(--muted)}}>` pelo componente `<EmptyState message=…>` (ícone + bloco
+estilizado), nos pontos verificados no diagnóstico. **Sem mudar lógica de
+filtros/tabelas/consultas; texto mantido (ou levemente ajustado).**
+
+**Arquivos alterados (5):**
+
+| Tela | Arquivo | Estados vazios padronizados |
+|---|---|---|
+| Início | `(dashboard)/page.tsx` | "Nenhuma telemetria…" (frota ao vivo) |
+| Usinas | `(dashboard)/usinas/page.tsx` | "SolisCloud não configurada", "Nenhuma usina vinculada", "Defina metas…" (3) |
+| Financeiro | `(dashboard)/financeiro/page.tsx` | "Nenhuma fatura sincronizada…" |
+| Rateio | `(dashboard)/rateio/page.tsx` | "Nenhuma cota sincronizada…" |
+| SolisCloud | `(dashboard)/soliscloud/page.tsx` | "Nenhuma usina no filtro …" (filtro vazio) |
+
+**Total: 7 estados vazios padronizados.** Import de `EmptyState` adicionado nas 4
+telas que não o tinham (SolisCloud já importava). `states.tsx` é `"use client"` →
+renderizável também nas páginas server.
+
+**Preservado de propósito (não são "estado vazio simples"):**
+- Rodapés "Última sincronização…" (`financeiro:107`, `rateio:85`, `fontSize:13`).
+- Estado **positivo** "Todas as usinas… dentro da meta" (`usinas:126`,
+  `var(--success)`) — confirmação, não vazio.
+- Rodapé "+N outra(s) abaixo da meta" (`usinas:144`).
+- Mensagens de **loading** ("Carregando telemetria…") — são loading, não vazio.
+- Financeiro/Rateio: o `<code>` do comando virou texto simples (EmptyState recebe
+  `string`) — informação preservada, sem o monoespaçado.
+
+> Nenhum item **DEPOIS** ou **RISCO** foi tocado. Sem mudança de
+> lógica/regra/consulta/DataTable/navegação. `tsc`/`build` OK.
+
 ## 3. Diagnóstico por categoria
 
 ### 3.1 CRÍTICO

@@ -2,6 +2,7 @@ import { BarList } from "@/components/BarList";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { UsinasTable } from "@/components/UsinasTable";
+import { EmptyState } from "@/components/states";
 import { getUsinasComTelemetria } from "@/lib/cadastros/queries";
 import { numberFormatter } from "@/lib/dashboard-data";
 
@@ -92,20 +93,14 @@ export default async function UsinasPage() {
           <div className="panel-header">
             <h2>SolisCloud não configurada</h2>
           </div>
-          <p style={{ color: "var(--muted)", margin: 0 }}>
-            Configure as credenciais em Configurações › Integrações para ver a
-            geração real das usinas.
-          </p>
+          <EmptyState message="Configure as credenciais em Configurações › Integrações para ver a geração real das usinas." />
         </section>
       ) : vinculadas.length === 0 ? (
         <section className="panel">
           <div className="panel-header">
             <h2>Nenhuma usina vinculada à SolisCloud</h2>
           </div>
-          <p style={{ color: "var(--muted)", margin: 0 }}>
-            Vincule cada usina ao Station ID em Cadastros › Usinas — ou use
-            “Importar da SolisCloud” — para cruzar geração real × esperada.
-          </p>
+          <EmptyState message="Vincule cada usina ao Station ID em Cadastros › Usinas — ou use “Importar da SolisCloud” — para cruzar geração real × esperada." />
         </section>
       ) : null}
 
@@ -126,10 +121,7 @@ export default async function UsinasPage() {
           </div>
         </div>
         {temMeta.length === 0 ? (
-          <p style={{ color: "var(--muted)", margin: 0 }}>
-            Defina metas de geração em Cadastros › Usinas para comparar realizado
-            × meta.
-          </p>
+          <EmptyState message="Defina metas de geração em Cadastros › Usinas para comparar realizado × meta." />
         ) : abaixoMeta.length === 0 ? (
           <p style={{ color: "var(--success)", margin: 0, fontWeight: 700 }}>
             Todas as usinas com meta estão dentro da meta até hoje.
