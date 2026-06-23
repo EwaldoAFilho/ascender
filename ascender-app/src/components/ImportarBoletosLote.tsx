@@ -7,7 +7,13 @@ import { useToast } from "@/components/ToastProvider";
 
 type Resultado = {
   arquivo: string;
-  status: "anexado" | "ja_tinha" | "sem_match" | "ambiguo" | "erro";
+  status:
+    | "anexado"
+    | "ja_tinha"
+    | "sem_match"
+    | "ambiguo"
+    | "cnpj_divergente"
+    | "erro";
   uc: string | null;
   competencia: string | null;
   cliente: string | null;
@@ -22,6 +28,7 @@ const META: Record<
   ja_tinha: { label: "Já tinha conta", classe: "status-aguardando" },
   sem_match: { label: "Sem correspondência", classe: "status-vencido" },
   ambiguo: { label: "Ambíguo", classe: "status-aguardando" },
+  cnpj_divergente: { label: "CNPJ não confere", classe: "status-critico" },
   erro: { label: "Erro", classe: "status-offline" },
 };
 
@@ -171,6 +178,11 @@ export function ImportarBoletosLote() {
                   <span className="status status-vencido">
                     {contagem("sem_match")} sem match
                   </span>
+                  {contagem("cnpj_divergente") > 0 ? (
+                    <span className="status status-critico">
+                      {contagem("cnpj_divergente")} CNPJ divergente
+                    </span>
+                  ) : null}
                   {contagem("erro") > 0 ? (
                     <span className="status status-offline">{contagem("erro")} erro(s)</span>
                   ) : null}

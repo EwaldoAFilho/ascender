@@ -277,7 +277,13 @@ export async function excluirContaEnergia(faturaDgId: string): Promise<void> {
 
 export type ConciliacaoBoleto = {
   arquivo: string;
-  status: "anexado" | "ja_tinha" | "sem_match" | "ambiguo" | "erro";
+  status:
+    | "anexado"
+    | "ja_tinha"
+    | "sem_match"
+    | "ambiguo"
+    | "cnpj_divergente"
+    | "erro";
   uc: string | null;
   competencia: string | null;
   cliente: string | null;
@@ -377,7 +383,7 @@ export async function conciliarBoleto(
     if (esperado && esperado !== pdfDoc) {
       return {
         ...base,
-        status: "ambiguo",
+        status: "cnpj_divergente",
         faturaDgId: faturaId,
         detalhe: `CNPJ/CPF do PDF (${pdfDoc}) não confere com o titular da fatura (${esperado}). Confira manualmente.`,
       };
