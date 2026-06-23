@@ -9,6 +9,7 @@ import {
   testConnection,
 } from "@/lib/api/soliscloud";
 import { DigitalGridCard } from "@/components/DigitalGridCard";
+import { AiIntegrationCard } from "@/components/AiIntegrationCard";
 import { errorMessage } from "@/components/states";
 import { useToast } from "@/components/ToastProvider";
 
@@ -228,6 +229,8 @@ export default function ConfiguracoesIntegracoesPage() {
 
         <DigitalGridCard />
       </section>
+
+      <AiIntegrationCard />
     </>
   );
 }
