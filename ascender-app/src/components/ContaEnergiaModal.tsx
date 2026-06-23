@@ -79,6 +79,9 @@ export function ContaEnergiaModal({
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Só fecha por clique no fundo quando o pressionar começou no fundo — evita
+  // fechar ao selecionar texto e soltar o mouse fora do modal.
+  const downNoFundo = useRef(false);
   const confirm = useConfirm();
   const toast = useToast();
 
@@ -176,7 +179,16 @@ export function ContaEnergiaModal({
   }
 
   return (
-    <div className="modal-overlay" role="presentation" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      role="presentation"
+      onMouseDown={(e) => {
+        downNoFundo.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (downNoFundo.current && e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
         className="modal"
         role="dialog"

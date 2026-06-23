@@ -754,7 +754,7 @@ h2 {
 } /* Competência */
 .lote-tabela th:nth-child(5),
 .lote-tabela td:nth-child(5) {
-  width: 132px;
+  width: 150px;
 } /* Resultado */
 
 .lote-tabela td:nth-child(1) {
@@ -767,6 +767,12 @@ h2 {
 .lote-tabela td:nth-child(5) {
   word-break: break-word;
 } /* Cliente e detalhe do resultado quebram em várias linhas */
+
+/* O badge de status quebra em 2 linhas em vez de cortar o rótulo. */
+.lote-tabela .status {
+  white-space: normal;
+  text-align: center;
+}
 
 @media (max-width: 560px) {
   .lote-tabela table {
@@ -782,7 +788,7 @@ h2 {
   }
   .lote-tabela th:nth-child(5),
   .lote-tabela td:nth-child(5) {
-    width: 104px;
+    width: 116px;
   }
 }
 
