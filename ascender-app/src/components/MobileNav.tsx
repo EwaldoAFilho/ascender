@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LineChart,
   LogOut,
+  Map,
   Menu,
   Moon,
   Network,
@@ -38,6 +39,7 @@ const MAIS: Item[] = [
   { href: "/rateio", label: "Rateio", icon: Network },
   { href: "/geracao", label: "Geração", icon: LineChart },
   { href: "/analise", label: "Análise", icon: BarChart3 },
+  { href: "/mapa", label: "Mapa", icon: Map },
   { href: "/integracoes", label: "Integrações", icon: Cable },
   { href: "/configuracoes/integracoes", label: "Configurações", icon: Settings },
 ];
