@@ -333,3 +333,34 @@ Praticamente **todo o Validador** e o **núcleo diagnóstico do Otimizador** sã
 5. Só então **Fase 3/4** (recomendações e otimização prescritiva).
 
 > **Nota:** conforme as convenções do projeto (`HANDOFF.md`), nenhum código foi implementado nesta etapa — este é o diagnóstico técnico. A Fase 1 é segura (somente leitura) e pode começar assim que aprovada.
+
+---
+
+## Apêndice A — Calibração com dados reais (produção, 2026-06)
+
+A Fase 1 foi implementada (`src/lib/auditoria/`, CLI `npm run db:auditar-rateio`, somente leitura) e rodada contra a produção. Aprendizados que mudaram as regras:
+
+**Qualidade dos dados (confirmada):** escala do `percentual` = **0–100**; junção DG↔cadastro = **100%** (rateio→UC, fatura→UC, documento→cliente). 234 rateios, 162 faturas, 42 UCs.
+
+**Regras aposentadas (a semântica do DG não as sustenta):**
+- `soma_percentual` — `percentage` **não particiona 100% por gerador** (UCs são compartilhadas entre usinas; somas dão 100/150/200%). Multi-gerador por UC é **normal** no negócio.
+- `rateio_duplicado` — idem: uma UC receber de 2+ usinas é esperado, não erro.
+- `uc_subalocada` — `covering` é um **índice/ratio do DG (0–3), não kWh**.
+
+**Regras calibradas e ativas:**
+- `uc_sem_rateio` — exclui **geradoras/consórcio** (`installation` ∈ `generator_number` ou titular "CONSÓRCIO/ASES"). De 11 → 5 achados reais.
+- `consumo_credito_incompativel` — **dedup por titular**: quando as UCs do mesmo dono têm crédito em **lockstep (<5%)**, é o saldo do titular replicado por UC → conta **1×** (corrigiu FABIANO de ~R$110k para ~R$30k). Impacto = só o excedente além de **60 meses** de consumo (expiração SCEE). `-CANCEL` vira informativo.
+- `desconto_abaixo_contratado` — **o desconto incide sobre a ENERGIA**, não sobre a conta inteira. Base correta = `total_amount_without_discount − total_amount_distributor` (tira o resíduo não-descontável: fio B, taxas, iluminação). Reconciliação confirmou: `amount_saved / base_energia` ≈ **31,27%** ≈ 30% contratado nas UCs testadas → clientes recebendo o desconto certo. Só alerta sub-entrega real.
+
+**Investigação dos pontos de atenção (resolvida no dado):**
+- **FABIANO MOTA MACHADO** — as 2 UCs andam em **lockstep** (~82 MWh, caindo ~400 kWh/mês juntas) → é **crédito do titular replicado**, não 82 MWh por UC nem bug nosso (o boleto corrobora `balance_credits`). Ação de negócio: reduzir/zerar alocação até drenar; checar com DG/Neoenergia se o saldo é real.
+- **`-CANCEL`** (PEDRO IVO, PAULA) — confirmado **encerramento** (`agent_discount` 99% / boleto zerado).
+
+**Identidade contábil do boleto DG (verificada):** `amount_saved = total_amount_without_discount − (total_value + total_amount_distributor)` (exata nas UCs testadas).
+
+**Regra descartada de vez:**
+- `cobranca_inconsistente` (recalcular o "esperado" do boleto) — o DG usa **estruturas heterogêneas** (boleto simples vs. alta compensação com fio B); não há fórmula única → recomputar geraria falso-positivo. A consistência da cobrança fica a cargo do DG.
+
+**Ferramentas de inspeção (somente leitura) criadas:** `db:inspecionar-rateio`, `db:investigar-atencao`, `db:reconciliar-fatura`.
+
+**Resultado:** relatório limpo, **falso-positivo ~0**, ~10 achados defensáveis. Pendências inalteradas: vencimento de crédito (falta vintage / `/financial-credits`) e otimização prescritiva (elegibilidade regulatória).

@@ -37,8 +37,10 @@ export type FaturaRow = {
   // ===== Campos extraídos do raw (DG) p/ validações financeiras =====
   /** Desconto contratado declarado na fatura (%). */
   agentDiscountPct: number | null;
-  /** Valor da fatura sem o desconto (base p/ desconto efetivo e cobrança). */
+  /** Valor da fatura sem o desconto (cheio, inclui resíduo da distribuidora). */
   totalSemDesconto: number | null;
+  /** Resíduo cobrado pela distribuidora (fio B, taxas, iluminação) — NÃO descontável. */
+  totalDistribuidor: number;
   /** Iluminação pública (entra no total cobrado). */
   lightning: number;
   /** Encargos extras (entram no total cobrado). */
@@ -123,6 +125,7 @@ export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
     paymentStatus: f.paymentStatus,
     agentDiscountPct: rawNum(f.raw, "agent_discount"),
     totalSemDesconto: rawNum(f.raw, "total_amount_without_discount"),
+    totalDistribuidor: rawNum(f.raw, "total_amount_distributor") ?? 0,
     lightning: rawNum(f.raw, "lightning") ?? 0,
     extraCharges: rawNum(f.raw, "extra_charges") ?? 0,
   }));

@@ -326,10 +326,12 @@ export function regraConsumoCreditoIncompativel(
   return out;
 }
 
-// FIN-1 — Desconto efetivo abaixo do contratado (consistência interna do boleto).
-// efetivo = amount_saved / total_amount_without_discount; compara com agent_discount.
-// Só alerta quando o cliente recebeu MENOS desconto que o declarado na fatura.
-// Pula encerramento (agent_discount ≥ 99%), que tem lógica de cobrança própria.
+// FIN-1 — Desconto efetivo abaixo do contratado.
+// O desconto incide sobre a ENERGIA, não sobre a conta inteira: a base correta é
+// `total_sem_desconto − total_distribuidor` (tira o resíduo não-descontável da
+// distribuidora: fio B, taxas, iluminação). Validado no DG: amount_saved /
+// base_energia ≈ agent_discount. Só alerta quando o cliente recebeu MENOS que o
+// contratado. Pula encerramento (agent_discount ≥ 99%).
 export function regraDescontoAbaixoContratado(
   faturas: FaturaRow[],
   opts: RegrasOpts,
@@ -340,11 +342,12 @@ export function regraDescontoAbaixoContratado(
   for (const f of faturas) {
     if (f.competencia !== recente) continue;
     if (f.agentDiscountPct == null || f.totalSemDesconto == null) continue;
-    if (f.totalSemDesconto <= 0) continue;
     if (f.agentDiscountPct >= 99) continue; // encerramento
-    const efetivoPct = (f.economia / f.totalSemDesconto) * 100;
+    const baseEnergia = f.totalSemDesconto - f.totalDistribuidor;
+    if (baseEnergia <= 0) continue; // boleto zerado/sem energia compensada
+    const efetivoPct = (f.economia / baseEnergia) * 100;
     if (efetivoPct < f.agentDiscountPct - opts.tolDescontoPct) {
-      const esperadoBrl = (f.agentDiscountPct / 100) * f.totalSemDesconto;
+      const esperadoBrl = (f.agentDiscountPct / 100) * baseEnergia;
       out.push({
         regra: "desconto_abaixo_contratado",
         severidade: "alta",
@@ -356,6 +359,7 @@ export function regraDescontoAbaixoContratado(
           dgBillId: f.dgBillId,
           descontoEfetivoPct: round2(efetivoPct),
           descontoContratadoPct: round2(f.agentDiscountPct),
+          baseEnergia: round2(baseEnergia),
           economiaObtida: round2(f.economia),
           economiaEsperada: round2(esperadoBrl),
         },
@@ -366,45 +370,10 @@ export function regraDescontoAbaixoContratado(
   return out;
 }
 
-// FIN-2 — Cobrança não fecha (consistência aritmética do boleto):
-// total_value ≈ total_amount_without_discount − amount_saved + lightning + extra_charges.
-export function regraCobrancaInconsistente(
-  faturas: FaturaRow[],
-  opts: RegrasOpts,
-): Finding[] {
-  const recente = competenciasOrdenadas(faturas)[0] ?? null;
-  if (!recente) return [];
-  const out: Finding[] = [];
-  for (const f of faturas) {
-    if (f.competencia !== recente) continue;
-    if (f.totalSemDesconto == null) continue;
-    if (f.agentDiscountPct != null && f.agentDiscountPct >= 99) continue; // encerramento
-    const esperado =
-      f.totalSemDesconto - f.economia + f.lightning + f.extraCharges;
-    const dif = f.valorTotal - esperado;
-    if (Math.abs(dif) > opts.tolCobrancaBrl) {
-      out.push({
-        regra: "cobranca_inconsistente",
-        severidade: "alta",
-        entidade: "fatura",
-        entidadeRef: f.installationNumber ?? `bill ${f.dgBillId}`,
-        competencia: recente,
-        titulo: `Cobrança não fecha: total R$ ${round2(f.valorTotal)} vs esperado R$ ${round2(esperado)} (dif R$ ${round2(dif)})`,
-        detalhe: {
-          dgBillId: f.dgBillId,
-          totalCobrado: round2(f.valorTotal),
-          totalEsperado: round2(esperado),
-          totalSemDesconto: round2(f.totalSemDesconto),
-          economia: round2(f.economia),
-          lightning: round2(f.lightning),
-          extraCharges: round2(f.extraCharges),
-        },
-        impactoFinanceiro: round2(Math.abs(dif)),
-      });
-    }
-  }
-  return out;
-}
+// FIN-2 — APOSENTADA. Recalcular o "esperado" do boleto se mostrou inviável:
+// o DG usa estruturas de cobrança heterogêneas (boleto simples vs. alta
+// compensação com fio B), sem fórmula única — qualquer recomputação gera
+// falso-positivo. A consistência da cobrança fica a cargo do próprio DG.
 
 // #10 — Fatura sem UC correspondente no cadastro.
 export function regraFaturaSemUc(
@@ -606,13 +575,10 @@ export function rodarRegras(
     ...regraFaturaDuplicada(faturas),
     ...regraCompetenciaIncorreta(faturas),
     ...regraCreditoParado(rateios, opts),
-    // PENDENTE DE CALIBRAÇÃO (desativadas do relatório, código mantido):
-    // a 1ª execução real mostrou falso-positivo sistemático nas UCs de alto
-    // consumo (efetivo ~24,3% vs 30%; cobrança esperada ≫ cobrada) — a fórmula
-    // ignora a energia compensada por crédito. Reativar após `db:reconciliar-fatura`
-    // identificar o termo que falta:
-    //   ...regraDescontoAbaixoContratado(faturas, opts),
-    //   ...regraCobrancaInconsistente(faturas, opts),
+    // Desconto com a base de energia CORRIGIDA (total_sem_desconto − distribuidor),
+    // após a reconciliação confirmar que o desconto incide só sobre a energia.
+    ...regraDescontoAbaixoContratado(faturas, opts),
+    // regraCobrancaInconsistente APOSENTADA (boleto do DG é heterogêneo — ver FIN-2).
   ];
   // Regras DESATIVADAS após inspeção dos dados reais (2026-06) — a semântica do
   // Digital Grid não sustenta o alerta; funções mantidas para teste/uso futuro:
