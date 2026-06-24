@@ -606,8 +606,13 @@ export function rodarRegras(
     ...regraFaturaDuplicada(faturas),
     ...regraCompetenciaIncorreta(faturas),
     ...regraCreditoParado(rateios, opts),
-    ...regraDescontoAbaixoContratado(faturas, opts),
-    ...regraCobrancaInconsistente(faturas, opts),
+    // PENDENTE DE CALIBRAÇÃO (desativadas do relatório, código mantido):
+    // a 1ª execução real mostrou falso-positivo sistemático nas UCs de alto
+    // consumo (efetivo ~24,3% vs 30%; cobrança esperada ≫ cobrada) — a fórmula
+    // ignora a energia compensada por crédito. Reativar após `db:reconciliar-fatura`
+    // identificar o termo que falta:
+    //   ...regraDescontoAbaixoContratado(faturas, opts),
+    //   ...regraCobrancaInconsistente(faturas, opts),
   ];
   // Regras DESATIVADAS após inspeção dos dados reais (2026-06) — a semântica do
   // Digital Grid não sustenta o alerta; funções mantidas para teste/uso futuro:
