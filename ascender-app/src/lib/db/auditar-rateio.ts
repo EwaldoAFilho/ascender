@@ -54,6 +54,11 @@ function imprimirLegivel(rel: Awaited<ReturnType<typeof gerarRelatorioAuditoria>
     arr.push(f);
     porRegra.set(f.regra, arr);
   }
+  // Ordena dentro de cada grupo por severidade — o cabeçalho reflete a pior.
+  for (const lista of porRegra.values())
+    lista.sort(
+      (a, b) => ORDEM_SEVERIDADE[a.severidade] - ORDEM_SEVERIDADE[b.severidade],
+    );
   const regrasOrdenadas = [...porRegra.entries()].sort(
     (a, b) =>
       ORDEM_SEVERIDADE[a[1][0].severidade] - ORDEM_SEVERIDADE[b[1][0].severidade],

@@ -34,6 +34,15 @@ export type FaturaRow = {
   consumoKwh: number;
   vencimento: string | null;
   paymentStatus: string;
+  // ===== Campos extraídos do raw (DG) p/ validações financeiras =====
+  /** Desconto contratado declarado na fatura (%). */
+  agentDiscountPct: number | null;
+  /** Valor da fatura sem o desconto (base p/ desconto efetivo e cobrança). */
+  totalSemDesconto: number | null;
+  /** Iluminação pública (entra no total cobrado). */
+  lightning: number;
+  /** Encargos extras (entram no total cobrado). */
+  extraCharges: number;
 };
 
 export type UcRow = {
@@ -50,9 +59,18 @@ export type DadosAuditoria = {
   ucs: UcRow[];
 };
 
+// Lê um número de um campo do raw (DG manda valores como "356.04000").
+function rawNum(raw: unknown, key: string): number | null {
+  const o = raw as Record<string, unknown> | null;
+  const v = o?.[key];
+  if (v == null) return null;
+  const n = parseFloat(String(v));
+  return Number.isFinite(n) ? n : null;
+}
+
 export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
   const db = getDb();
-  const [rateios, faturas, ucs] = await Promise.all([
+  const [rateios, faturasRaw, ucs] = await Promise.all([
     db
       .select({
         competencia: rateiosDg.competencia,
@@ -78,6 +96,7 @@ export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
         consumoKwh: faturasDg.consumoKwh,
         vencimento: faturasDg.vencimento,
         paymentStatus: faturasDg.paymentStatus,
+        raw: faturasDg.raw,
       })
       .from(faturasDg),
     db
@@ -91,6 +110,22 @@ export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
       .from(unidadesConsumidoras)
       .leftJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId)),
   ]);
+
+  const faturas: FaturaRow[] = faturasRaw.map((f) => ({
+    dgBillId: f.dgBillId,
+    competencia: f.competencia,
+    installationNumber: f.installationNumber,
+    valorTotal: f.valorTotal,
+    valorPago: f.valorPago,
+    economia: f.economia,
+    consumoKwh: f.consumoKwh,
+    vencimento: f.vencimento,
+    paymentStatus: f.paymentStatus,
+    agentDiscountPct: rawNum(f.raw, "agent_discount"),
+    totalSemDesconto: rawNum(f.raw, "total_amount_without_discount"),
+    lightning: rawNum(f.raw, "lightning") ?? 0,
+    extraCharges: rawNum(f.raw, "extra_charges") ?? 0,
+  }));
 
   return { rateios, faturas, ucs };
 }

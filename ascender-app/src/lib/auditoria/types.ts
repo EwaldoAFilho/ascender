@@ -73,6 +73,10 @@ export type RegrasOpts = {
   minCompetenciasTendencia: number;
   /** Meses até o crédito SCEE expirar (ANEEL). Excedente além disso = risco real. */
   mesesExpiracaoScee: number;
+  /** Tolerância (pontos percentuais) p/ desconto efetivo < contratado. */
+  tolDescontoPct: number;
+  /** Tolerância (R$) p/ a cobrança fechar (total vs esperado). */
+  tolCobrancaBrl: number;
 };
 
 export const REGRAS_OPTS_PADRAO: RegrasOpts = {
@@ -82,4 +86,6 @@ export const REGRAS_OPTS_PADRAO: RegrasOpts = {
   fatorCreditoExcessivo: 3,
   minCompetenciasTendencia: 3,
   mesesExpiracaoScee: 60,
+  tolDescontoPct: 2,
+  tolCobrancaBrl: 1,
 };

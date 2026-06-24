@@ -231,41 +231,175 @@ export function regraRateioDuplicado(rateios: RateioRow[]): Finding[] {
   return out;
 }
 
+// Avalia um saldo de crédito vs consumo mensal. Impacto = só o EXCEDENTE além do
+// que dá para usar em `mesesExpiracaoScee` meses (esse excedente expira sem uso).
+function avaliarCredito(
+  ref: string,
+  credito: number,
+  consumoMensal: number,
+  competencia: string,
+  nome: string | null,
+  ucs: string[],
+  ehCancel: boolean,
+  opts: RegrasOpts,
+): Finding | null {
+  if (consumoMensal <= 0) return null;
+  if (credito <= opts.fatorCreditoExcessivo * consumoMensal) return null;
+  const excedente = Math.max(0, credito - opts.mesesExpiracaoScee * consumoMensal);
+  const meses = Math.round(credito / consumoMensal);
+  return {
+    regra: "consumo_credito_incompativel",
+    // UC em encerramento (-CANCEL) é informativo; senão alta se há excedente que expira.
+    severidade: ehCancel ? "info" : excedente > 0 ? "alta" : "media",
+    entidade: "uc",
+    entidadeRef: ucs.length > 1 ? `${ref} (${ucs.length} UCs)` : ucs[0],
+    competencia,
+    titulo: `Crédito ${round2(credito)} kWh ≫ consumo ${round2(consumoMensal)} kWh/mês (${meses} meses de saldo)${ehCancel ? " — UC em encerramento" : ""}`,
+    detalhe: {
+      creditosAcumulados: round2(credito),
+      consumoMensalKwh: round2(consumoMensal),
+      mesesDeSaldo: meses,
+      excedenteExpiraKwh: round2(excedente),
+      cliente: nome,
+      ucs,
+    },
+    impactoFinanceiro: ehCancel ? 0 : round2(excedente * opts.tarifaRef),
+  };
+}
+
 // #7 — Crédito acumulado muito acima do consumo (risco de expiração SCEE).
-// Impacto = só o EXCEDENTE além do que dá para usar em `mesesExpiracaoScee`
-// meses no ritmo de consumo atual (esse excedente expira sem ser usado).
+// Dedup por TITULAR: quando o mesmo dono tem 2+ UCs com crédito em LOCKSTEP
+// (<5% de diferença), é o saldo do titular replicado por UC — conta UMA vez.
 export function regraConsumoCreditoIncompativel(
   rateios: RateioRow[],
   opts: RegrasOpts,
 ): Finding[] {
   const recente = competenciasOrdenadas(rateios)[0] ?? null;
   if (!recente) return [];
+  const rows = rateios.filter(
+    (r) => r.competencia === recente && r.creditosAcumulados > 0,
+  );
+  const porDoc = new Map<string, RateioRow[]>();
+  for (const r of rows) {
+    const doc = soDigitos(r.ownerDocument) || r.installation;
+    const arr = porDoc.get(doc) ?? [];
+    arr.push(r);
+    porDoc.set(doc, arr);
+  }
   const out: Finding[] = [];
-  for (const r of rateios) {
-    if (r.competencia !== recente) continue;
-    if (r.creditosAcumulados <= 0) continue;
-    if (
-      r.consumoKwh > 0 &&
-      r.creditosAcumulados > opts.fatorCreditoExcessivo * r.consumoKwh
-    ) {
-      const usavelAteExpirar = opts.mesesExpiracaoScee * r.consumoKwh;
-      const excedente = Math.max(0, r.creditosAcumulados - usavelAteExpirar);
+  for (const [doc, linhas] of porDoc) {
+    const creditos = linhas.map((l) => l.creditosAcumulados);
+    const max = Math.max(...creditos);
+    const min = Math.min(...creditos);
+    const lockstep = linhas.length >= 2 && max > 0 && (max - min) / max < 0.05;
+    if (lockstep) {
+      // Crédito do titular (replicado): conta o saldo 1x e soma o consumo das UCs.
+      const consumoTitular = linhas.reduce((s, l) => s + l.consumoKwh, 0);
+      const ehCancel = linhas.every((l) => /cancel/i.test(l.installation));
+      const f = avaliarCredito(
+        doc,
+        max,
+        consumoTitular,
+        recente,
+        linhas[0].ownerName,
+        linhas.map((l) => l.installation),
+        ehCancel,
+        opts,
+      );
+      if (f) out.push(f);
+    } else {
+      for (const r of linhas) {
+        const f = avaliarCredito(
+          r.installation,
+          r.creditosAcumulados,
+          r.consumoKwh,
+          recente,
+          r.ownerName,
+          [r.installation],
+          /cancel/i.test(r.installation),
+          opts,
+        );
+        if (f) out.push(f);
+      }
+    }
+  }
+  return out;
+}
+
+// FIN-1 — Desconto efetivo abaixo do contratado (consistência interna do boleto).
+// efetivo = amount_saved / total_amount_without_discount; compara com agent_discount.
+// Só alerta quando o cliente recebeu MENOS desconto que o declarado na fatura.
+// Pula encerramento (agent_discount ≥ 99%), que tem lógica de cobrança própria.
+export function regraDescontoAbaixoContratado(
+  faturas: FaturaRow[],
+  opts: RegrasOpts,
+): Finding[] {
+  const recente = competenciasOrdenadas(faturas)[0] ?? null;
+  if (!recente) return [];
+  const out: Finding[] = [];
+  for (const f of faturas) {
+    if (f.competencia !== recente) continue;
+    if (f.agentDiscountPct == null || f.totalSemDesconto == null) continue;
+    if (f.totalSemDesconto <= 0) continue;
+    if (f.agentDiscountPct >= 99) continue; // encerramento
+    const efetivoPct = (f.economia / f.totalSemDesconto) * 100;
+    if (efetivoPct < f.agentDiscountPct - opts.tolDescontoPct) {
+      const esperadoBrl = (f.agentDiscountPct / 100) * f.totalSemDesconto;
       out.push({
-        regra: "consumo_credito_incompativel",
-        severidade: excedente > 0 ? "alta" : "media",
-        entidade: "uc",
-        entidadeRef: r.installation,
+        regra: "desconto_abaixo_contratado",
+        severidade: "alta",
+        entidade: "fatura",
+        entidadeRef: f.installationNumber ?? `bill ${f.dgBillId}`,
         competencia: recente,
-        titulo: `Crédito ${round2(r.creditosAcumulados)} kWh ≫ consumo ${round2(r.consumoKwh)} kWh/mês (${Math.round(r.creditosAcumulados / r.consumoKwh)} meses de saldo)`,
+        titulo: `Desconto efetivo ${round2(efetivoPct)}% abaixo do contratado ${round2(f.agentDiscountPct)}%`,
         detalhe: {
-          creditosAcumulados: round2(r.creditosAcumulados),
-          consumoKwh: round2(r.consumoKwh),
-          mesesDeSaldo: Math.round(r.creditosAcumulados / r.consumoKwh),
-          excedenteExpiraKwh: round2(excedente),
-          cliente: r.ownerName,
+          dgBillId: f.dgBillId,
+          descontoEfetivoPct: round2(efetivoPct),
+          descontoContratadoPct: round2(f.agentDiscountPct),
+          economiaObtida: round2(f.economia),
+          economiaEsperada: round2(esperadoBrl),
         },
-        // Só o excedente que NÃO será consumido em 60 meses é perda real.
-        impactoFinanceiro: round2(excedente * opts.tarifaRef),
+        impactoFinanceiro: round2(Math.max(0, esperadoBrl - f.economia)),
+      });
+    }
+  }
+  return out;
+}
+
+// FIN-2 — Cobrança não fecha (consistência aritmética do boleto):
+// total_value ≈ total_amount_without_discount − amount_saved + lightning + extra_charges.
+export function regraCobrancaInconsistente(
+  faturas: FaturaRow[],
+  opts: RegrasOpts,
+): Finding[] {
+  const recente = competenciasOrdenadas(faturas)[0] ?? null;
+  if (!recente) return [];
+  const out: Finding[] = [];
+  for (const f of faturas) {
+    if (f.competencia !== recente) continue;
+    if (f.totalSemDesconto == null) continue;
+    if (f.agentDiscountPct != null && f.agentDiscountPct >= 99) continue; // encerramento
+    const esperado =
+      f.totalSemDesconto - f.economia + f.lightning + f.extraCharges;
+    const dif = f.valorTotal - esperado;
+    if (Math.abs(dif) > opts.tolCobrancaBrl) {
+      out.push({
+        regra: "cobranca_inconsistente",
+        severidade: "alta",
+        entidade: "fatura",
+        entidadeRef: f.installationNumber ?? `bill ${f.dgBillId}`,
+        competencia: recente,
+        titulo: `Cobrança não fecha: total R$ ${round2(f.valorTotal)} vs esperado R$ ${round2(esperado)} (dif R$ ${round2(dif)})`,
+        detalhe: {
+          dgBillId: f.dgBillId,
+          totalCobrado: round2(f.valorTotal),
+          totalEsperado: round2(esperado),
+          totalSemDesconto: round2(f.totalSemDesconto),
+          economia: round2(f.economia),
+          lightning: round2(f.lightning),
+          extraCharges: round2(f.extraCharges),
+        },
+        impactoFinanceiro: round2(Math.abs(dif)),
       });
     }
   }
@@ -472,6 +606,8 @@ export function rodarRegras(
     ...regraFaturaDuplicada(faturas),
     ...regraCompetenciaIncorreta(faturas),
     ...regraCreditoParado(rateios, opts),
+    ...regraDescontoAbaixoContratado(faturas, opts),
+    ...regraCobrancaInconsistente(faturas, opts),
   ];
   // Regras DESATIVADAS após inspeção dos dados reais (2026-06) — a semântica do
   // Digital Grid não sustenta o alerta; funções mantidas para teste/uso futuro:

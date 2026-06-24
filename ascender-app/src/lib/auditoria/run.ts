@@ -30,6 +30,14 @@ export async function gerarRelatorioAuditoria(): Promise<AuditReport> {
       "AUDITORIA_MESES_EXPIRACAO",
       REGRAS_OPTS_PADRAO.mesesExpiracaoScee,
     ),
+    tolDescontoPct: numEnv(
+      "AUDITORIA_TOL_DESCONTO_PCT",
+      REGRAS_OPTS_PADRAO.tolDescontoPct,
+    ),
+    tolCobrancaBrl: numEnv(
+      "AUDITORIA_TOL_COBRANCA_BRL",
+      REGRAS_OPTS_PADRAO.tolCobrancaBrl,
+    ),
     // A escala do `percentual` é inferida dos dados (a confirmar empiricamente).
     fatorPercentualPara100: diagnostico.percentual.fatorPara100,
   };
