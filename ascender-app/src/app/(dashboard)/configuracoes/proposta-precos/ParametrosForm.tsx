@@ -35,6 +35,18 @@ export function ParametrosForm({ inicial }: { inicial: ParametrosProposta }) {
     })),
   );
 
+  // Premissas (frações mostradas como % na tela).
+  const pm = inicial.premissas;
+  const [performanceRatio, setPr] = useState(s(pm.performanceRatio * 100));
+  const [margemSeguranca, setSeg] = useState(s(pm.margemSeguranca * 100));
+  const [degradacaoAnual, setDeg] = useState(s(pm.degradacaoAnual * 100));
+  const [reajusteTarifario, setRea] = useState(s(pm.reajusteTarifario * 100));
+  const [co2PorKwh, setCo2] = useState(s(pm.co2PorKwh));
+  const [creditoExcedenteBaseKwh, setCredito] = useState(s(pm.creditoExcedenteBaseKwh));
+  const [fioBAtivo, setFioBAtivo] = useState(pm.fioBAtivo);
+  const [tarifaFioB, setTarifaFioB] = useState(s(pm.tarifaFioB));
+  const [anoBaseFioB, setAnoBaseFioB] = useState(s(pm.anoBaseFioB));
+
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -72,6 +84,18 @@ export function ParametrosForm({ inicial }: { inicial: ParametrosProposta }) {
         precoString: Number(k.precoString) || 0,
         trifasicoObrigatorio: k.trifasicoObrigatorio,
       })),
+      premissas: {
+        performanceRatio: (Number(performanceRatio) || 0) / 100,
+        margemSeguranca: (Number(margemSeguranca) || 0) / 100,
+        degradacaoAnual: (Number(degradacaoAnual) || 0) / 100,
+        reajusteTarifario: (Number(reajusteTarifario) || 0) / 100,
+        co2PorKwh: Number(co2PorKwh) || 0,
+        creditoExcedenteBaseKwh: Number(creditoExcedenteBaseKwh) || 0,
+        fioBAtivo,
+        tarifaFioB: Number(tarifaFioB) || 0,
+        anoBaseFioB: Number(anoBaseFioB) || pm.anoBaseFioB,
+        cronogramaFioB: pm.cronogramaFioB,
+      },
     });
     setBusy(false);
     setMsg(
@@ -119,6 +143,36 @@ export function ParametrosForm({ inicial }: { inicial: ParametrosProposta }) {
           {campo("Solo — desconto no kit (R$/kWp)", soloDescontoKitKwp, setSoloDesc)}
           {campo("Solo — estrutura (R$/módulo)", estruturaSoloPorModulo, setEstruturaSolo)}
         </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Premissas &amp; Fio B</h2>
+            <p>Engenharia e financeiro. O Fio B (Lei 14.300) reduz o crédito do excedente ano a ano no Telhado Rentável.</p>
+          </div>
+        </div>
+        <div className="form-grid">
+          {campo("Performance Ratio (%)", performanceRatio, setPr)}
+          {campo("Margem de segurança (%)", margemSeguranca, setSeg)}
+          {campo("Degradação anual (%)", degradacaoAnual, setDeg)}
+          {campo("Reajuste tarifário anual (%)", reajusteTarifario, setRea)}
+          {campo("CO₂ por kWh (kg)", co2PorKwh, setCo2)}
+          {campo("Crédito-base do excedente (R$/kWh)", creditoExcedenteBaseKwh, setCredito)}
+          <label className="form-field">
+            <span>Fio B (Lei 14.300)</span>
+            <select value={fioBAtivo ? "sim" : "nao"} onChange={(e) => setFioBAtivo(e.target.value === "sim")}>
+              <option value="sim">Aplicar cronograma</option>
+              <option value="nao">Não aplicar</option>
+            </select>
+          </label>
+          {campo("Tarifa Fio B — TUSD (R$/kWh)", tarifaFioB, setTarifaFioB)}
+          {campo("Ano-base do cronograma", anoBaseFioB, setAnoBaseFioB, "1")}
+        </div>
+        <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+          Cronograma oficial: {pm.cronogramaFioB.map((v) => `${Math.round(v * 100)}%`).join(" · ")} (de {pm.anoBaseFioB} em diante; depois 100%).
+          Com <strong>tarifa Fio B = 0</strong>, o crédito do excedente não é reduzido (comportamento atual). O excedente é <strong>crédito em kWh</strong>, não caixa.
+        </p>
       </section>
 
       <section className="panel">

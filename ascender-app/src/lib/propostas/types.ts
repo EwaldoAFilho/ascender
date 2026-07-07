@@ -12,6 +12,21 @@ export type FaixaKit = {
   trifasicoObrigatorio: boolean;
 };
 
+// Premissas de engenharia/financeiras (client-safe — não são custo).
+export type Premissas = {
+  performanceRatio: number; // ex.: 0.79
+  margemSeguranca: number; // ex.: 0.95 (−5%)
+  degradacaoAnual: number; // ex.: 0.007
+  reajusteTarifario: number; // ex.: 0.08
+  co2PorKwh: number; // kg CO2/kWh, ex.: 0.29
+  creditoExcedenteBaseKwh: number; // R$/kWh injetado ANTES do Fio B, ex.: 0.40
+  // Fio B (Lei 14.300/2022).
+  fioBAtivo: boolean;
+  tarifaFioB: number; // R$/kWh (TUSD Fio B); default 0 até a equipe informar
+  anoBaseFioB: number; // 1º ano do cronograma (ex.: 2023)
+  cronogramaFioB: number[]; // fração do Fio B por ano a partir de anoBaseFioB; após o fim, usa o último
+};
+
 export type ParametrosProposta = {
   kit: FaixaKit[];
   ajusteString: number;
@@ -25,6 +40,7 @@ export type ParametrosProposta = {
   soloDescontoKitKwp: number;
   estruturaSoloPorModulo: number;
   dataTabela: string;
+  premissas: Premissas;
 };
 
 export type Inversor = "string" | "micro";

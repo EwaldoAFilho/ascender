@@ -1,7 +1,7 @@
 // Dimensionamento de engenharia (client-safe — sem custo).
 // Portado do gerador estático.
 
-import { MODS, PR, SEG } from "./constantes";
+import { MODS } from "./constantes";
 import type {
   InversorForcado,
   InversorResultado,
@@ -11,8 +11,8 @@ import type {
 } from "./types";
 
 // Geração bruta por kWp por mês (kWh) — sem a margem de segurança.
-export function geracaoPorKwpMes(hsp: number): number {
-  return hsp * PR * 30;
+export function geracaoPorKwpMes(hsp: number, performanceRatio: number): number {
+  return hsp * performanceRatio * 30;
 }
 
 // Nº de módulos e potência necessários para atender o consumo.
@@ -21,8 +21,10 @@ export function dimensionarPorConsumo(
   compensacaoPct: number,
   hsp: number,
   moduloWp: ModuloWp,
+  performanceRatio: number,
+  margemSeguranca: number,
 ): { modulos: number; potenciaKwp: number; geracaoMensalKwh: number } {
-  const gpkSeg = geracaoPorKwpMes(hsp) * SEG;
+  const gpkSeg = geracaoPorKwpMes(hsp, performanceRatio) * margemSeguranca;
   if (consumoKwh <= 0 || gpkSeg <= 0) {
     return { modulos: 0, potenciaKwp: 0, geracaoMensalKwh: 0 };
   }
