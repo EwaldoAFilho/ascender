@@ -78,7 +78,7 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
 
   try {
     const parametros = await carregarParametros();
-    const resultado = gerarResultado(geradorInput, parametros);
+    const resultado = gerarResultado(geradorInput, parametros, new Date().getFullYear());
     const nec = resultado.necessario;
 
     const [row] = await getDb()
@@ -128,6 +128,19 @@ const faixaKitSchema = z.object({
   trifasicoObrigatorio: z.boolean(),
 });
 
+const premissasSchema = z.object({
+  performanceRatio: z.coerce.number().positive(),
+  margemSeguranca: z.coerce.number().positive(),
+  degradacaoAnual: z.coerce.number().min(0).max(1),
+  reajusteTarifario: z.coerce.number().min(0).max(1),
+  co2PorKwh: z.coerce.number().nonnegative(),
+  creditoExcedenteBaseKwh: z.coerce.number().nonnegative(),
+  fioBAtivo: z.boolean(),
+  tarifaFioB: z.coerce.number().nonnegative(),
+  anoBaseFioB: z.coerce.number().int(),
+  cronogramaFioB: z.array(z.coerce.number().min(0).max(1)).min(1),
+});
+
 const parametrosSchema = z.object({
   kit: z.array(faixaKitSchema).min(1, "Informe ao menos uma faixa de kit."),
   ajusteString: z.coerce.number(),
@@ -144,6 +157,7 @@ const parametrosSchema = z.object({
     .string()
     .optional()
     .transform((v) => v?.trim() ?? ""),
+  premissas: premissasSchema,
 });
 
 export async function salvarParametrosProposta(input: unknown): Promise<ActionResult> {

@@ -6,6 +6,16 @@
 
 import { getDb } from "@/lib/db";
 import { parametrosProposta } from "@/lib/db/schema";
+import {
+  ANO_BASE_FIOB,
+  CO2F,
+  CRONOGRAMA_FIOB_PADRAO,
+  DEG,
+  PR,
+  REA,
+  SEG,
+  TEXC,
+} from "./constantes";
 import type { ParametrosProposta } from "./types";
 
 // Reexporta os tipos (definidos em types.ts, client-safe) para não quebrar os
@@ -37,6 +47,18 @@ export const PARAMETROS_PADRAO: ParametrosProposta = {
   soloDescontoKitKwp: 150,
   estruturaSoloPorModulo: 150,
   dataTabela: "",
+  premissas: {
+    performanceRatio: PR,
+    margemSeguranca: SEG,
+    degradacaoAnual: DEG,
+    reajusteTarifario: REA,
+    co2PorKwh: CO2F,
+    creditoExcedenteBaseKwh: TEXC,
+    fioBAtivo: true,
+    tarifaFioB: 0, // default 0: sem efeito até a equipe informar a TUSD Fio B real
+    anoBaseFioB: ANO_BASE_FIOB,
+    cronogramaFioB: CRONOGRAMA_FIOB_PADRAO,
+  },
 };
 
 // Lê os parâmetros salvos, mesclados sobre os defaults. Nunca lança: em qualquer
@@ -50,6 +72,16 @@ export async function carregarParametros(): Promise<ParametrosProposta> {
       ...PARAMETROS_PADRAO,
       ...salvo,
       kit: Array.isArray(salvo.kit) && salvo.kit.length ? salvo.kit : PARAMETROS_PADRAO.kit,
+      // Merge profundo das premissas (linhas antigas podem não tê-las).
+      premissas: {
+        ...PARAMETROS_PADRAO.premissas,
+        ...salvo.premissas,
+        cronogramaFioB:
+          Array.isArray(salvo.premissas?.cronogramaFioB) &&
+          salvo.premissas.cronogramaFioB.length
+            ? salvo.premissas.cronogramaFioB
+            : PARAMETROS_PADRAO.premissas.cronogramaFioB,
+      },
     };
   } catch {
     return PARAMETROS_PADRAO;

@@ -1,8 +1,7 @@
 // Orquestrador do gerador (SENSÍVEL — usa precificação).
-// Puro: recebe entrada + parâmetros e devolve o resultado completo dos dois
-// cenários. Importado apenas por código de servidor.
+// Puro: recebe entrada + parâmetros (+ ano da proposta) e devolve o resultado
+// completo dos dois cenários. Importado apenas por código de servidor.
 
-import { SEG, TEXC } from "./constantes";
 import {
   calcularInversor,
   dimensionarPorConsumo,
@@ -11,12 +10,12 @@ import {
   totalTelhados,
 } from "./dimensionamento";
 import {
-  co2Evitado25,
-  calcularTir,
+  co2Evitado,
   geracaoMensalPorMes,
   payback,
-  projecao25Anos,
-  retornoAcumulado25,
+  paybackPorFluxo,
+  projecaoPorFluxo,
+  tirPorFluxo,
 } from "./financeiro";
 import { calcularCusto, trifasicoObrigatorio } from "./precificacao";
 import type { ParametrosProposta } from "./parametros";
@@ -27,7 +26,24 @@ import type {
   GeradorResultado,
   Inversor,
   InversorResultado,
+  Premissas,
 } from "./types";
+
+// Fração do Fio B (Lei 14.300) cobrada no ano-calendário informado.
+function fioBPercentual(anoCalendario: number, p: Premissas): number {
+  if (!p.fioBAtivo || !p.cronogramaFioB.length) return 0;
+  const idx = Math.min(
+    Math.max(anoCalendario - p.anoBaseFioB, 0),
+    p.cronogramaFioB.length - 1,
+  );
+  return p.cronogramaFioB[idx];
+}
+
+// Crédito unitário (R$/kWh, em valor do 1º ano) do excedente, líquido do Fio B,
+// no ano-calendário informado.
+function creditoUnitarioReal(anoCalendario: number, p: Premissas): number {
+  return Math.max(0, p.creditoExcedenteBaseKwh - p.tarifaFioB * fioBPercentual(anoCalendario, p));
+}
 
 function montarCenario(args: {
   cenario: Cenario;
@@ -37,41 +53,43 @@ function montarCenario(args: {
   inversor: InversorResultado;
   precoFinal: number;
   custo: CenarioResultado["custo"];
-  tarifa: number;
-  retornoMensal: number;
-  retornoAnualBase: number;
-  tirGeracaoAnual: number;
-  co2GeracaoAnual: number;
   moduloWp: GeradorInput["moduloWp"];
+  retornoMensal: number;
+  fluxoAno: (t: number) => number;
+  paybackSimples: boolean;
+  co2GeracaoAnual: number;
   excedenteKwh: number;
   creditoExcedente: number;
+  premissas: Premissas;
 }): CenarioResultado {
   const {
-    cenario, potenciaKwp, qtdModulos, geracaoMensalKwh, inversor, precoFinal, custo,
-    retornoMensal, retornoAnualBase, tarifa, tirGeracaoAnual, co2GeracaoAnual, moduloWp,
-    excedenteKwh, creditoExcedente,
+    cenario, potenciaKwp, qtdModulos, geracaoMensalKwh, inversor, precoFinal, custo, moduloWp,
+    retornoMensal, fluxoAno, paybackSimples, co2GeracaoAnual, excedenteKwh, creditoExcedente,
+    premissas,
   } = args;
 
-  const geracaoAnualKwh = geracaoMensalKwh * 12;
+  const { projecao, total } = projecaoPorFluxo(fluxoAno, precoFinal);
   return {
     cenario,
     potenciaKwp,
     qtdModulos,
     moduloWp,
     geracaoMensalKwh,
-    geracaoAnualKwh,
+    geracaoAnualKwh: geracaoMensalKwh * 12,
     inversor,
     precoFinal,
     precoPorKwp: potenciaKwp > 0 ? precoFinal / potenciaKwp : 0,
-    paybackAnos: payback(precoFinal, retornoMensal),
-    tirPercent: calcularTir(precoFinal, tirGeracaoAnual, tarifa),
-    economia25Anos: retornoAcumulado25(retornoAnualBase),
-    co2Toneladas: co2Evitado25(co2GeracaoAnual),
+    paybackAnos: paybackSimples
+      ? payback(precoFinal, retornoMensal)
+      : paybackPorFluxo(precoFinal, fluxoAno),
+    tirPercent: tirPorFluxo(precoFinal, fluxoAno),
+    economia25Anos: total,
+    co2Toneladas: co2Evitado(co2GeracaoAnual, premissas.degradacaoAnual, premissas.co2PorKwh),
     retornoMensal,
     excedenteKwh,
     creditoExcedente,
     geracaoMensalPorMes: geracaoMensalPorMes(geracaoMensalKwh),
-    projecao25Anos: projecao25Anos(retornoAnualBase, precoFinal),
+    projecao25Anos: projecao,
     custo,
   };
 }
@@ -79,10 +97,11 @@ function montarCenario(args: {
 export function gerarResultado(
   input: GeradorInput,
   parametros: ParametrosProposta,
+  anoProposta: number,
 ): GeradorResultado {
+  const prem = parametros.premissas;
   const solo = input.instalacao === "solo";
-  const gpk = geracaoPorKwpMes(input.hsp);
-  const gpkSeg = gpk * SEG;
+  const gpk = geracaoPorKwpMes(input.hsp, prem.performanceRatio);
 
   // Dimensionamento pelo consumo.
   const nec = dimensionarPorConsumo(
@@ -90,17 +109,20 @@ export function gerarResultado(
     input.compensacaoPct,
     input.hsp,
     input.moduloWp,
+    prem.performanceRatio,
+    prem.margemSeguranca,
   );
 
   // Telhado disponível.
-  const telhadosValidos = input.telhados.filter(
-    (t) => t.largura > 0 && t.comprimento > 0,
-  );
+  const telhadosValidos = input.telhados.filter((t) => t.largura > 0 && t.comprimento > 0);
   const tot = totalTelhados(input.telhados, input.moduloWp);
   const temTelhado = tot.modulos > 0 && tot.potenciaKwp > 0;
-  const geracaoTelhadoMes = tot.potenciaKwp * gpkSeg;
+  const geracaoTelhadoMes = tot.potenciaKwp * gpk * prem.margemSeguranca;
   const excedente = Math.max(0, geracaoTelhadoMes - input.consumoKwh);
-  const credito = excedente * TEXC;
+
+  // Fatores de crescimento/degradação por ano.
+  const cresc = (t: number) => Math.pow(1 + prem.reajusteTarifario, t - 1);
+  const degr = (t: number) => Math.pow(1 - prem.degradacaoAnual, t - 1);
 
   // Inversor (tipo resolvido uma vez; disjuntor por potência).
   const tipo: Inversor = resolverInversor(telhadosValidos.length, input.inversorForcado);
@@ -116,6 +138,7 @@ export function gerarResultado(
     parametros,
   });
   const economiaMensalNec = nec.geracaoMensalKwh * input.tarifa;
+  const fluxoNec = (t: number) => nec.geracaoMensalKwh * 12 * input.tarifa * cresc(t) * degr(t);
   const necessario = montarCenario({
     cenario: "necessario",
     potenciaKwp: nec.potenciaKwp,
@@ -124,14 +147,14 @@ export function gerarResultado(
     inversor: calcularInversor(nec.potenciaKwp, tipo),
     precoFinal: custoNec.custoTotal + custoNec.margemValor,
     custo: custoNec,
-    tarifa: input.tarifa,
-    retornoMensal: economiaMensalNec,
-    retornoAnualBase: nec.geracaoMensalKwh * 12 * input.tarifa,
-    tirGeracaoAnual: nec.geracaoMensalKwh * 12,
-    co2GeracaoAnual: nec.geracaoMensalKwh * 12,
     moduloWp: input.moduloWp,
+    retornoMensal: economiaMensalNec,
+    fluxoAno: fluxoNec,
+    paybackSimples: true,
+    co2GeracaoAnual: nec.geracaoMensalKwh * 12,
     excedenteKwh: 0,
     creditoExcedente: 0,
+    premissas: prem,
   });
 
   // ── Telhado Rentável ──
@@ -147,9 +170,21 @@ export function gerarResultado(
       margemPercent: parametros.margemPercentRentavel,
       parametros,
     });
-    // Receita = compensa o próprio consumo + crédito do excedente.
-    const receitaMensal = nec.geracaoMensalKwh * input.tarifa + credito;
-    const retornoAnualBase = nec.geracaoMensalKwh * 12 * input.tarifa + credito * 12;
+
+    // Crédito unitário do excedente no ano corrente (com Fio B do ano da proposta).
+    const creditoUnitAno1 = creditoUnitarioReal(anoProposta, prem);
+    const creditoMensal = excedente * creditoUnitAno1;
+    const receitaMensal = nec.geracaoMensalKwh * input.tarifa + creditoMensal;
+
+    // Fluxo anual: compensação do consumo + crédito do excedente (Fio B por ano).
+    const fluxoRent = (t: number) => {
+      const anoCal = anoProposta + (t - 1);
+      const creditoUnit = creditoUnitarioReal(anoCal, prem);
+      const compensacao = nec.geracaoMensalKwh * 12 * input.tarifa;
+      const credito = excedente * 12 * creditoUnit;
+      return (compensacao + credito) * cresc(t) * degr(t);
+    };
+
     rentavel = montarCenario({
       cenario: "rentavel",
       potenciaKwp: tot.potenciaKwp,
@@ -158,14 +193,14 @@ export function gerarResultado(
       inversor: calcularInversor(tot.potenciaKwp, tipo),
       precoFinal: custoRent.custoTotal + custoRent.margemValor,
       custo: custoRent,
-      tarifa: input.tarifa,
-      retornoMensal: receitaMensal,
-      retornoAnualBase,
-      tirGeracaoAnual: input.tarifa > 0 ? retornoAnualBase / input.tarifa : 0,
-      co2GeracaoAnual: tot.potenciaKwp * gpk * 12,
       moduloWp: input.moduloWp,
+      retornoMensal: receitaMensal,
+      fluxoAno: fluxoRent,
+      paybackSimples: false,
+      co2GeracaoAnual: tot.potenciaKwp * gpk * 12,
       excedenteKwh: excedente,
-      creditoExcedente: credito,
+      creditoExcedente: creditoMensal,
+      premissas: prem,
     });
   }
 

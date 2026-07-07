@@ -12,6 +12,12 @@ export const REA = 0.08; // reajuste tarifário anual
 export const CO2F = 0.29; // kg CO2 / kWh
 export const TEXC = 0.4; // R$/kWh de crédito do excedente (Telhado Rentável)
 
+// Cronograma oficial do Fio B (Lei 14.300/2022): fração da TUSD Fio B cobrada
+// sobre a energia injetada, por ano-calendário a partir de 2023. A partir de
+// 2029 mantém-se em 100% (usa-se o último valor do array).
+export const ANO_BASE_FIOB = 2023;
+export const CRONOGRAMA_FIOB_PADRAO = [0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0];
+
 // Módulos: dimensões em metros (largura × comprimento) e potência.
 export const MODS: Record<ModuloWp, { wp: ModuloWp; l: number; c: number; label: string }> = {
   620: { wp: 620, l: 1.13, c: 2.38, label: "620Wp (1,13×2,38m)" },
