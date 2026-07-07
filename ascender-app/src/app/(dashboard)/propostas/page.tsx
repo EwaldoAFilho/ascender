@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Calculator } from "lucide-react";
 import { CrudSection } from "@/components/cadastros/CrudSection";
 import { DesktopOnly } from "@/components/DesktopOnly";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
@@ -65,9 +67,21 @@ export default async function PropostasPage() {
     },
   ];
 
+  const kwp = (v: number | null) =>
+    v != null ? `${numberFormatter.format(v)} kWp` : "—";
+  const preco = (v: number | null) => (v != null ? moneyFormatter.format(v) : "—");
+  const payback = (v: number | null) =>
+    v != null && Number.isFinite(v) ? `${v.toFixed(1).replace(".", ",")} anos` : "—";
+
   return (
     <DesktopOnly area="As propostas">
       <SummaryStrip items={kpis} />
+
+      <div style={{ display: "flex", justifyContent: "flex-end", margin: "0 0 14px" }}>
+        <Link href="/propostas/gerador" className="btn-primary">
+          <Calculator size={16} /> Gerar proposta (dimensionamento)
+        </Link>
+      </div>
 
       <CrudSection
         singular="proposta"
@@ -127,6 +141,9 @@ export default async function PropostasPage() {
           "Cliente",
           "UC",
           "Consumo",
+          "Potência",
+          "Preço",
+          "Payback",
           "Tarifa distrib.",
           "Tarifa ASCENDER",
           "Economia/mês",
@@ -138,6 +155,9 @@ export default async function PropostasPage() {
             p.clienteNome ?? "-",
             p.unidadeCodigo ?? "-",
             `${numberFormatter.format(p.consumoEstimadoKwh)} kWh`,
+            kwp(p.potenciaKwp),
+            preco(p.precoFinal),
+            payback(p.paybackAnos),
             tarifa(p.tarifaDistribuidora),
             tarifa(p.tarifaAscender),
             moneyFormatter.format(economiaMes(p)),
@@ -149,6 +169,9 @@ export default async function PropostasPage() {
             p.clienteNome ?? "-",
             p.unidadeCodigo ?? "-",
             p.consumoEstimadoKwh,
+            p.potenciaKwp ?? 0,
+            p.precoFinal ?? 0,
+            p.paybackAnos ?? 0,
             p.tarifaDistribuidora,
             p.tarifaAscender,
             economiaMes(p),

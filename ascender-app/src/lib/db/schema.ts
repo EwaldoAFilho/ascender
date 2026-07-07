@@ -373,9 +373,38 @@ export const propostas = pgTable("propostas", {
   tarifaAscender: doublePrecision("tarifa_ascender").notNull().default(0),
   status: text("status").notNull().default("simulacao"), // simulacao|em-analise|aprovada|recusada
   observacao: text("observacao"),
+  // ── Resultado do gerador (nullable — propostas antigas ficam sem esses dados) ──
+  cenario: text("cenario"), // necessario|rentavel
+  potenciaKwp: doublePrecision("potencia_kwp"),
+  moduloWp: integer("modulo_wp"),
+  qtdModulos: integer("qtd_modulos"),
+  inversorTipo: text("inversor_tipo"), // string|micro
+  geracaoMensalKwh: doublePrecision("geracao_mensal_kwh"),
+  precoFinal: doublePrecision("preco_final"),
+  precoPorKwp: doublePrecision("preco_por_kwp"),
+  paybackAnos: doublePrecision("payback_anos"),
+  tirPercent: doublePrecision("tir_percent"),
+  economia25Anos: doublePrecision("economia_25_anos"),
+  co2Toneladas: doublePrecision("co2_toneladas"),
+  // Custo/margem — SENSÍVEL: nunca expor ao cliente (só uso interno).
+  custoTotal: doublePrecision("custo_total"),
+  margemValor: doublePrecision("margem_valor"),
+  margemPercent: doublePrecision("margem_percent"),
+  // Snapshot completo (input + saída) do gerador, para reimpressão.
+  dadosGerador: jsonb("dados_gerador"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Parâmetros de custo/margem do gerador de propostas (linha única; um JSON com
+// tabela de kit, custos, margem e premissas). SENSÍVEL — só uso interno.
+export const parametrosProposta = pgTable("parametros_proposta", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dados: jsonb("dados").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -551,3 +580,4 @@ export type RateioDg = typeof rateiosDg.$inferSelect;
 export type ContaEnergia = typeof contasEnergia.$inferSelect;
 export type MedicaoGeracao = typeof medicoesGeracao.$inferSelect;
 export type Proposta = typeof propostas.$inferSelect;
+export type ParametrosPropostaRow = typeof parametrosProposta.$inferSelect;
