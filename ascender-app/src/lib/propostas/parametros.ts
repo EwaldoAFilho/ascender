@@ -6,28 +6,11 @@
 
 import { getDb } from "@/lib/db";
 import { parametrosProposta } from "@/lib/db/schema";
+import type { ParametrosProposta } from "./types";
 
-export type FaixaKit = {
-  kwpMax: number;
-  precoMicro: number; // R$/kWp
-  precoString: number; // R$/kWp
-  trifasicoObrigatorio: boolean;
-};
-
-export type ParametrosProposta = {
-  kit: FaixaKit[];
-  ajusteString: number; // +/− R$/kWp sobre a base string
-  ajusteMicro: number; // +/− R$/kWp sobre a base micro
-  maoDeObraKwp: number; // R$/kWp
-  materialAcKwp: number; // R$/kWp
-  materialAcMin: number; // R$
-  impostoPercent: number; // % sobre serviços
-  margemPercent: number; // % (Sistema Necessário)
-  margemPercentRentavel: number; // % (Telhado Rentável)
-  soloDescontoKitKwp: number; // desconto no kit quando solo (R$/kWp)
-  estruturaSoloPorModulo: number; // custo de estrutura de solo (R$/módulo)
-  dataTabela: string; // rótulo livre da vigência da tabela
-};
+// Reexporta os tipos (definidos em types.ts, client-safe) para não quebrar os
+// imports existentes de "./parametros".
+export type { FaixaKit, ParametrosProposta } from "./types";
 
 // Defaults = valores embutidos no gerador estático original.
 export const PARAMETROS_PADRAO: ParametrosProposta = {

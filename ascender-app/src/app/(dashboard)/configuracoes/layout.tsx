@@ -1,10 +1,11 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { PlugZap, ShieldCheck, Users, type LucideIcon } from "lucide-react";
+import { Coins, PlugZap, ShieldCheck, Users, type LucideIcon } from "lucide-react";
 
 const tabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/configuracoes/integracoes", label: "Integrações", icon: PlugZap },
+  { href: "/configuracoes/proposta-precos", label: "Preços & Margem", icon: Coins },
   { href: "/configuracoes/usuarios", label: "Usuários", icon: Users },
   { href: "/configuracoes/senha", label: "Segurança", icon: ShieldCheck },
 ];

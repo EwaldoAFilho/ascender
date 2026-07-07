@@ -2,6 +2,31 @@
 // A matemática foi portada do gerador estático (Moreira Camargo Eng.) para
 // rodar no servidor — assim custo e margem nunca chegam ao navegador do cliente.
 
+// Parâmetros de custo/margem (definição client-safe — apenas tipos, sem código
+// de servidor; os valores/defaults e o carregamento do banco ficam em
+// `parametros.ts`, que é server-only).
+export type FaixaKit = {
+  kwpMax: number;
+  precoMicro: number; // R$/kWp
+  precoString: number; // R$/kWp
+  trifasicoObrigatorio: boolean;
+};
+
+export type ParametrosProposta = {
+  kit: FaixaKit[];
+  ajusteString: number;
+  ajusteMicro: number;
+  maoDeObraKwp: number;
+  materialAcKwp: number;
+  materialAcMin: number;
+  impostoPercent: number;
+  margemPercent: number;
+  margemPercentRentavel: number;
+  soloDescontoKitKwp: number;
+  estruturaSoloPorModulo: number;
+  dataTabela: string;
+};
+
 export type Inversor = "string" | "micro";
 export type InversorForcado = "auto" | Inversor;
 export type Instalacao = "telhado" | "solo";
