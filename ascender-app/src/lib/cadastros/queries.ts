@@ -146,6 +146,9 @@ export function listPropostas() {
       tarifaAscender: propostas.tarifaAscender,
       status: propostas.status,
       observacao: propostas.observacao,
+      potenciaKwp: propostas.potenciaKwp,
+      precoFinal: propostas.precoFinal,
+      paybackAnos: propostas.paybackAnos,
     })
     .from(propostas)
     .leftJoin(clientes, eq(propostas.clienteId, clientes.id))
