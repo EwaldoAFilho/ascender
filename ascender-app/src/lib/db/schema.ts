@@ -102,11 +102,22 @@ export const tenantMemberships = pgTable(
   (t) => [unique("tenant_memberships_tenant_user").on(t.tenantId, t.userId)],
 );
 
+// Coluna `tenant_id` das tabelas de negócio. NOT NULL com DEFAULT = tenant 0:
+// o Postgres backfilla as linhas atuais e os inserts do app (ainda sem escopo)
+// caem no tenant 0 — não-quebra. O DEFAULT será removido quando o escopo por
+// tenant (contexto/RLS) estiver ativo. onDelete cascade habilita offboarding.
+const tenantCol = () =>
+  uuid("tenant_id")
+    .notNull()
+    .default(TENANT0_ID)
+    .references(() => tenants.id, { onDelete: "cascade" });
+
 // ===== Cadastros-mestre (alimentados manualmente; base do modelo relacional) =====
 
 export const distribuidoras = pgTable("distribuidoras", {
   id: uuid("id").primaryKey().defaultRandom(),
-  nome: text("nome").notNull().unique(),
+  tenantId: tenantCol(),
+  nome: text("nome").notNull(),
   uf: text("uf"),
   ativo: boolean("ativo").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -115,10 +126,11 @@ export const distribuidoras = pgTable("distribuidoras", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => [unique("distribuidoras_tenant_nome").on(t.tenantId, t.nome)]);
 
 export const clientes = pgTable("clientes", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   nome: text("nome").notNull(),
   documento: text("documento").notNull().default(""),
   tipo: text("tipo").notNull().default("cliente"), // cliente | prosumidor | investidor
@@ -142,6 +154,7 @@ export const clientes = pgTable("clientes", {
 
 export const unidadesConsumidoras = pgTable("unidades_consumidoras", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   clienteId: uuid("cliente_id")
     .notNull()
     .references(() => clientes.id, { onDelete: "restrict" }),
@@ -166,6 +179,7 @@ export const unidadesConsumidoras = pgTable("unidades_consumidoras", {
 
 export const usinas = pgTable("usinas", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   nome: text("nome").notNull(),
   codigoDigitalGrid: text("codigo_digital_grid"),
   // Chave de vínculo com a SolisCloud (stationId real).
@@ -206,6 +220,7 @@ export const usinas = pgTable("usinas", {
 
 export const contratos = pgTable("contratos", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   clienteId: uuid("cliente_id")
     .notNull()
     .references(() => clientes.id, { onDelete: "restrict" }),
@@ -235,6 +250,7 @@ export const contratos = pgTable("contratos", {
 // Faturas (lançamento manual enquanto não há integração com o Digital Grid).
 export const faturas = pgTable("faturas", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   clienteId: uuid("cliente_id").references(() => clientes.id, {
     onDelete: "set null",
   }),
@@ -265,6 +281,7 @@ export const medicoesGeracao = pgTable(
   "medicoes_geracao",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     usinaId: uuid("usina_id")
       .notNull()
       .references(() => usinas.id, { onDelete: "cascade" }),
@@ -277,7 +294,8 @@ export const medicoesGeracao = pgTable(
       .defaultNow(),
   },
   (table) => [
-    unique("medicoes_geracao_usina_competencia_fonte").on(
+    unique("medicoes_geracao_tenant_usina_competencia_fonte").on(
+      table.tenantId,
       table.usinaId,
       table.competencia,
       table.fonte,
@@ -288,7 +306,8 @@ export const medicoesGeracao = pgTable(
 // Faturas reais sincronizadas do Digital Grid (Billing API /bills, somente leitura).
 export const faturasDg = pgTable("faturas_dg", {
   id: uuid("id").primaryKey().defaultRandom(),
-  dgBillId: integer("dg_bill_id").notNull().unique(), // id da fatura no Digital Grid
+  tenantId: tenantCol(),
+  dgBillId: integer("dg_bill_id").notNull(), // id da fatura no Digital Grid
   competencia: text("competencia").notNull().default(""), // "2025-09"
   referenceDate: text("reference_date"), // "2025-09-01"
   faturaNumero: integer("fatura_numero"), // campo `number` (sequencial da fatura)
@@ -307,12 +326,13 @@ export const faturasDg = pgTable("faturas_dg", {
   sincronizadoEm: timestamp("sincronizado_em", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => [unique("faturas_dg_tenant_bill").on(t.tenantId, t.dgBillId)]);
 
 // Conta de energia (distribuidora) anexada a uma fatura do Digital Grid.
 // O PDF é guardado em base64 no banco; os campos são extraídos do PDF.
 export const contasEnergia = pgTable("contas_energia", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   faturaDgId: uuid("fatura_dg_id")
     .notNull()
     .unique()
@@ -360,6 +380,7 @@ export const rateiosDg = pgTable(
   "rateios_dg",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     generationMonthId: integer("generation_month_id").notNull(),
     competencia: text("competencia").notNull().default(""), // "2026-06" (de monthly-generation.reference)
     generatorNumber: text("generator_number"), // número do gerador no DG
@@ -378,7 +399,8 @@ export const rateiosDg = pgTable(
       .defaultNow(),
   },
   (table) => [
-    unique("rateios_dg_month_installation_owner").on(
+    unique("rateios_dg_tenant_month_installation_owner").on(
+      table.tenantId,
       table.generationMonthId,
       table.installation,
       table.ownerDocument,
@@ -389,6 +411,7 @@ export const rateiosDg = pgTable(
 // Propostas comerciais (lançamento manual / simulador de economia).
 export const propostas = pgTable("propostas", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   // Nullable: propostas podem ser geradas para cliente ainda NÃO cadastrado
   // (nesse caso guarda-se o nome digitado em `clienteNomeLivre`).
   clienteId: uuid("cliente_id").references(() => clientes.id, {
@@ -440,13 +463,18 @@ export const propostas = pgTable("propostas", {
 
 // Parâmetros de custo/margem do gerador de propostas (linha única; um JSON com
 // tabela de kit, custos, margem e premissas). SENSÍVEL — só uso interno.
-export const parametrosProposta = pgTable("parametros_proposta", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  dados: jsonb("dados").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const parametrosProposta = pgTable(
+  "parametros_proposta",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
+    dados: jsonb("dados").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("parametros_proposta_tenant").on(t.tenantId)],
+);
 
 // ===== Histórico de telemetria (sync-first; worker a cada ~10 min) =====
 // Tabelas append-only: cada linha é uma leitura. O "estado atual" é o registro
@@ -456,6 +484,7 @@ export const telemetriaEstacao = pgTable(
   "telemetria_estacao",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     usinaId: uuid("usina_id").references(() => usinas.id, {
       onDelete: "set null",
     }),
@@ -480,6 +509,7 @@ export const telemetriaInversor = pgTable(
   "telemetria_inversor",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     usinaId: uuid("usina_id").references(() => usinas.id, {
       onDelete: "set null",
     }),
@@ -503,6 +533,7 @@ export const telemetriaColetor = pgTable(
   "telemetria_coletor",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     usinaId: uuid("usina_id").references(() => usinas.id, {
       onDelete: "set null",
     }),
@@ -522,7 +553,8 @@ export const telemetriaColetor = pgTable(
 // atualizados — guarda o histórico de tudo que já alarmou (O&M).
 export const alarmes = pgTable("alarmes", {
   id: uuid("id").primaryKey().defaultRandom(),
-  alarmId: text("alarm_id").notNull().unique(),
+  tenantId: tenantCol(),
+  alarmId: text("alarm_id").notNull(),
   usinaId: uuid("usina_id").references(() => usinas.id, {
     onDelete: "set null",
   }),
@@ -537,7 +569,7 @@ export const alarmes = pgTable("alarmes", {
     .notNull()
     .defaultNow(),
   resolvidoEm: timestamp("resolvido_em", { withTimezone: true }),
-});
+}, (t) => [unique("alarmes_tenant_alarm").on(t.tenantId, t.alarmId)]);
 
 // Anexos de qualquer cadastro (genérico por entidade+id). Conteúdo em bytea
 // (BLOB no banco). Hoje usado por 'cliente'; reaproveitável em UCs/usinas etc.
@@ -545,6 +577,7 @@ export const anexos = pgTable(
   "anexos",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     entidade: text("entidade").notNull(), // 'cliente'
     entidadeId: uuid("entidade_id").notNull(),
     nome: text("nome").notNull(),
@@ -565,6 +598,7 @@ export const cadastroHistorico = pgTable(
   "cadastro_historico",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantCol(),
     entidade: text("entidade").notNull(), // 'cliente'
     entidadeId: uuid("entidade_id").notNull(),
     acao: text("acao").notNull(), // criou | editou_campo | anexou | removeu_anexo
@@ -586,6 +620,7 @@ export const cadastroHistorico = pgTable(
 // Auditoria de cada execução do worker (alimenta "atualizado há X" e a saúde).
 export const syncRuns = pgTable("sync_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: tenantCol(),
   job: text("job").notNull(), // telemetria|geracao|faturas_dg|rateio_dg
   iniciadoEm: timestamp("iniciado_em", { withTimezone: true })
     .notNull()
