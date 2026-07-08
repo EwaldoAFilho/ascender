@@ -79,7 +79,7 @@
     },
     {
       "doc": "docs/kb/modulos/propostas-gerador.md",
-      "hash": "6817bdf365ba",
+      "hash": "4fd517357ed4",
       "atualizado_em": "2026-07-08"
     },
     {
@@ -301,6 +301,7 @@
     "ascender-app/src/lib/propostas/calcular.ts",
     "ascender-app/src/lib/propostas/constantes.ts",
     "ascender-app/src/lib/propostas/dimensionamento.ts",
+    "ascender-app/src/lib/propostas/excel.ts",
     "ascender-app/src/lib/propostas/financeiro.ts",
     "ascender-app/src/lib/propostas/parametros.ts",
     "ascender-app/src/lib/propostas/pdf.ts",

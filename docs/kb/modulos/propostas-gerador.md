@@ -138,3 +138,6 @@ Implicitas / inferidas:
 - ascender-app/src/lib/cadastros/actions.ts (saveProposta: 493; deleteProposta: 515)
 </content>
 </invoke>
+
+## Atualizações
+- **2026-07-08** — Cliente livre (`clienteId` nullable + `clienteNomeLivre`); autoconsumo = `min(geração, consumo)` no Necessário e Rentável (fix); nova exportação **Excel** (`ascender-app/src/lib/propostas/excel.ts` — abas Resumo, Geração Mensal, Retorno 25 Anos e Custos Internos, uso interno); campos **Responsável** e **Cidade/UF** (vão ao cabeçalho do PDF e ao snapshot `dadosGerador`); tabela de geração mensal (12 meses) na tela.
