@@ -118,6 +118,12 @@ export function gerarResultado(
   const temTelhado = tot.modulos > 0 && tot.potenciaKwp > 0;
   const geracaoTelhadoMes = tot.potenciaKwp * gpk * prem.margemSeguranca;
   const excedente = Math.max(0, geracaoTelhadoMes - input.consumoKwh);
+  // Autoconsumo do Telhado Rentável remunerado à tarifa cheia: no máximo o
+  // próprio consumo (o que passa disso é excedente, creditado à parte). Junto,
+  // autoconsumo + excedente = geração física do telhado. Antes usava-se
+  // nec.geracaoMensalKwh (∝ consumo × compensacaoPct + arredondamento de
+  // módulos), o que super/sub-creditava quando compensacaoPct ≠ 1.
+  const autoconsumoTelhado = Math.min(geracaoTelhadoMes, input.consumoKwh);
 
   // Fatores de crescimento/degradação por ano.
   const cresc = (t: number) => Math.pow(1 + prem.reajusteTarifario, t - 1);
@@ -136,8 +142,18 @@ export function gerarResultado(
     margemPercent: parametros.margemPercent,
     parametros,
   });
-  const economiaMensalNec = nec.geracaoMensalKwh * input.tarifa;
-  const fluxoNec = (t: number) => nec.geracaoMensalKwh * 12 * input.tarifa * cresc(t) * degr(t);
+  // Mesmo princípio do Rentável: só o consumo é compensado à tarifa cheia; a
+  // sobra de geração (por compensacaoPct>1 ou arredondamento de módulos) é
+  // excedente creditado à parte (Fio B por ano). Evita super-crédito à tarifa
+  // cheia da geração acima do consumo.
+  const autoconsumoNec = Math.min(nec.geracaoMensalKwh, input.consumoKwh);
+  const excedenteNec = Math.max(0, nec.geracaoMensalKwh - input.consumoKwh);
+  const economiaMensalNec =
+    autoconsumoNec * input.tarifa + excedenteNec * creditoUnitarioReal(anoProposta, prem);
+  const fluxoNec = (t: number) => {
+    const cu = creditoUnitarioReal(anoProposta + (t - 1), prem);
+    return (autoconsumoNec * input.tarifa + excedenteNec * cu) * 12 * cresc(t) * degr(t);
+  };
   const necessario = montarCenario({
     cenario: "necessario",
     potenciaKwp: nec.potenciaKwp,
@@ -173,13 +189,13 @@ export function gerarResultado(
     // Crédito unitário do excedente no ano corrente (com Fio B do ano da proposta).
     const creditoUnitAno1 = creditoUnitarioReal(anoProposta, prem);
     const creditoMensal = excedente * creditoUnitAno1;
-    const receitaMensal = nec.geracaoMensalKwh * input.tarifa + creditoMensal;
+    const receitaMensal = autoconsumoTelhado * input.tarifa + creditoMensal;
 
     // Fluxo anual: compensação do consumo + crédito do excedente (Fio B por ano).
     const fluxoRent = (t: number) => {
       const anoCal = anoProposta + (t - 1);
       const creditoUnit = creditoUnitarioReal(anoCal, prem);
-      const compensacao = nec.geracaoMensalKwh * 12 * input.tarifa;
+      const compensacao = autoconsumoTelhado * 12 * input.tarifa;
       const credito = excedente * 12 * creditoUnit;
       return (compensacao + credito) * cresc(t) * degr(t);
     };
