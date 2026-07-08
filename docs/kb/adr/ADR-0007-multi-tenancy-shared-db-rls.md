@@ -32,12 +32,16 @@ todas as queries retornam tudo. Roadmap completo em
 - `parametros_proposta` e `integration_credentials` (hoje globais) passam a 1 por tenant.
 
 ## Estado (2026-07-08)
-Fase de fundação de **identidade** implementada: tabelas `tenants` +
-`tenant_memberships` (migração `drizzle/0018`), seed do tenant 0 + membership `owner`
-do admin, e `SessionData.tenantId`/`role` populados no login
-(`src/lib/auth/session.ts`, `src/app/api/auth/login/route.ts`, `src/lib/db/seed.ts`).
-**Próximo:** `tenant_id NOT NULL DEFAULT tenant0` nas ~19 tabelas de negócio +
-uniques compostas (Fase 1b), depois escopo de queries e RLS.
+- **Fase 1a (identidade) — feita:** tabelas `tenants` + `tenant_memberships`
+  (migração `drizzle/0018`), seed do tenant 0 + membership `owner`, e
+  `SessionData.tenantId`/`role` no login (`session.ts`, `api/auth/login`, `seed.ts`).
+- **Fase 1b (tenant_id nas tabelas) — feita:** `tenant_id NOT NULL DEFAULT '<tenant0>'`
+  (fábrica `tenantCol`) nas 19 tabelas de negócio + uniques compostas (migração
+  `drizzle/0019`). Backfill verificado: 0 linhas fora do tenant 0. O `DEFAULT`
+  mantém a app não-quebrada até o escopo por query/RLS.
+- **Próximo:** Fase 2 (escopar as ~110 queries por tenant via `getTenantDb()`),
+  depois Fase 3 (RLS), Fase 4 (RBAC), Fase 5 (credenciais por tenant), Fase 6 (sync
+  por tenant + Redis), Fase 7 (infra), Fase 8 (billing Stripe).
 
 ## Alternativas consideradas
 - Schema-per-tenant / DB-per-tenant: rejeitados por custo operacional neste porte.
