@@ -34,6 +34,8 @@ const gerarSchema = z.object({
   // Cliente livre: aceita o nome digitado (cadastrado ou não). Se casar com um
   // cliente existente, a proposta é vinculada; senão guarda-se o nome livre.
   clienteNome: z.string().trim().min(1, "Informe o cliente."),
+  responsavel: optText,
+  cidade: optText,
   unidadeConsumidoraId: optText,
   distribuidoraId: optText,
   instalacao: z.enum(["telhado", "solo"]).default("telhado"),
@@ -121,7 +123,13 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
         margemValor: finito(nec.custo.margemValor),
         margemPercent: finito(nec.custo.margemPercent),
         // Snapshot para reimpressão (uso interno; nunca vai ao PDF do cliente).
-        dadosGerador: { input: geradorInput, resultado, padrao: d.padrao },
+        dadosGerador: {
+          input: geradorInput,
+          resultado,
+          padrao: d.padrao,
+          responsavel: d.responsavel,
+          cidade: d.cidade,
+        },
       })
       .returning({ id: propostas.id });
 

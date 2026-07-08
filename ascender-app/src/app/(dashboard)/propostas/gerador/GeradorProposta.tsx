@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Download, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, FileSpreadsheet, Plus, RotateCcw, Trash2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -24,6 +24,7 @@ import {
   MESES,
 } from "@/lib/propostas/constantes";
 import { baixarPropostaPdf, type PdfCenario } from "@/lib/propostas/pdf";
+import { baixarPropostaExcel } from "@/lib/propostas/excel";
 import type { CenarioResultado, GeradorResultado } from "@/lib/propostas/types";
 
 type Option = { value: string; label: string };
@@ -60,6 +61,8 @@ export function GeradorProposta({
 }) {
   // Formulário.
   const [clienteNome, setClienteNome] = useState("");
+  const [responsavel, setResponsavel] = useState("");
+  const [cidade, setCidade] = useState("");
   const [unidadeConsumidoraId, setUnidade] = useState("");
   const [distribuidoraId, setDistribuidora] = useState("");
   const [instalacao, setInstalacao] = useState<"telhado" | "solo">("telhado");
@@ -101,6 +104,8 @@ export function GeradorProposta({
     setBusy(true);
     const r = await gerarProposta({
       clienteNome: clienteNome.trim(),
+      responsavel: responsavel.trim() || undefined,
+      cidade: cidade.trim() || undefined,
       unidadeConsumidoraId: unidadeConsumidoraId || undefined,
       distribuidoraId: distribuidoraId || undefined,
       instalacao,
@@ -164,10 +169,28 @@ export function GeradorProposta({
     });
     void baixarPropostaPdf({
       cliente: clienteLabel,
+      cidade: cidade.trim() || undefined,
+      responsavel: responsavel.trim() || undefined,
       concessionaria: conc,
       data: new Date().toLocaleDateString("pt-BR"),
       necessario: toPdfCenario(resultado.necessario),
       rentavel: resultado.rentavel ? toPdfCenario(resultado.rentavel) : null,
+    });
+  }
+
+  function baixarExcel() {
+    if (!resultado) return;
+    const conc = distribuidoras.find((d) => d.value === distribuidoraId)?.label;
+    void baixarPropostaExcel({
+      cliente: clienteNome.trim() || "Cliente",
+      cidade: cidade.trim() || undefined,
+      responsavel: responsavel.trim() || undefined,
+      concessionaria: conc,
+      data: new Date().toLocaleDateString("pt-BR"),
+      consumoKwh: Number(consumoKwh) || 0,
+      tarifa: Number(tarifa) || 0,
+      hsp: Number(hsp) || 0,
+      resultado,
     });
   }
 
@@ -179,6 +202,7 @@ export function GeradorProposta({
         onToggleCusto={() => setMostrarCusto((v) => !v)}
         onNova={novaSimulacao}
         onPdf={baixarPdf}
+        onExcel={baixarExcel}
       />
     );
   }
@@ -365,6 +389,24 @@ export function GeradorProposta({
             </datalist>
           </label>
           <label className="form-field">
+            <span>Responsável</span>
+            <input
+              type="text"
+              value={responsavel}
+              placeholder="Quem está gerando a proposta"
+              onChange={(e) => setResponsavel(e.target.value)}
+            />
+          </label>
+          <label className="form-field">
+            <span>Cidade / UF</span>
+            <input
+              type="text"
+              value={cidade}
+              placeholder="ex: Brasília, DF"
+              onChange={(e) => setCidade(e.target.value)}
+            />
+          </label>
+          <label className="form-field">
             <span>Unidade consumidora</span>
             <select value={unidadeConsumidoraId} onChange={(e) => setUnidade(e.target.value)}>
               <option value="">—</option>
@@ -456,6 +498,40 @@ function RoiChart({ cenario }: { cenario: CenarioResultado }) {
   );
 }
 
+function MesTable({ resultado }: { resultado: GeradorResultado }) {
+  const nec = resultado.necessario.geracaoMensalPorMes;
+  const rent = resultado.rentavel?.geracaoMensalPorMes;
+  const th = { textAlign: "right", padding: "6px 8px", color: "var(--muted)" } as const;
+  const td = { padding: "6px 8px", textAlign: "right" } as const;
+  return (
+    <div style={{ overflowX: "auto", marginTop: 12 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "left", padding: "6px 8px", color: "var(--muted)" }}>Mês</th>
+            <th style={th}>Necessário (kWh)</th>
+            {rent ? <th style={th}>Rentável (kWh)</th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {MESES.map((m, i) => (
+            <tr key={m} style={{ borderTop: "1px solid var(--line)" }}>
+              <td style={{ padding: "6px 8px" }}>{m}</td>
+              <td style={td}>{num(nec[i] ?? 0)}</td>
+              {rent ? <td style={td}>{num(rent[i] ?? 0)}</td> : null}
+            </tr>
+          ))}
+          <tr style={{ borderTop: "2px solid var(--line)", fontWeight: 700 }}>
+            <td style={{ padding: "6px 8px" }}>Total ano</td>
+            <td style={td}>{num(resultado.necessario.geracaoAnualKwh)}</td>
+            {rent ? <td style={td}>{num(resultado.rentavel?.geracaoAnualKwh ?? 0)}</td> : null}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function GeracaoChart({ resultado }: { resultado: GeradorResultado }) {
   const data = MESES.map((mes, i) => ({
     mes,
@@ -533,18 +609,23 @@ function Resultado({
   onToggleCusto,
   onNova,
   onPdf,
+  onExcel,
 }: {
   resultado: GeradorResultado;
   mostrarCusto: boolean;
   onToggleCusto: () => void;
   onNova: () => void;
   onPdf: () => void;
+  onExcel: () => void;
 }) {
   return (
     <>
       <div className="form-actions" style={{ marginBottom: 14 }}>
         <button type="button" className="btn-primary" onClick={onPdf}>
           <Download size={16} /> Baixar PDF (cliente)
+        </button>
+        <button type="button" className="btn-secondary" onClick={onExcel}>
+          <FileSpreadsheet size={16} /> Exportar Excel (interno)
         </button>
         <button type="button" className="btn-secondary" onClick={onNova}>
           <RotateCcw size={16} /> Nova simulação
@@ -597,6 +678,7 @@ function Resultado({
           </div>
         </div>
         <GeracaoChart resultado={resultado} />
+        <MesTable resultado={resultado} />
       </section>
 
       {mostrarCusto ? (
