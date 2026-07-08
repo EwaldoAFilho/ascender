@@ -47,8 +47,19 @@ todas as queries retornam tudo. Roadmap completo em
   vê os próprios dados). Pendências por design: integrações/credenciais globais
   (dropdown Solis compartilhado) → Fase 5; route handlers de API e workers usam
   fallback tenant 0 → Fase 5/6.
-- **Próximo:** Fase 3 (RLS backstop no Postgres), Fase 4 (RBAC), Fase 5 (credenciais
-  por tenant), Fase 6 (sync por tenant + Redis), Fase 7 (infra), Fase 8 (billing Stripe).
+- **Fase 3 (RLS) — feita:** `withTenant()` abre transação + `SET LOCAL
+  app.current_tenant`; `getDb()` usa essa transação no contexto (senão o pool) sem
+  mudar os call sites. Migração `0020`: `ENABLE`/`FORCE ROW LEVEL SECURITY` + policy
+  `tenant_isolation` (permissiva quando o GUC não está setado, estrita quando está)
+  nas 19 tabelas. Migração `0021`: role restrita `ascender_app` (NOSUPERUSER,
+  NOBYPASSRLS) usada pelo runtime (`APP_DATABASE_URL`); migrate/seed seguem como o
+  dono. Provado: `SELECT` sem `WHERE` é filtrado pela RLS ao tenant do contexto.
+- **Próximo:** Fase 4 (RBAC — `requireRole`, convites, troca de tenant), Fase 5
+  (credenciais por tenant + rotação de chave), Fase 6 (sync por tenant + Redis),
+  Fase 7 (infra: migrations fora do boot, Redis, backups), Fase 8 (billing Stripe).
+
+> **Nota de segurança:** a senha de `ascender_app` está fixa no `0021` (dev). Em
+> produção, parametrizar via env/secret. O banco não é exposto externamente.
 
 ## Alternativas consideradas
 - Schema-per-tenant / DB-per-tenant: rejeitados por custo operacional neste porte.
