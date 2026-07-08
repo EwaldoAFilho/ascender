@@ -13,6 +13,8 @@ type KitRow = {
 };
 
 const s = (v: number) => String(v);
+// Fração → % para exibição, sem lixo de ponto flutuante (ex.: 0.007*100 = 0.70000000000001).
+const pct = (frac: number) => String(Math.round(frac * 1e8) / 1e6);
 
 export function ParametrosForm({ inicial }: { inicial: ParametrosProposta }) {
   const [dataTabela, setDataTabela] = useState(inicial.dataTabela ?? "");
@@ -37,10 +39,10 @@ export function ParametrosForm({ inicial }: { inicial: ParametrosProposta }) {
 
   // Premissas (frações mostradas como % na tela).
   const pm = inicial.premissas;
-  const [performanceRatio, setPr] = useState(s(pm.performanceRatio * 100));
-  const [margemSeguranca, setSeg] = useState(s(pm.margemSeguranca * 100));
-  const [degradacaoAnual, setDeg] = useState(s(pm.degradacaoAnual * 100));
-  const [reajusteTarifario, setRea] = useState(s(pm.reajusteTarifario * 100));
+  const [performanceRatio, setPr] = useState(pct(pm.performanceRatio));
+  const [margemSeguranca, setSeg] = useState(pct(pm.margemSeguranca));
+  const [degradacaoAnual, setDeg] = useState(pct(pm.degradacaoAnual));
+  const [reajusteTarifario, setRea] = useState(pct(pm.reajusteTarifario));
   const [co2PorKwh, setCo2] = useState(s(pm.co2PorKwh));
   const [creditoExcedenteBaseKwh, setCredito] = useState(s(pm.creditoExcedenteBaseKwh));
   const [fioBAtivo, setFioBAtivo] = useState(pm.fioBAtivo);

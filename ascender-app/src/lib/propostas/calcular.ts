@@ -32,10 +32,9 @@ import type {
 // Fração do Fio B (Lei 14.300) cobrada no ano-calendário informado.
 function fioBPercentual(anoCalendario: number, p: Premissas): number {
   if (!p.fioBAtivo || !p.cronogramaFioB.length) return 0;
-  const idx = Math.min(
-    Math.max(anoCalendario - p.anoBaseFioB, 0),
-    p.cronogramaFioB.length - 1,
-  );
+  // Antes do ano-base o Fio B ainda não se aplica (sem cobrança sobre a injeção).
+  if (anoCalendario < p.anoBaseFioB) return 0;
+  const idx = Math.min(anoCalendario - p.anoBaseFioB, p.cronogramaFioB.length - 1);
   return p.cronogramaFioB[idx];
 }
 
