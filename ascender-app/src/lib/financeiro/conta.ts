@@ -1,7 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { parseContaComIA } from "@/lib/ai/extract";
+import { getSessionTenantId } from "@/lib/auth/tenant";
 import { getDocumentoPorInstalacao } from "@/lib/digitalgrid/queries";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { contasEnergia, faturasDg } from "@/lib/db/schema";
 import { parseContaNeoenergia, type ContaParsed } from "./parse-conta";
 
@@ -218,6 +220,7 @@ async function persistConta(
   p: ContaParsed,
 ): Promise<void> {
   const base64 = buffer.toString("base64");
+  const tenantId = await getSessionTenantId();
   const valores = {
     installationNumber: p.installationNumber,
     competencia: p.competencia,
@@ -250,6 +253,7 @@ async function persistConta(
     .insert(contasEnergia)
     .values({
       faturaDgId,
+      tenantId,
       arquivoNome: nome,
       mimeType,
       arquivoBase64: base64,
@@ -268,9 +272,15 @@ async function persistConta(
 }
 
 export async function excluirContaEnergia(faturaDgId: string): Promise<void> {
+  const tenantId = await getSessionTenantId();
   await getDb()
     .delete(contasEnergia)
-    .where(eq(contasEnergia.faturaDgId, faturaDgId));
+    .where(
+      and(
+        eq(contasEnergia.faturaDgId, faturaDgId),
+        eq(contasEnergia.tenantId, tenantId),
+      ),
+    );
 }
 
 // ===== Conciliação de boletos em lote =====
@@ -336,12 +346,14 @@ export async function conciliarBoleto(
     };
   }
 
+  const tenantId = await getSessionTenantId();
   const matches = await getDb()
     .select({ id: faturasDg.id })
     .from(faturasDg)
     .where(
       sql`regexp_replace(coalesce(${faturasDg.installationNumber}, ''), '[^0-9]', '', 'g') = ${ucDigitos}
-          and ${faturasDg.competencia} = ${comp}`,
+          and ${faturasDg.competencia} = ${comp}
+          and ${faturasDg.tenantId} = ${tenantId}`,
     );
 
   if (matches.length === 0) {
@@ -363,7 +375,12 @@ export async function conciliarBoleto(
   const [existente] = await getDb()
     .select({ id: contasEnergia.id })
     .from(contasEnergia)
-    .where(eq(contasEnergia.faturaDgId, faturaId));
+    .where(
+      and(
+        eq(contasEnergia.faturaDgId, faturaId),
+        eq(contasEnergia.tenantId, tenantId),
+      ),
+    );
   if (existente) {
     return {
       ...base,
@@ -398,7 +415,12 @@ export async function getContaEnergia(faturaDgId: string) {
   const rows = await getDb()
     .select(camposPublicos)
     .from(contasEnergia)
-    .where(eq(contasEnergia.faturaDgId, faturaDgId));
+    .where(
+      and(
+        eq(contasEnergia.faturaDgId, faturaDgId),
+        eq(contasEnergia.tenantId, getCurrentTenantId()),
+      ),
+    );
   return rows[0] ?? null;
 }
 
@@ -412,7 +434,12 @@ export async function getContaFile(
       base64: contasEnergia.arquivoBase64,
     })
     .from(contasEnergia)
-    .where(eq(contasEnergia.faturaDgId, faturaDgId));
+    .where(
+      and(
+        eq(contasEnergia.faturaDgId, faturaDgId),
+        eq(contasEnergia.tenantId, getCurrentTenantId()),
+      ),
+    );
   const row = rows[0];
   if (!row || !row.base64) return null;
   return { nome: row.nome, mimeType: row.mimeType, base64: row.base64 };
@@ -421,6 +448,7 @@ export async function getContaFile(
 export async function getFaturaIdsComConta(): Promise<string[]> {
   const rows = await getDb()
     .select({ id: contasEnergia.faturaDgId })
-    .from(contasEnergia);
+    .from(contasEnergia)
+    .where(eq(contasEnergia.tenantId, getCurrentTenantId()));
   return rows.map((r) => r.id);
 }

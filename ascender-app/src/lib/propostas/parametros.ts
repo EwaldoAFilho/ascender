@@ -4,7 +4,9 @@
 // importado apenas por código de servidor (server actions / server components),
 // nunca por componentes "use client".
 
+import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { parametrosProposta } from "@/lib/db/schema";
 import {
   ANO_BASE_FIOB,
@@ -65,7 +67,11 @@ export const PARAMETROS_PADRAO: ParametrosProposta = {
 // falha, retorna os defaults (o gerador precisa funcionar mesmo sem config).
 export async function carregarParametros(): Promise<ParametrosProposta> {
   try {
-    const rows = await getDb().select().from(parametrosProposta).limit(1);
+    const rows = await getDb()
+      .select()
+      .from(parametrosProposta)
+      .where(eq(parametrosProposta.tenantId, getCurrentTenantId()))
+      .limit(1);
     const salvo = rows[0]?.dados as Partial<ParametrosProposta> | undefined;
     if (!salvo) return PARAMETROS_PADRAO;
     return {

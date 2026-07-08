@@ -4,6 +4,7 @@ import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { UsinasTable } from "@/components/UsinasTable";
 import { EmptyState } from "@/components/states";
 import { getUsinasComTelemetria } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,9 @@ export const dynamic = "force-dynamic";
 const n = (v: number) => numberFormatter.format(v);
 
 export default async function UsinasPage() {
-  const { configurada, linhas } = await getUsinasComTelemetria();
+  const { configurada, linhas } = await withSessionTenant(() =>
+    getUsinasComTelemetria(),
+  );
   const vinculadas = linhas.filter((l) => l.vinculada);
 
   // KPIs de performance do parque. Aderência média é ponderada (soma realizada /

@@ -5,6 +5,7 @@ import {
   getUltimaSyncRateioDg,
   listRateioDg,
 } from "@/lib/digitalgrid/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -23,10 +24,9 @@ function formatDateTime(iso: string | null): string {
 }
 
 export default async function RateioPage() {
-  const [rateios, ultimaSync] = await Promise.all([
-    listRateioDg(),
-    getUltimaSyncRateioDg(),
-  ]);
+  const [rateios, ultimaSync] = await withSessionTenant(() =>
+    Promise.all([listRateioDg(), getUltimaSyncRateioDg()]),
+  );
 
   const competencias = new Set(rateios.map((r) => r.competencia).filter(Boolean));
   const usinas = new Set(rateios.map((r) => r.usinaNome).filter(Boolean));

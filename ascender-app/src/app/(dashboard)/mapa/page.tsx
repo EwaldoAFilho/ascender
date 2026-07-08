@@ -1,15 +1,15 @@
 import { UsinasMap, type MapPin } from "@/components/UsinasMap";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { getUsinasComTelemetria, listUsinas } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function MapaPage() {
-  const [tele, cadastro] = await Promise.all([
-    getUsinasComTelemetria(),
-    listUsinas(),
-  ]);
+  const [tele, cadastro] = await withSessionTenant(() =>
+    Promise.all([getUsinasComTelemetria(), listUsinas()]),
+  );
 
   // Coordenadas por usina (preenchidas manualmente — Fase 3B-A).
   const coordsPorId = new Map(

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { faturasDg, rateiosDg } from "@/lib/db/schema";
 import { dgGet } from "./client";
 
@@ -65,6 +66,8 @@ export async function syncFaturasDg(): Promise<{
   faturas: number;
 }> {
   const db = getDb();
+  // Sync sem sessão (script/worker): usa o tenant do contexto atual (fallback = tenant 0).
+  const tenantId = getCurrentTenantId();
   let page = 1;
   let paginas = 0;
   let total = 0;
@@ -83,9 +86,9 @@ export async function syncFaturasDg(): Promise<{
     if (rows.length > 0) {
       await db
         .insert(faturasDg)
-        .values(rows)
+        .values(rows.map((r) => ({ ...r, tenantId })))
         .onConflictDoUpdate({
-          target: faturasDg.dgBillId,
+          target: [faturasDg.tenantId, faturasDg.dgBillId],
           set: {
             competencia: sqlExcluded("competencia"),
             referenceDate: sqlExcluded("reference_date"),
@@ -129,6 +132,8 @@ export async function syncRateioDg(): Promise<{
   rateios: number;
 }> {
   const db = getDb();
+  // Sync sem sessão (script/worker): usa o tenant do contexto atual (fallback = tenant 0).
+  const tenantId = getCurrentTenantId();
 
   // 1) Mapa generation_month_id -> { reference, generator }
   const mgMap = new Map<
@@ -195,9 +200,10 @@ export async function syncRateioDg(): Promise<{
     if (rows.length > 0) {
       await db
         .insert(rateiosDg)
-        .values(rows)
+        .values(rows.map((r) => ({ ...r, tenantId })))
         .onConflictDoUpdate({
           target: [
+            rateiosDg.tenantId,
             rateiosDg.generationMonthId,
             rateiosDg.installation,
             rateiosDg.ownerDocument,

@@ -4,6 +4,7 @@
 
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
   clientes,
   faturasDg,
@@ -86,7 +87,8 @@ export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
         consumoKwh: rateiosDg.consumoKwh,
         creditosAcumulados: rateiosDg.creditosAcumulados,
       })
-      .from(rateiosDg),
+      .from(rateiosDg)
+      .where(eq(rateiosDg.tenantId, getCurrentTenantId())),
     db
       .select({
         dgBillId: faturasDg.dgBillId,
@@ -100,7 +102,8 @@ export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
         paymentStatus: faturasDg.paymentStatus,
         raw: faturasDg.raw,
       })
-      .from(faturasDg),
+      .from(faturasDg)
+      .where(eq(faturasDg.tenantId, getCurrentTenantId())),
     db
       .select({
         codigoInstalacao: unidadesConsumidoras.codigoInstalacao,
@@ -110,7 +113,8 @@ export async function carregarDadosAuditoria(): Promise<DadosAuditoria> {
         documento: clientes.documento,
       })
       .from(unidadesConsumidoras)
-      .leftJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId)),
+      .leftJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId))
+      .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId())),
   ]);
 
   const faturas: FaturaRow[] = faturasRaw.map((f) => ({

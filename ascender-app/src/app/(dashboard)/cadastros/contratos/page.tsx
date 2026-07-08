@@ -7,6 +7,7 @@ import {
   opcoesUnidades,
   opcoesUsinas,
 } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -16,12 +17,15 @@ function tarifa(value: number): string {
 }
 
 export default async function ContratosCadastroPage() {
-  const [rows, cliOpts, ucOpts, usinaOpts] = await Promise.all([
-    listContratos(),
-    opcoesClientes(),
-    opcoesUnidades(),
-    opcoesUsinas(),
-  ]);
+  // Escopa a leitura ao tenant do usuário logado (multi-tenant, Fase 2).
+  const [rows, cliOpts, ucOpts, usinaOpts] = await withSessionTenant(() =>
+    Promise.all([
+      listContratos(),
+      opcoesClientes(),
+      opcoesUnidades(),
+      opcoesUsinas(),
+    ]),
+  );
 
   const ativos = rows.filter((c) => c.status === "ativo").length;
   const descontoMedio = rows.length

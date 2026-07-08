@@ -83,14 +83,19 @@ export async function saveDistribuidora(input: unknown): Promise<ActionResult> {
   const parsed = distribuidoraSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       await getDb()
         .update(distribuidoras)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(distribuidoras.id, id));
+        .where(
+          and(eq(distribuidoras.id, id), eq(distribuidoras.tenantId, tenantId)),
+        );
     } else {
-      await getDb().insert(distribuidoras).values(data);
+      await getDb()
+        .insert(distribuidoras)
+        .values({ ...data, tenantId });
     }
     revalidate();
     return { ok: true };
@@ -102,8 +107,13 @@ export async function saveDistribuidora(input: unknown): Promise<ActionResult> {
 export async function deleteDistribuidora(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
-    await getDb().delete(distribuidoras).where(eq(distribuidoras.id, id));
+    await getDb()
+      .delete(distribuidoras)
+      .where(
+        and(eq(distribuidoras.id, id), eq(distribuidoras.tenantId, tenantId)),
+      );
     revalidate();
     return { ok: true };
   } catch {
@@ -279,14 +289,22 @@ export async function saveUnidade(input: unknown): Promise<ActionResult> {
   const parsed = unidadeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       await getDb()
         .update(unidadesConsumidoras)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(unidadesConsumidoras.id, id));
+        .where(
+          and(
+            eq(unidadesConsumidoras.id, id),
+            eq(unidadesConsumidoras.tenantId, tenantId),
+          ),
+        );
     } else {
-      await getDb().insert(unidadesConsumidoras).values(data);
+      await getDb()
+        .insert(unidadesConsumidoras)
+        .values({ ...data, tenantId });
     }
     revalidate();
     return { ok: true };
@@ -298,10 +316,16 @@ export async function saveUnidade(input: unknown): Promise<ActionResult> {
 export async function deleteUnidade(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
     await getDb()
       .delete(unidadesConsumidoras)
-      .where(eq(unidadesConsumidoras.id, id));
+      .where(
+        and(
+          eq(unidadesConsumidoras.id, id),
+          eq(unidadesConsumidoras.tenantId, tenantId),
+        ),
+      );
     revalidate();
     return { ok: true };
   } catch {
@@ -344,14 +368,17 @@ export async function saveUsina(input: unknown): Promise<ActionResult> {
   const parsed = usinaSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       await getDb()
         .update(usinas)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(usinas.id, id));
+        .where(and(eq(usinas.id, id), eq(usinas.tenantId, tenantId)));
     } else {
-      await getDb().insert(usinas).values(data);
+      await getDb()
+        .insert(usinas)
+        .values({ ...data, tenantId });
     }
     revalidate();
     return { ok: true };
@@ -363,8 +390,11 @@ export async function saveUsina(input: unknown): Promise<ActionResult> {
 export async function deleteUsina(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
-    await getDb().delete(usinas).where(eq(usinas.id, id));
+    await getDb()
+      .delete(usinas)
+      .where(and(eq(usinas.id, id), eq(usinas.tenantId, tenantId)));
     revalidate();
     return { ok: true };
   } catch {
@@ -397,14 +427,17 @@ export async function saveContrato(input: unknown): Promise<ActionResult> {
   const parsed = contratoSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       await getDb()
         .update(contratos)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(contratos.id, id));
+        .where(and(eq(contratos.id, id), eq(contratos.tenantId, tenantId)));
     } else {
-      await getDb().insert(contratos).values(data);
+      await getDb()
+        .insert(contratos)
+        .values({ ...data, tenantId });
     }
     revalidate();
     return { ok: true };
@@ -416,8 +449,11 @@ export async function saveContrato(input: unknown): Promise<ActionResult> {
 export async function deleteContrato(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
-    await getDb().delete(contratos).where(eq(contratos.id, id));
+    await getDb()
+      .delete(contratos)
+      .where(and(eq(contratos.id, id), eq(contratos.tenantId, tenantId)));
     revalidate();
     return { ok: true };
   } catch {
@@ -450,14 +486,17 @@ export async function saveFatura(input: unknown): Promise<ActionResult> {
   const parsed = faturaSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       await getDb()
         .update(faturas)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(faturas.id, id));
+        .where(and(eq(faturas.id, id), eq(faturas.tenantId, tenantId)));
     } else {
-      await getDb().insert(faturas).values(data);
+      await getDb()
+        .insert(faturas)
+        .values({ ...data, tenantId });
     }
     revalidatePath("/financeiro");
     return { ok: true };
@@ -469,8 +508,11 @@ export async function saveFatura(input: unknown): Promise<ActionResult> {
 export async function deleteFatura(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
-    await getDb().delete(faturas).where(eq(faturas.id, id));
+    await getDb()
+      .delete(faturas)
+      .where(and(eq(faturas.id, id), eq(faturas.tenantId, tenantId)));
     revalidatePath("/financeiro");
     return { ok: true };
   } catch {
@@ -501,14 +543,17 @@ export async function saveProposta(input: unknown): Promise<ActionResult> {
   const parsed = propostaSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       await getDb()
         .update(propostas)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(propostas.id, id));
+        .where(and(eq(propostas.id, id), eq(propostas.tenantId, tenantId)));
     } else {
-      await getDb().insert(propostas).values(data);
+      await getDb()
+        .insert(propostas)
+        .values({ ...data, tenantId });
     }
     revalidatePath("/propostas");
     return { ok: true };
@@ -520,8 +565,11 @@ export async function saveProposta(input: unknown): Promise<ActionResult> {
 export async function deleteProposta(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
-    await getDb().delete(propostas).where(eq(propostas.id, id));
+    await getDb()
+      .delete(propostas)
+      .where(and(eq(propostas.id, id), eq(propostas.tenantId, tenantId)));
     revalidatePath("/propostas");
     return { ok: true };
   } catch {

@@ -9,16 +9,16 @@ import {
   opcoesDistribuidoras,
   opcoesEstacoesSolis,
 } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsinasCadastroPage() {
-  const [rows, distOpts, solisOpts] = await Promise.all([
-    listUsinas(),
-    opcoesDistribuidoras(),
-    opcoesEstacoesSolis(),
-  ]);
+  // Escopa a leitura ao tenant do usuário logado (multi-tenant, Fase 2).
+  const [rows, distOpts, solisOpts] = await withSessionTenant(() =>
+    Promise.all([listUsinas(), opcoesDistribuidoras(), opcoesEstacoesSolis()]),
+  );
 
   // Banner de proveniência no modal: usinas que vieram da SolisCloud/DG.
   const extras: Record<string, ReactNode> = {};

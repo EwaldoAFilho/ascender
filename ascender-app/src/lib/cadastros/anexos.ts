@@ -1,5 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
+import { getSessionTenantId } from "@/lib/auth/tenant";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { anexos } from "@/lib/db/schema";
 import { autorAtual, registrarHistorico } from "./historico";
 
@@ -23,7 +25,13 @@ export async function listarAnexos(entidade: string, entidadeId: string) {
   return getDb()
     .select(metaCols)
     .from(anexos)
-    .where(and(eq(anexos.entidade, entidade), eq(anexos.entidadeId, entidadeId)))
+    .where(
+      and(
+        eq(anexos.entidade, entidade),
+        eq(anexos.entidadeId, entidadeId),
+        eq(anexos.tenantId, getCurrentTenantId()),
+      ),
+    )
     .orderBy(desc(anexos.criadoEm));
 }
 
@@ -36,9 +44,11 @@ export async function salvarAnexo(
   buffer: Buffer,
 ): Promise<string> {
   const { autor, autorId } = await autorAtual();
+  const tenantId = await getSessionTenantId();
   const [row] = await getDb()
     .insert(anexos)
     .values({
+      tenantId,
       entidade,
       entidadeId,
       nome,
@@ -66,6 +76,7 @@ export async function getAnexoFile(id: string): Promise<{
   mimeType: string;
   conteudo: Buffer;
 } | null> {
+  const tenantId = await getSessionTenantId();
   const rows = await getDb()
     .select({
       nome: anexos.nome,
@@ -73,12 +84,13 @@ export async function getAnexoFile(id: string): Promise<{
       conteudo: anexos.conteudo,
     })
     .from(anexos)
-    .where(eq(anexos.id, id));
+    .where(and(eq(anexos.id, id), eq(anexos.tenantId, tenantId)));
   return rows[0] ?? null;
 }
 
 /** Exclui um anexo e registra no histórico. */
 export async function excluirAnexo(id: string): Promise<void> {
+  const tenantId = await getSessionTenantId();
   const rows = await getDb()
     .select({
       entidade: anexos.entidade,
@@ -86,10 +98,12 @@ export async function excluirAnexo(id: string): Promise<void> {
       nome: anexos.nome,
     })
     .from(anexos)
-    .where(eq(anexos.id, id));
+    .where(and(eq(anexos.id, id), eq(anexos.tenantId, tenantId)));
   const a = rows[0];
   if (!a) return;
-  await getDb().delete(anexos).where(eq(anexos.id, id));
+  await getDb()
+    .delete(anexos)
+    .where(and(eq(anexos.id, id), eq(anexos.tenantId, tenantId)));
   const { autor, autorId } = await autorAtual();
   await registrarHistorico({
     entidade: a.entidade,

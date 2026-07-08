@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
   clientes,
   distribuidoras,
@@ -55,9 +56,12 @@ export async function getConciliacaoReport(): Promise<ConciliacaoReport> {
       fetchAllDg("/entities/"),
       fetchAllDg("/generators/"),
       fetchAllDg("/installations/"),
-      db.select().from(clientes),
-      db.select().from(usinas),
-      db.select().from(unidadesConsumidoras),
+      db.select().from(clientes).where(eq(clientes.tenantId, getCurrentTenantId())),
+      db.select().from(usinas).where(eq(usinas.tenantId, getCurrentTenantId())),
+      db
+        .select()
+        .from(unidadesConsumidoras)
+        .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId())),
     ]);
 
   const cliDocs = new Set(cliRows.map((c) => onlyDigits(c.documento)).filter(Boolean));
@@ -111,6 +115,9 @@ export type ConciliacaoResult = {
 
 export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
   const db = getDb();
+  // Sem sessão neste caminho (roda também via script/worker de conciliação):
+  // usa o tenant do contexto atual (fallback = tenant 0) para reads e writes.
+  const tenantId = getCurrentTenantId();
   const [entities, generators, installations] = await Promise.all([
     fetchAllDg("/entities/"),
     fetchAllDg("/generators/"),
@@ -123,7 +130,10 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
   let ucsCriadas = 0;
 
   // 1) Clientes (chave: documento em dígitos) ----------------------------------
-  const cliRows = await db.select().from(clientes);
+  const cliRows = await db
+    .select()
+    .from(clientes)
+    .where(eq(clientes.tenantId, tenantId));
   const cliPorDoc = new Map<string, string>(); // docDigits -> clienteId
   for (const c of cliRows) {
     const d = onlyDigits(c.documento);
@@ -138,7 +148,7 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
       await db
         .update(clientes)
         .set({ origem: "digitalgrid", origemSincronizadoEm: new Date() })
-        .where(eq(clientes.id, existenteId));
+        .where(and(eq(clientes.id, existenteId), eq(clientes.tenantId, tenantId)));
       continue;
     }
     const nome = str(e.name) ?? `Cliente ${doc}`;
@@ -146,6 +156,7 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
     const [row] = await db
       .insert(clientes)
       .values({
+        tenantId,
         nome,
         documento: doc,
         tipo,
@@ -159,7 +170,10 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
   }
 
   // 2) Usinas (chave: codigoDigitalGrid; fallback por nome) ---------------------
-  const usiRows = await db.select().from(usinas);
+  const usiRows = await db
+    .select()
+    .from(usinas)
+    .where(eq(usinas.tenantId, tenantId));
   const usiPorCodigo = new Map<string, string>();
   const usiPorNome = new Map<string, { id: string; codigo: string | null }>();
   for (const u of usiRows) {
@@ -178,7 +192,7 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
       await db
         .update(usinas)
         .set({ codigoDigitalGrid: numero, updatedAt: new Date() })
-        .where(eq(usinas.id, porNome.id));
+        .where(and(eq(usinas.id, porNome.id), eq(usinas.tenantId, tenantId)));
       usiPorCodigo.set(numero, porNome.id);
       usinasVinculadas += 1;
     } else if (!porNome) {
@@ -187,7 +201,10 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
   }
 
   // 3) Distribuidoras existentes (para vincular as UCs, sem criar novas) --------
-  const distRows = await db.select().from(distribuidoras);
+  const distRows = await db
+    .select()
+    .from(distribuidoras)
+    .where(eq(distribuidoras.tenantId, tenantId));
   const distPorNome = distRows.map((d) => ({ id: d.id, norm: normName(d.nome) }));
   const acharDistribuidora = (nome: unknown): string | null => {
     const n = normName(nome);
@@ -197,7 +214,10 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
   };
 
   // 4) UCs (chave: codigoInstalacao; cliente via owner; cria cliente se faltar) -
-  const ucRows = await db.select().from(unidadesConsumidoras);
+  const ucRows = await db
+    .select()
+    .from(unidadesConsumidoras)
+    .where(eq(unidadesConsumidoras.tenantId, tenantId));
   const ucIdPorCodigo = new Map(ucRows.map((u) => [u.codigoInstalacao, u.id]));
   for (const inst of installations) {
     const numero = str(inst.number);
@@ -208,7 +228,12 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
       await db
         .update(unidadesConsumidoras)
         .set({ origem: "digitalgrid", origemSincronizadoEm: new Date() })
-        .where(eq(unidadesConsumidoras.id, ucExistenteId));
+        .where(
+          and(
+            eq(unidadesConsumidoras.id, ucExistenteId),
+            eq(unidadesConsumidoras.tenantId, tenantId),
+          ),
+        );
       continue;
     }
 
@@ -220,6 +245,7 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
       const [row] = await db
         .insert(clientes)
         .values({
+          tenantId,
           nome,
           documento: ownerDoc,
           tipo: "cliente",
@@ -236,6 +262,7 @@ export async function importarCadastrosDg(): Promise<ConciliacaoResult> {
     const [ucRow] = await db
       .insert(unidadesConsumidoras)
       .values({
+        tenantId,
         clienteId,
         codigoInstalacao: numero,
         distribuidoraId: acharDistribuidora(inst.distributor),

@@ -1,5 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
   clientes,
   faturasDg,
@@ -13,6 +14,7 @@ export async function listFaturasDg(): Promise<FaturaDg[]> {
   return getDb()
     .select()
     .from(faturasDg)
+    .where(eq(faturasDg.tenantId, getCurrentTenantId()))
     .orderBy(desc(faturasDg.competencia), desc(faturasDg.valorTotal));
 }
 
@@ -31,10 +33,12 @@ export async function getClientePorInstalacao(): Promise<Map<string, string>> {
         nome: clientes.nome,
       })
       .from(unidadesConsumidoras)
-      .innerJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId)),
+      .innerJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId))
+      .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId())),
     db
       .select({ inst: rateiosDg.installation, nome: rateiosDg.ownerName })
-      .from(rateiosDg),
+      .from(rateiosDg)
+      .where(eq(rateiosDg.tenantId, getCurrentTenantId())),
   ]);
 
   const map = new Map<string, string>();
@@ -64,10 +68,12 @@ export async function getDocumentoPorInstalacao(): Promise<Map<string, string>> 
         doc: clientes.documento,
       })
       .from(unidadesConsumidoras)
-      .innerJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId)),
+      .innerJoin(clientes, eq(clientes.id, unidadesConsumidoras.clienteId))
+      .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId())),
     db
       .select({ inst: rateiosDg.installation, doc: rateiosDg.ownerDocument })
-      .from(rateiosDg),
+      .from(rateiosDg)
+      .where(eq(rateiosDg.tenantId, getCurrentTenantId())),
   ]);
 
   const map = new Map<string, string>();
@@ -92,7 +98,8 @@ export async function getResumoFaturasDg(): Promise<{
 }> {
   const rows = await getDb()
     .select({ total: faturasDg.valorTotal, pago: faturasDg.valorPago })
-    .from(faturasDg);
+    .from(faturasDg)
+    .where(eq(faturasDg.tenantId, getCurrentTenantId()));
   const total = rows.reduce((s, r) => s + (r.total ?? 0), 0);
   const pago = rows.reduce((s, r) => s + (r.pago ?? 0), 0);
   return { total, pago, emAberto: Math.max(0, total - pago), qtd: rows.length };
@@ -108,9 +115,12 @@ export async function contarFaturasVencidasDg(): Promise<number> {
     .select({ n: sql<number>`count(*)` })
     .from(faturasDg)
     .where(
-      sql`${faturasDg.vencimento} is not null
+      and(
+        eq(faturasDg.tenantId, getCurrentTenantId()),
+        sql`${faturasDg.vencimento} is not null
           and ${faturasDg.vencimento} < to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD')
           and coalesce(${faturasDg.valorPago}, 0) < coalesce(${faturasDg.valorTotal}, 0)`,
+      ),
     );
   return Number(r?.n ?? 0);
 }
@@ -119,6 +129,7 @@ export async function getUltimaSyncFaturasDg(): Promise<string | null> {
   const rows = await getDb()
     .select({ at: faturasDg.sincronizadoEm })
     .from(faturasDg)
+    .where(eq(faturasDg.tenantId, getCurrentTenantId()))
     .orderBy(desc(faturasDg.sincronizadoEm))
     .limit(1);
   return rows[0]?.at ? rows[0].at.toISOString() : null;
@@ -128,6 +139,7 @@ export async function listRateioDg(): Promise<RateioDg[]> {
   return getDb()
     .select()
     .from(rateiosDg)
+    .where(eq(rateiosDg.tenantId, getCurrentTenantId()))
     .orderBy(
       desc(rateiosDg.competencia),
       desc(rateiosDg.usinaNome),
@@ -139,6 +151,7 @@ export async function getUltimaSyncRateioDg(): Promise<string | null> {
   const rows = await getDb()
     .select({ at: rateiosDg.sincronizadoEm })
     .from(rateiosDg)
+    .where(eq(rateiosDg.tenantId, getCurrentTenantId()))
     .orderBy(desc(rateiosDg.sincronizadoEm))
     .limit(1);
   return rows[0]?.at ? rows[0].at.toISOString() : null;

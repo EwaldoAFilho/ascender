@@ -10,6 +10,7 @@ import {
   opcoesDistribuidoras,
   opcoesUnidades,
 } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { moneyFormatter, numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -26,12 +27,14 @@ function statusClasse(s: string): string {
 }
 
 export default async function PropostasPage() {
-  const [props, cliOpts, ucOpts, distOpts] = await Promise.all([
-    listPropostas(),
-    opcoesClientes(),
-    opcoesUnidades(),
-    opcoesDistribuidoras(),
-  ]);
+  const [props, cliOpts, ucOpts, distOpts] = await withSessionTenant(() =>
+    Promise.all([
+      listPropostas(),
+      opcoesClientes(),
+      opcoesUnidades(),
+      opcoesDistribuidoras(),
+    ]),
+  );
 
   const economiaMes = (p: (typeof props)[number]) =>
     p.consumoEstimadoKwh * (p.tarifaDistribuidora - p.tarifaAscender);

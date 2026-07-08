@@ -11,6 +11,7 @@ import {
   getUsinasComTelemetria,
 } from "@/lib/cadastros/queries";
 import { getResumoFaturasDg } from "@/lib/digitalgrid/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { getHealthScore } from "@/lib/operacao/health-score";
 import {
   formatCompetencia,
@@ -22,13 +23,15 @@ import type { GenerationSeries } from "@/lib/api/soliscloud";
 export const dynamic = "force-dynamic";
 
 export default async function ExecutivoPage() {
-  const [usinas, hist, fat, health, heatmap] = await Promise.all([
-    getUsinasComTelemetria(),
-    getHistoricoGeracaoMensal(),
-    getResumoFaturasDg(),
-    getHealthScore(),
-    geracaoPorUsinaMes(),
-  ]);
+  const [usinas, hist, fat, health, heatmap] = await withSessionTenant(() =>
+    Promise.all([
+      getUsinasComTelemetria(),
+      getHistoricoGeracaoMensal(),
+      getResumoFaturasDg(),
+      getHealthScore(),
+      geracaoPorUsinaMes(),
+    ]),
+  );
 
   const comEsperado = usinas.linhas.filter((l) => (l.esperadoMesKwh ?? 0) > 0);
   const realTot = comEsperado.reduce((s, l) => s + (l.realizadoMesKwh ?? 0), 0);

@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
-import { eq, sql } from "drizzle-orm";
+import { getSessionTenantId } from "@/lib/auth/tenant";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { clientes, parametrosProposta, propostas } from "@/lib/db/schema";
 import { gerarResultado } from "./calcular";
@@ -66,6 +67,7 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
   const d = parsed.data;
+  const tenantId = await getSessionTenantId();
 
   const geradorInput: GeradorInput = {
     instalacao: d.instalacao,
@@ -90,7 +92,12 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
     const [existente] = await getDb()
       .select({ id: clientes.id })
       .from(clientes)
-      .where(sql`lower(${clientes.nome}) = lower(${d.clienteNome})`)
+      .where(
+        and(
+          sql`lower(${clientes.nome}) = lower(${d.clienteNome})`,
+          eq(clientes.tenantId, tenantId),
+        ),
+      )
       .limit(1);
     const clienteId = existente?.id ?? null;
     const clienteNomeLivre = existente ? null : d.clienteNome;
@@ -98,6 +105,7 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
     const [row] = await getDb()
       .insert(propostas)
       .values({
+        tenantId,
         clienteId,
         clienteNomeLivre,
         unidadeConsumidoraId: d.unidadeConsumidoraId,
@@ -197,17 +205,24 @@ export async function salvarParametrosProposta(input: unknown): Promise<ActionRe
 
   try {
     const db = getDb();
+    const tenantId = await getSessionTenantId();
     const [existente] = await db
       .select({ id: parametrosProposta.id })
       .from(parametrosProposta)
+      .where(eq(parametrosProposta.tenantId, tenantId))
       .limit(1);
     if (existente) {
       await db
         .update(parametrosProposta)
         .set({ dados, updatedAt: new Date() })
-        .where(eq(parametrosProposta.id, existente.id));
+        .where(
+          and(
+            eq(parametrosProposta.id, existente.id),
+            eq(parametrosProposta.tenantId, tenantId),
+          ),
+        );
     } else {
-      await db.insert(parametrosProposta).values({ dados });
+      await db.insert(parametrosProposta).values({ dados, tenantId });
     }
     revalidatePath("/configuracoes/proposta-precos");
     revalidatePath("/propostas/gerador");

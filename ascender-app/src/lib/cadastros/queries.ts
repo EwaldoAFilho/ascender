@@ -1,4 +1,4 @@
-import { asc, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
@@ -22,7 +22,11 @@ import type { SolisTelemetry } from "@/types/soliscloud";
 export type Option = { value: string; label: string };
 
 export function listDistribuidoras() {
-  return getDb().select().from(distribuidoras).orderBy(asc(distribuidoras.nome));
+  return getDb()
+    .select()
+    .from(distribuidoras)
+    .where(eq(distribuidoras.tenantId, getCurrentTenantId()))
+    .orderBy(asc(distribuidoras.nome));
 }
 
 export function listClientes() {
@@ -51,6 +55,7 @@ export function listUnidades() {
       distribuidoras,
       eq(unidadesConsumidoras.distribuidoraId, distribuidoras.id),
     )
+    .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId()))
     .orderBy(asc(unidadesConsumidoras.codigoInstalacao));
 }
 
@@ -81,6 +86,7 @@ export function listUsinas() {
     })
     .from(usinas)
     .leftJoin(distribuidoras, eq(usinas.distribuidoraId, distribuidoras.id))
+    .where(eq(usinas.tenantId, getCurrentTenantId()))
     .orderBy(asc(usinas.nome));
 }
 
@@ -105,7 +111,8 @@ export function listContratos() {
       unidadesConsumidoras,
       eq(contratos.unidadeConsumidoraId, unidadesConsumidoras.id),
     )
-    .leftJoin(usinas, eq(contratos.usinaId, usinas.id));
+    .leftJoin(usinas, eq(contratos.usinaId, usinas.id))
+    .where(eq(contratos.tenantId, getCurrentTenantId()));
 }
 
 export function listFaturas() {
@@ -133,6 +140,7 @@ export function listFaturas() {
       eq(faturas.unidadeConsumidoraId, unidadesConsumidoras.id),
     )
     .leftJoin(usinas, eq(faturas.usinaId, usinas.id))
+    .where(eq(faturas.tenantId, getCurrentTenantId()))
     .orderBy(desc(faturas.competencia), asc(clientes.nome));
 }
 
@@ -162,6 +170,7 @@ export function listPropostas() {
       eq(propostas.unidadeConsumidoraId, unidadesConsumidoras.id),
     )
     .leftJoin(distribuidoras, eq(propostas.distribuidoraId, distribuidoras.id))
+    .where(eq(propostas.tenantId, getCurrentTenantId()))
     .orderBy(asc(sql`coalesce(${clientes.nome}, ${propostas.clienteNomeLivre})`));
 }
 
@@ -175,6 +184,7 @@ export async function getHistoricoGeracaoMensal() {
       receita: sql<number>`coalesce(sum(${medicoesGeracao.receita}), 0)`,
     })
     .from(medicoesGeracao)
+    .where(eq(medicoesGeracao.tenantId, getCurrentTenantId()))
     .groupBy(medicoesGeracao.competencia)
     .orderBy(asc(medicoesGeracao.competencia));
 
@@ -210,7 +220,12 @@ export async function geracaoPorUsinaMes(): Promise<HeatmapGeracao> {
     })
     .from(medicoesGeracao)
     .innerJoin(usinas, eq(usinas.id, medicoesGeracao.usinaId))
-    .where(sql`${medicoesGeracao.competencia} like ${`${ano}-%`}`)
+    .where(
+      and(
+        eq(medicoesGeracao.tenantId, getCurrentTenantId()),
+        sql`${medicoesGeracao.competencia} like ${`${ano}-%`}`,
+      ),
+    )
     .groupBy(usinas.nome, medicoesGeracao.competencia)
     .orderBy(asc(usinas.nome), asc(medicoesGeracao.competencia));
 
@@ -232,7 +247,8 @@ export async function geracaoPorUsinaMes(): Promise<HeatmapGeracao> {
 export async function getResumoFaturas() {
   const rows = await getDb()
     .select({ status: faturas.status, valorBoleto: faturas.valorBoleto })
-    .from(faturas);
+    .from(faturas)
+    .where(eq(faturas.tenantId, getCurrentTenantId()));
   const total = rows.reduce((s, r) => s + (r.valorBoleto ?? 0), 0);
   const pago = rows
     .filter((r) => r.status === "pago")
@@ -265,21 +281,30 @@ export async function getCadastrosResumo(): Promise<CadastrosResumo> {
         comSolis: sql<number>`count(${usinas.stationIdSoliscloud})`,
         comDg: sql<number>`count(${usinas.codigoDigitalGrid})`,
       })
-      .from(usinas),
+      .from(usinas)
+      .where(eq(usinas.tenantId, getCurrentTenantId())),
     db
       .select({
         total: count(),
         ativos: sql<number>`count(*) filter (where ${clientes.status} = 'ativo')`,
       })
-      .from(clientes),
-    db.select({ total: count() }).from(unidadesConsumidoras),
+      .from(clientes)
+      .where(eq(clientes.tenantId, getCurrentTenantId())),
+    db
+      .select({ total: count() })
+      .from(unidadesConsumidoras)
+      .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId())),
     db
       .select({
         total: count(),
         ativos: sql<number>`count(*) filter (where ${contratos.status} = 'ativo')`,
       })
-      .from(contratos),
-    db.select({ total: count() }).from(distribuidoras),
+      .from(contratos)
+      .where(eq(contratos.tenantId, getCurrentTenantId())),
+    db
+      .select({ total: count() })
+      .from(distribuidoras)
+      .where(eq(distribuidoras.tenantId, getCurrentTenantId())),
   ]);
 
   return {
@@ -312,6 +337,7 @@ export async function opcoesUnidades(): Promise<Option[]> {
   const rows = await getDb()
     .select({ id: unidadesConsumidoras.id, codigo: unidadesConsumidoras.codigoInstalacao })
     .from(unidadesConsumidoras)
+    .where(eq(unidadesConsumidoras.tenantId, getCurrentTenantId()))
     .orderBy(asc(unidadesConsumidoras.codigoInstalacao));
   return rows.map((u) => ({ value: u.id, label: u.codigo }));
 }
@@ -320,6 +346,7 @@ export async function opcoesUsinas(): Promise<Option[]> {
   const rows = await getDb()
     .select({ id: usinas.id, nome: usinas.nome })
     .from(usinas)
+    .where(eq(usinas.tenantId, getCurrentTenantId()))
     .orderBy(asc(usinas.nome));
   return rows.map((u) => ({ value: u.id, label: u.nome }));
 }

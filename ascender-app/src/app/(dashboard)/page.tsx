@@ -14,6 +14,7 @@ import { getHealthScore } from "@/lib/operacao/health-score";
 import { getIncidents } from "@/lib/operacao/incidents";
 import { getOperationalOverview } from "@/lib/operacao/operational-overview";
 import { getTimeline } from "@/lib/operacao/timeline";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -21,16 +22,20 @@ export const dynamic = "force-dynamic";
 export default async function OverviewPage() {
   // Uma única leitura operacional compartilhada por Health Score e Centro de
   // Atenção (em paralelo com os dados do cockpit/frota).
-  const [usinas, tele, overview] = await Promise.all([
-    getUsinasComTelemetria(),
-    getTelemetriaPorStation(),
-    getOperationalOverview(),
-  ]);
-  const [health, incidents, timeline] = await Promise.all([
-    getHealthScore(overview),
-    getIncidents(overview),
-    getTimeline(overview),
-  ]);
+  const [usinas, tele, overview] = await withSessionTenant(() =>
+    Promise.all([
+      getUsinasComTelemetria(),
+      getTelemetriaPorStation(),
+      getOperationalOverview(),
+    ]),
+  );
+  const [health, incidents, timeline] = await withSessionTenant(() =>
+    Promise.all([
+      getHealthScore(overview),
+      getIncidents(overview),
+      getTimeline(overview),
+    ]),
+  );
   const coletaEm = overview.lastTelemetryIso;
 
   const estacoes = Array.from(tele.mapa.values()).sort(

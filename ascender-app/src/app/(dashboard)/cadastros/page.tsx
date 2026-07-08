@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getCadastrosResumo } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,8 @@ type HubCard = {
 };
 
 export default async function CadastrosHubPage() {
-  const r = await getCadastrosResumo();
+  // Escopa a leitura ao tenant do usuário logado (multi-tenant, Fase 2).
+  const r = await withSessionTenant(() => getCadastrosResumo());
 
   const cards: HubCard[] = [
     {

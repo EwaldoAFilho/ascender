@@ -6,16 +6,16 @@ import {
   opcoesClientes,
   opcoesDistribuidoras,
 } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function UnidadesCadastroPage() {
-  const [rows, cliOpts, distOpts] = await Promise.all([
-    listUnidades(),
-    opcoesClientes(),
-    opcoesDistribuidoras(),
-  ]);
+  // Escopa a leitura ao tenant do usuário logado (multi-tenant, Fase 2).
+  const [rows, cliOpts, distOpts] = await withSessionTenant(() =>
+    Promise.all([listUnidades(), opcoesClientes(), opcoesDistribuidoras()]),
+  );
 
   const consumoMensal = rows.reduce((s, u) => s + u.consumoMedioKwh, 0);
   const clientesAtendidos = new Set(rows.map((u) => u.clienteId)).size;

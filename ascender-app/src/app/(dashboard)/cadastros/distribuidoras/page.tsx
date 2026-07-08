@@ -2,11 +2,13 @@ import { CrudSection } from "@/components/cadastros/CrudSection";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteDistribuidora, saveDistribuidora } from "@/lib/cadastros/actions";
 import { listDistribuidoras } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 
 export const dynamic = "force-dynamic";
 
 export default async function DistribuidorasCadastroPage() {
-  const rows = await listDistribuidoras();
+  // Escopa a leitura ao tenant do usuário logado (multi-tenant, Fase 2).
+  const rows = await withSessionTenant(() => listDistribuidoras());
 
   const ufs = new Set(rows.map((d) => d.uf).filter(Boolean)).size;
   const resumo: SummaryItem[] = [

@@ -5,6 +5,7 @@ import {
   type ConciliacaoReport,
 } from "@/lib/digitalgrid/cadastros";
 import { getDgCredential } from "@/lib/digitalgrid/credentials";
+import { withSessionTenant } from "@/lib/auth/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,9 @@ export default async function ConciliacaoPage() {
     );
   }
 
-  const report = await getConciliacaoReport();
+  // Escopa a leitura dos cadastros (clientes/usinas/UCs) ao tenant logado
+  // (multi-tenant, Fase 2).
+  const report = await withSessionTenant(() => getConciliacaoReport());
   const totalImportar =
     report.clientes.aImportar + report.usinas.aImportar + report.ucs.aImportar;
 

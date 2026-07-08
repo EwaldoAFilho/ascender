@@ -1,5 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
   alarmes,
   syncRuns,
@@ -52,6 +53,7 @@ export async function lerEstacoesDoBanco(): Promise<SolisTelemetry[]> {
     })
     .from(telemetriaEstacao)
     .leftJoin(usinas, eq(usinas.id, telemetriaEstacao.usinaId))
+    .where(eq(telemetriaEstacao.tenantId, getCurrentTenantId()))
     .orderBy(telemetriaEstacao.stationId, desc(telemetriaEstacao.capturadoEm));
 
   return rows.map((r) => ({
@@ -86,6 +88,7 @@ export async function lerInversoresDoBanco(): Promise<InverterTelemetry[]> {
       capturadoEm: telemetriaInversor.capturadoEm,
     })
     .from(telemetriaInversor)
+    .where(eq(telemetriaInversor.tenantId, getCurrentTenantId()))
     .orderBy(telemetriaInversor.serial, desc(telemetriaInversor.capturadoEm));
 
   return rows.map((r) => ({
@@ -113,6 +116,7 @@ export async function lerColetoresDoBanco(): Promise<CollectorMonitor> {
       capturadoEm: telemetriaColetor.capturadoEm,
     })
     .from(telemetriaColetor)
+    .where(eq(telemetriaColetor.tenantId, getCurrentTenantId()))
     .orderBy(telemetriaColetor.sn, desc(telemetriaColetor.capturadoEm));
 
   const coletores: Collector[] = rows.map((r) => ({
@@ -139,6 +143,7 @@ export async function lerAlarmesDoBanco(): Promise<SolisAlarm[]> {
   const rows = await db
     .select()
     .from(alarmes)
+    .where(eq(alarmes.tenantId, getCurrentTenantId()))
     .orderBy(desc(alarmes.atualizadoEm));
 
   return rows.map((r) => ({
@@ -157,7 +162,8 @@ export async function ultimaTelemetriaEm(): Promise<string | null> {
   const db = getDb();
   const [r] = await db
     .select({ at: sql<Date | null>`max(${telemetriaEstacao.capturadoEm})` })
-    .from(telemetriaEstacao);
+    .from(telemetriaEstacao)
+    .where(eq(telemetriaEstacao.tenantId, getCurrentTenantId()));
   return r?.at ? new Date(r.at).toISOString() : null;
 }
 
@@ -179,7 +185,8 @@ export async function geracaoDiariaFrota(dias = 14): Promise<GeracaoDia[]> {
     .select({
       meta: sql<number>`coalesce(sum(${usinas.geracaoEsperadaKwhMes}), 0)`,
     })
-    .from(usinas);
+    .from(usinas)
+    .where(eq(usinas.tenantId, getCurrentTenantId()));
   const esperadoDia = Number(m?.meta ?? 0) / 30;
 
   // Realizado por dia = pico de energia_dia_kwh (acumulado do dia) por estação,
@@ -192,6 +199,7 @@ export async function geracaoDiariaFrota(dias = 14): Promise<GeracaoDia[]> {
              max(energia_dia_kwh) AS maxdia
       FROM telemetria_estacao
       WHERE capturado_em > now() - make_interval(days => ${dias})
+        AND tenant_id = ${getCurrentTenantId()}
       GROUP BY station_id, (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date
     ) sub
     GROUP BY d
@@ -231,6 +239,7 @@ export async function curvaGeracaoBanco(
       FROM medicoes_geracao m
       JOIN usinas u ON u.id = m.usina_id
       WHERE u.station_id_soliscloud = ${stationId}
+        AND m.tenant_id = ${getCurrentTenantId()}
         AND m.competencia LIKE to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'YYYY') || '-%'
       ORDER BY m.competencia
     `);
@@ -261,6 +270,7 @@ export async function curvaGeracaoBanco(
                max(energia_dia_kwh) AS maxdia
         FROM telemetria_estacao
         WHERE station_id = ${stationId}
+          AND tenant_id = ${getCurrentTenantId()}
           AND to_char(capturado_em AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM')
               = to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM')
         GROUP BY (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date
@@ -304,6 +314,7 @@ export async function curvaGeracaoBanco(
              avg(potencia_kw) AS value
       FROM telemetria_estacao
       WHERE station_id = ${stationId}
+        AND tenant_id = ${getCurrentTenantId()}
         AND (capturado_em AT TIME ZONE 'America/Sao_Paulo')::date
             = (SELECT dia_ini FROM lim)::date
       GROUP BY 1
@@ -356,7 +367,12 @@ export async function uptimeColetores(horas = 24): Promise<UptimeColetor[]> {
     })
     .from(telemetriaColetor)
     .leftJoin(usinas, eq(usinas.id, telemetriaColetor.usinaId))
-    .where(sql`${telemetriaColetor.capturadoEm} > now() - make_interval(hours => ${horas})`)
+    .where(
+      and(
+        eq(telemetriaColetor.tenantId, getCurrentTenantId()),
+        sql`${telemetriaColetor.capturadoEm} > now() - make_interval(hours => ${horas})`,
+      ),
+    )
     .groupBy(telemetriaColetor.sn, usinas.nome)
     .orderBy(telemetriaColetor.sn);
 
@@ -410,6 +426,7 @@ export async function listarSyncRunsRecentes(
       mensagem: syncRuns.mensagem,
     })
     .from(syncRuns)
+    .where(eq(syncRuns.tenantId, getCurrentTenantId()))
     .orderBy(desc(syncRuns.iniciadoEm))
     .limit(limite);
 
@@ -440,6 +457,7 @@ export async function historicoAlarmes(limite = 60): Promise<AlarmeHistorico[]> 
     })
     .from(alarmes)
     .leftJoin(usinas, eq(usinas.id, alarmes.usinaId))
+    .where(eq(alarmes.tenantId, getCurrentTenantId()))
     .orderBy(desc(alarmes.atualizadoEm))
     .limit(limite);
 
@@ -483,7 +501,12 @@ export async function historicoPotenciaFrota(
       total: sql<number>`sum(${telemetriaEstacao.potenciaKw})`,
     })
     .from(telemetriaEstacao)
-    .where(sql`${telemetriaEstacao.capturadoEm} > now() - make_interval(hours => ${horas})`)
+    .where(
+      and(
+        eq(telemetriaEstacao.tenantId, getCurrentTenantId()),
+        sql`${telemetriaEstacao.capturadoEm} > now() - make_interval(hours => ${horas})`,
+      ),
+    )
     .groupBy(telemetriaEstacao.capturadoEm)
     .orderBy(telemetriaEstacao.capturadoEm);
 

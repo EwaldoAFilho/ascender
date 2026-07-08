@@ -1,6 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
+import { getSessionTenantId } from "@/lib/auth/tenant";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { cadastroHistorico } from "@/lib/db/schema";
 
 export type AutorAtual = { autor: string | null; autorId: string | null };
@@ -29,10 +31,12 @@ export async function registrarHistorico(
 ): Promise<void> {
   const arr = Array.isArray(entrada) ? entrada : [entrada];
   if (arr.length === 0) return;
+  const tenantId = await getSessionTenantId();
   await getDb()
     .insert(cadastroHistorico)
     .values(
       arr.map((x) => ({
+        tenantId,
         entidade: x.entidade,
         entidadeId: x.entidadeId,
         acao: x.acao,
@@ -55,6 +59,7 @@ export async function listarHistorico(entidade: string, entidadeId: string) {
       and(
         eq(cadastroHistorico.entidade, entidade),
         eq(cadastroHistorico.entidadeId, entidadeId),
+        eq(cadastroHistorico.tenantId, getCurrentTenantId()),
       ),
     )
     .orderBy(desc(cadastroHistorico.criadoEm));
