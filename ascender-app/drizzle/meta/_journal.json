@@ -127,6 +127,13 @@
       "when": 1783515135739,
       "tag": "0017_solid_krista_starr",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1783528459279,
+      "tag": "0018_big_cerise",
+      "breakpoints": true
     }
   ]
 }

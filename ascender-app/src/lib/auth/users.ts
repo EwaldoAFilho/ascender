@@ -1,7 +1,7 @@
 import { hash, verify } from "@node-rs/argon2";
 import { asc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { usuarios, type Usuario } from "@/lib/db/schema";
+import { tenantMemberships, usuarios, type Usuario } from "@/lib/db/schema";
 
 const norm = (email: string) => email.trim().toLowerCase();
 
@@ -33,6 +33,19 @@ export async function verifyLogin(
     /* hash inválido */
   }
   return null;
+}
+
+/** Membership padrão (1º tenant) do usuário — usado no login para escopar a sessão. */
+export async function getDefaultMembership(
+  userId: string,
+): Promise<{ tenantId: string; role: string } | null> {
+  const rows = await getDb()
+    .select({ tenantId: tenantMemberships.tenantId, role: tenantMemberships.role })
+    .from(tenantMemberships)
+    .where(eq(tenantMemberships.userId, userId))
+    .orderBy(asc(tenantMemberships.createdAt))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getUsuario(id: string): Promise<Usuario | null> {

@@ -8,7 +8,12 @@ export type SessionData = {
   email?: string;
   loginAt?: number;
   userId?: string;
-  roles?: string[];
+  // Multi-tenancy: tenant ativo da sessão + papel do usuário nesse tenant.
+  // Populados no login a partir de `tenant_memberships`. A autorização real é
+  // sempre revalidada no servidor (a sessão não é fonte de verdade).
+  tenantId?: string;
+  role?: string;
+  roles?: string[]; // legado — não usado
 };
 
 export const SESSION_COOKIE = "ascender_session";

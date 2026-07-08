@@ -2,11 +2,10 @@ import "dotenv/config";
 import { hash } from "@node-rs/argon2";
 import { sql } from "drizzle-orm";
 import { getDb } from "./index";
-import { usuarios } from "./schema";
+import { TENANT0_ID, tenantMemberships, tenants, usuarios } from "./schema";
 
-// Seed idempotente do usuário administrador inicial.
-// Cria o admin a partir de LOGIN_EMAIL/LOGIN_PASSWORD apenas se ainda NÃO houver
-// nenhum usuário cadastrado (não sobrescreve usuários/senhas geridos na app).
+// Seed idempotente: garante o "tenant 0" (instância atual — Ascender), o usuário
+// administrador inicial e os vínculos usuário↔tenant. Roda em todo boot.
 async function main() {
   const db = getDb();
   const email = (
@@ -14,30 +13,45 @@ async function main() {
   ).toLowerCase();
   const password = process.env.LOGIN_PASSWORD;
 
+  // 1) Tenant 0 (a Ascender). Idempotente.
+  await db
+    .insert(tenants)
+    .values({ id: TENANT0_ID, nome: "Ascender", slug: "ascender", status: "ativo" })
+    .onConflictDoNothing();
+
+  // 2) Admin inicial — só se ainda NÃO houver nenhum usuário.
   const [{ n }] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(usuarios);
-
-  if (n > 0) {
+  if (n === 0) {
+    if (!password) {
+      console.warn(
+        "[seed] LOGIN_PASSWORD não definido — admin não criado. Defina e rode novamente.",
+      );
+    } else {
+      const senhaHash = await hash(password);
+      await db.insert(usuarios).values({ nome: "Administrador", email, senhaHash, ativo: true });
+      console.log(`[seed] Usuário administrador criado: ${email}.`);
+    }
+  } else {
     console.log(`[seed] Já existem ${n} usuário(s) — seed do admin pulado.`);
-    return;
   }
 
-  if (!password) {
-    console.warn(
-      "[seed] LOGIN_PASSWORD não definido — admin não criado. Defina e rode novamente.",
-    );
-    return;
+  // 3) Vincula todos os usuários ao tenant 0 (idempotente). O admin (LOGIN_EMAIL)
+  //    vira `owner`; os demais, `operador`. onConflictDoNothing preserva papéis já
+  //    ajustados na app.
+  const users = await db.select({ id: usuarios.id, email: usuarios.email }).from(usuarios);
+  for (const u of users) {
+    await db
+      .insert(tenantMemberships)
+      .values({
+        tenantId: TENANT0_ID,
+        userId: u.id,
+        role: u.email === email ? "owner" : "operador",
+      })
+      .onConflictDoNothing();
   }
-
-  const senhaHash = await hash(password);
-  await db.insert(usuarios).values({
-    nome: "Administrador",
-    email,
-    senhaHash,
-    ativo: true,
-  });
-  console.log(`[seed] Usuário administrador criado: ${email}.`);
+  console.log(`[seed] Tenant 0 + ${users.length} membership(s) garantidos.`);
 }
 
 main()

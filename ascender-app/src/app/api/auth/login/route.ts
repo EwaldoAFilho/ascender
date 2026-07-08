@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
-import { verifyLogin } from "@/lib/auth/users";
+import { getDefaultMembership, verifyLogin } from "@/lib/auth/users";
 
 export const runtime = "nodejs";
 
@@ -30,6 +30,12 @@ export async function POST(request: Request) {
   session.userId = user.id;
   session.email = user.email;
   session.loginAt = Date.now();
+  // Escopa a sessão ao tenant do usuário (membership padrão).
+  const membership = await getDefaultMembership(user.id);
+  if (membership) {
+    session.tenantId = membership.tenantId;
+    session.role = membership.role;
+  }
   await session.save();
 
   return NextResponse.json({ ok: true });

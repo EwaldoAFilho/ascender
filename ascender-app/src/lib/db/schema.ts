@@ -67,6 +67,41 @@ export const usuarios = pgTable("usuarios", {
     .defaultNow(),
 });
 
+// ===== Multi-tenancy (SaaS) — Fase 1: fundação de identidade =====
+// Tenant = empresa integradora/instaladora que assina o SaaS. A identidade do
+// usuário (`usuarios.email`) é GLOBAL; o vínculo usuário↔tenant + papel (RBAC)
+// fica em `tenant_memberships`. Os dados de negócio ganham `tenant_id` na próxima
+// etapa. O "tenant 0" (id fixo abaixo) representa a instância atual (Ascender),
+// para a qual todos os dados existentes serão atribuídos — nada é perdido.
+export const TENANT0_ID = "00000000-0000-0000-0000-000000000001";
+
+export const tenants = pgTable("tenants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nome: text("nome").notNull(),
+  slug: text("slug").notNull().unique(),
+  status: text("status").notNull().default("ativo"), // trial | ativo | suspenso
+  plano: text("plano").notNull().default("padrao"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Um usuário pode pertencer a 1+ tenants, com um papel por tenant.
+export const tenantMemberships = pgTable(
+  "tenant_memberships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => usuarios.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("operador"), // owner | admin | operador | leitura
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("tenant_memberships_tenant_user").on(t.tenantId, t.userId)],
+);
+
 // ===== Cadastros-mestre (alimentados manualmente; base do modelo relacional) =====
 
 export const distribuidoras = pgTable("distribuidoras", {
@@ -568,6 +603,9 @@ export type Alarme = typeof alarmes.$inferSelect;
 export type SyncRun = typeof syncRuns.$inferSelect;
 export type Anexo = typeof anexos.$inferSelect;
 export type CadastroHistorico = typeof cadastroHistorico.$inferSelect;
+
+export type Tenant = typeof tenants.$inferSelect;
+export type TenantMembership = typeof tenantMemberships.$inferSelect;
 
 export type IntegrationCredential = typeof integrationCredentials.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
