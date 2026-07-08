@@ -141,6 +141,20 @@
       "when": 1783531086713,
       "tag": "0019_long_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1783537721585,
+      "tag": "0020_rls_tenant",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1783537971424,
+      "tag": "0021_app_role",
+      "breakpoints": true
     }
   ]
 }

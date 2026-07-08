@@ -22,8 +22,10 @@ services:
         condition: service_healthy
     env_file: .env
     environment:
-      # Garante o host do banco do compose, independentemente do .env.
+      # Migrations/seed usam o dono (DATABASE_URL). O RUNTIME da app usa a role
+      # restrita ascender_app (sem BYPASSRLS) para a RLS por tenant valer.
       DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
+      APP_DATABASE_URL: postgresql://ascender_app:ascender_app@db:5432/ascender
     ports:
       - "${APP_PORT:-3000}:3000"
 

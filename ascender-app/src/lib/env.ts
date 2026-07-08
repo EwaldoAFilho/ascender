@@ -13,7 +13,11 @@ function required(name: string): string {
 }
 
 export const env = {
-  databaseUrl: () => required("DATABASE_URL"),
+  // Runtime da app usa APP_DATABASE_URL (role restrita, sem BYPASSRLS → a RLS
+  // por tenant vale); migrations/DDL usam DATABASE_URL (dono/superuser) via
+  // drizzle.config.ts. Sem APP_DATABASE_URL, cai em DATABASE_URL.
+  databaseUrl: () =>
+    process.env.APP_DATABASE_URL?.trim() || required("DATABASE_URL"),
   encryptionKey: () => required("APP_ENCRYPTION_KEY"),
   sessionSecret: () => {
     const secret = required("SESSION_SECRET");
