@@ -39,9 +39,16 @@ todas as queries retornam tudo. Roadmap completo em
   (fábrica `tenantCol`) nas 19 tabelas de negócio + uniques compostas (migração
   `drizzle/0019`). Backfill verificado: 0 linhas fora do tenant 0. O `DEFAULT`
   mantém a app não-quebrada até o escopo por query/RLS.
-- **Próximo:** Fase 2 (escopar as ~110 queries por tenant via `getTenantDb()`),
-  depois Fase 3 (RLS), Fase 4 (RBAC), Fase 5 (credenciais por tenant), Fase 6 (sync
-  por tenant + Redis), Fase 7 (infra), Fase 8 (billing Stripe).
+- **Fase 2 (escopo por tenant) — feita:** contexto de tenant (`db/tenant-context.ts`
+  com `AsyncLocalStorage` + `auth/tenant.ts` `withSessionTenant`/`getSessionTenantId`);
+  todas as queries de leitura filtram por `getCurrentTenantId()`, os writes setam
+  `tenant_id` e escopam o WHERE, e as páginas (server components) carregam dados
+  dentro de `withSessionTenant`. Isolamento provado com um tenant B (cada tenant só
+  vê os próprios dados). Pendências por design: integrações/credenciais globais
+  (dropdown Solis compartilhado) → Fase 5; route handlers de API e workers usam
+  fallback tenant 0 → Fase 5/6.
+- **Próximo:** Fase 3 (RLS backstop no Postgres), Fase 4 (RBAC), Fase 5 (credenciais
+  por tenant), Fase 6 (sync por tenant + Redis), Fase 7 (infra), Fase 8 (billing Stripe).
 
 ## Alternativas consideradas
 - Schema-per-tenant / DB-per-tenant: rejeitados por custo operacional neste porte.
