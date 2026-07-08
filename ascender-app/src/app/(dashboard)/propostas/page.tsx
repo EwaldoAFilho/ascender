@@ -85,6 +85,7 @@ export default async function PropostasPage() {
 
       <CrudSection
         singular="proposta"
+        hideAdd
         onSave={saveProposta}
         onDelete={deleteProposta}
         fields={[

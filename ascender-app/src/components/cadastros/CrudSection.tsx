@@ -69,6 +69,12 @@ type Props = {
   extras?: Record<string, ReactNode>;
   /** Quando true, a 1ª coluna vira um link que abre o modal de edição. */
   clickableFirstColumn?: boolean;
+  /**
+   * Quando true, oculta o botão "Adicionar" (criação manual). Editar/excluir por
+   * linha continuam disponíveis. Use quando a criação acontece por outro fluxo
+   * (ex.: propostas são criadas pelo gerador de dimensionamento).
+   */
+  hideAdd?: boolean;
 };
 
 export function CrudSection({
@@ -80,6 +86,7 @@ export function CrudSection({
   onDelete,
   extras,
   clickableFirstColumn = false,
+  hideAdd = false,
 }: Props) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -215,16 +222,22 @@ export function CrudSection({
             <h2>Registros</h2>
             <p>{rows.length} cadastrado(s)</p>
           </div>
-          <button type="button" className="btn-primary" onClick={openCreate}>
-            <Plus size={16} /> Adicionar {singular}
-          </button>
+          {hideAdd ? null : (
+            <button type="button" className="btn-primary" onClick={openCreate}>
+              <Plus size={16} /> Adicionar {singular}
+            </button>
+          )}
         </div>
         <DataTable
           columns={dataColumns}
           rows={rows}
           rowKey={(r) => r.id}
           fileName={singular}
-          emptyMessage={`Nenhum registro ainda. Clique em "Adicionar ${singular}".`}
+          emptyMessage={
+            hideAdd
+              ? "Nenhum registro ainda."
+              : `Nenhum registro ainda. Clique em "Adicionar ${singular}".`
+          }
         />
       </section>
 
