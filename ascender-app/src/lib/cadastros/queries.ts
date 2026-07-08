@@ -1,5 +1,6 @@
 import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
   clientes,
   contratos,
@@ -25,7 +26,11 @@ export function listDistribuidoras() {
 }
 
 export function listClientes() {
-  return getDb().select().from(clientes).orderBy(asc(clientes.nome));
+  return getDb()
+    .select()
+    .from(clientes)
+    .where(eq(clientes.tenantId, getCurrentTenantId()))
+    .orderBy(asc(clientes.nome));
 }
 
 export function listUnidades() {

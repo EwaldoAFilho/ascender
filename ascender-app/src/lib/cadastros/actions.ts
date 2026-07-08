@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
+import { getSessionTenantId } from "@/lib/auth/tenant";
 import { getDb } from "@/lib/db";
 import {
   clientes,
@@ -159,16 +160,17 @@ export async function saveCliente(input: unknown): Promise<ActionResult> {
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const { id, ...data } = parsed.data;
   const { autor, autorId } = await autorAtual();
+  const tenantId = await getSessionTenantId();
   try {
     if (id) {
       const [antes] = await getDb()
         .select()
         .from(clientes)
-        .where(eq(clientes.id, id));
+        .where(and(eq(clientes.id, id), eq(clientes.tenantId, tenantId)));
       await getDb()
         .update(clientes)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(clientes.id, id));
+        .where(and(eq(clientes.id, id), eq(clientes.tenantId, tenantId)));
       if (antes) {
         const entradas: EntradaHistorico[] = [];
         for (const [campo, label] of CLIENTE_CAMPOS) {
@@ -192,7 +194,7 @@ export async function saveCliente(input: unknown): Promise<ActionResult> {
     } else {
       const [row] = await getDb()
         .insert(clientes)
-        .values(data)
+        .values({ ...data, tenantId })
         .returning({ id: clientes.id });
       await registrarHistorico({
         entidade: "cliente",
@@ -246,8 +248,11 @@ export async function excluirAnexoCliente(
 export async function deleteCliente(id: string): Promise<ActionResult> {
   const auth = await ensureAuth();
   if (auth) return auth;
+  const tenantId = await getSessionTenantId();
   try {
-    await getDb().delete(clientes).where(eq(clientes.id, id));
+    await getDb()
+      .delete(clientes)
+      .where(and(eq(clientes.id, id), eq(clientes.tenantId, tenantId)));
     revalidate();
     return { ok: true };
   } catch {

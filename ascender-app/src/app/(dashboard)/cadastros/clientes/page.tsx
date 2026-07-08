@@ -5,12 +5,14 @@ import { OrigemBanner } from "@/components/cadastros/OrigemBanner";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
 import { deleteCliente, saveCliente } from "@/lib/cadastros/actions";
 import { listClientes } from "@/lib/cadastros/queries";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { numberFormatter } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientesCadastroPage() {
-  const rows = await listClientes();
+  // Escopa a leitura ao tenant do usuário logado (multi-tenant, Fase 2).
+  const rows = await withSessionTenant(() => listClientes());
 
   // Ao editar um cliente existente, o modal mostra a ficha: proveniência
   // (quando veio de integração) + anexos + histórico de alterações.
