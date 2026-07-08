@@ -1,0 +1,672 @@
+{
+  "gerado_em": "2026-07-08",
+  "fonte": "kb-discovery workflow (12 agentes)",
+  "modulos": [
+    {
+      "nome": "Arquitetura & App Shell",
+      "slug": "arquitetura",
+      "caminhos_codigo": [
+        "ascender-app/src/app/layout.tsx",
+        "ascender-app/src/app/providers.tsx",
+        "ascender-app/src/app/(dashboard)/layout.tsx",
+        "ascender-app/src/app/(dashboard)/page.tsx",
+        "ascender-app/src/app/login/page.tsx",
+        "ascender-app/src/app/globals.css",
+        "ascender-app/next.config.mjs",
+        "ascender-app/tsconfig.json",
+        "ascender-app/src/middleware.ts",
+        "ascender-app/src/lib/env.ts",
+        "ascender-app/src/lib/theme.tsx",
+        "ascender-app/src/lib/cache/ttlCache.ts",
+        "ascender-app/src/lib/api/soliscloud.ts",
+        "ascender-app/src/lib/api/ai.ts",
+        "ascender-app/src/lib/api/digitalgrid.ts",
+        "ascender-app/src/lib/db/index.ts",
+        "ascender-app/src/lib/soliscloud/handler.ts",
+        "ascender-app/src/lib/auth/session.ts",
+        "ascender-app/src/lib/auth/guard.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/arquitetura.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [],
+      "riscos": [
+        "SESSION_COOKIE 'ascender_session' esta duplicado como literal em middleware.ts:5 e session.ts:14; renomear em um so lugar quebra a autenticacao silenciosamente",
+        "Middleware so checa presenca do cookie: confiar apenas nele (sem requireSession/getSession) deixa a rota vulneravel a cookie forjado/expirado ainda presente",
+        "ttlCache e memoria de processo unico: multiplas replicas geram cache inconsistente e leituras desatualizadas da SolisCloud (escalar exige Redis)",
+        "Divergencia de default de tema entre script anti-flash ('light') e ThemeProvider ('dark') pode reintroduzir flash/mismatch",
+        "Remover 'use client' de providers.tsx ou (dashboard)/layout.tsx quebra hooks (useState, usePathname, useTheme)",
+        "serverExternalPackages precisa ser atualizado ao adicionar novas dependencias nativas server-only, senao o build quebra",
+        "env getters sao lazy e lancam em runtime: segredo ausente so falha ao exercer a rota (nao no build), mascarando misconfig ate producao",
+        "Alterar o matcher do middleware pode expor rotas privadas ou bloquear assets (/brand, _next)"
+      ],
+      "pendencias": [
+        "A tarefa cita route group (auth), mas a area publica e o segmento simples src/app/login/ (nao existe diretorio (auth)); confirmar se foi planejado/renomeado",
+        "Nao foram observados error.tsx, not-found.tsx, loading.tsx ou template.tsx nesta varredura; investigar tratamento global de erro/loading",
+        "SessionData ja modela userId/roles para RBAC futuro (session.ts:6-12), mas nao ha enforcement de roles no shell/middleware; confirmar se RBAC esta ativo em algum modulo",
+        "globals.css (~66 KB) nao foi lido em detalhe: e o design system que sustenta as classes do shell (app-shell, sidebar, topbar, cockpit); documentar tokens/temas se necessario",
+        "Confirmar politica de cache/revalidacao: muitos force-dynamic sem uso de revalidate/ISR; validar se e intencional (dados sempre frescos)"
+      ]
+    },
+    {
+      "nome": "Autenticacao & Autorizacao",
+      "slug": "auth-autorizacao",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/auth/session.ts",
+        "ascender-app/src/lib/auth/guard.ts",
+        "ascender-app/src/lib/auth/users.ts",
+        "ascender-app/src/lib/auth/actions.ts",
+        "ascender-app/src/lib/crypto/secrets.ts",
+        "ascender-app/src/lib/env.ts",
+        "ascender-app/src/middleware.ts",
+        "ascender-app/src/app/api/auth/login/route.ts",
+        "ascender-app/src/app/api/auth/logout/route.ts",
+        "ascender-app/src/app/api/auth/password/route.ts",
+        "ascender-app/src/app/login/page.tsx",
+        "ascender-app/src/lib/db/seed.ts",
+        "ascender-app/src/lib/db/schema.ts",
+        "ascender-app/src/app/(dashboard)/configuracoes/usuarios/page.tsx",
+        "ascender-app/src/app/(dashboard)/configuracoes/senha/page.tsx"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/auth-autorizacao.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "usuarios",
+        "app_settings"
+      ],
+      "riscos": [
+        "SESSION_COOKIE duplicado como literal em middleware.ts:5 e session.ts:14 (para nao arrastar iron-session ao bundle Edge) — renomear em um lugar sem o outro quebra todo o gating",
+        "Middleware so checa presenca do cookie: paginas que renderizem dados sem chamar requireSession confiam em cookie potencialmente invalido",
+        "Trocar SESSION_SECRET invalida todas as sessoes; mudar algoritmo/parametros argon2 invalida senhas ja gravadas",
+        "Regras 'ultimo usuario ativo' e 'nao mexer em si mesmo' vivem so na server action actions.ts — qualquer outro caminho de escrita em usuarios as ignora",
+        "ensureAuth duplicado em auth/actions.ts:17 e cadastros/actions.ts:33 — risco de divergencia",
+        "Campo roles sugere RBAC mas nao ha enforcement; introduzir permissoes exige tocar login, guard e todas as rotas",
+        "cookieSecure atrelado ao prefixo https:// de APP_BASE_URL — config errada em producao deixa cookie sem Secure"
+      ],
+      "pendencias": [
+        "Confirmar se app_settings (login_email/login_password_hash) ainda e lido ou e legado do login unico compartilhado",
+        "Parametros exatos do argon2 (memoria/tempo/paralelismo) nao explicitos — usa defaults da lib",
+        "loginAt gravado na sessao mas nao encontrado uso para expiracao server-side alem do maxAge do cookie",
+        "Ausencia de rate limiting/lockout e de CSRF explicito (mitigado por sameSite lax) — validar se e requisito",
+        "Confirmar se alguma pagina do grupo (dashboard) depende so do middleware, sem requireSession, para proteger dados"
+      ]
+    },
+    {
+      "nome": "Cadastros (CRUD)",
+      "slug": "cadastros",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/cadastros/actions.ts",
+        "ascender-app/src/lib/cadastros/queries.ts",
+        "ascender-app/src/lib/cadastros/anexos.ts",
+        "ascender-app/src/lib/cadastros/historico.ts",
+        "ascender-app/src/lib/cadastros/sync.ts",
+        "ascender-app/src/components/cadastros/CrudSection.tsx",
+        "ascender-app/src/components/cadastros/ClienteFicha.tsx",
+        "ascender-app/src/components/cadastros/OrigemBanner.tsx",
+        "ascender-app/src/components/cadastros/ImportarUsinasSolis.tsx",
+        "ascender-app/src/components/cadastros/ImportarCadastrosDg.tsx",
+        "ascender-app/src/app/api/cadastros/anexo/route.ts",
+        "ascender-app/src/app/api/cadastros/anexo/[id]/route.ts",
+        "ascender-app/src/app/(dashboard)/cadastros/layout.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/clientes/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/unidades/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/usinas/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/contratos/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/distribuidoras/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/conciliacao/page.tsx",
+        "ascender-app/src/lib/db/schema.ts",
+        "ascender-app/src/lib/digitalgrid/cadastros.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/cadastros.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "distribuidoras",
+        "clientes",
+        "unidades_consumidoras",
+        "usinas",
+        "contratos",
+        "anexos",
+        "cadastro_historico",
+        "medicoes_geracao",
+        "faturas",
+        "propostas"
+      ],
+      "riscos": [
+        "catch generico nas actions mascara a causa real e devolve mensagens fixas (pode enganar o usuario)",
+        "Contradicao: painel e docstring dizem que potencia nao e sobrescrita, mas importStationsFromSolis seta potenciaKwp e nome a cada sync (apaga edicao manual)",
+        "Anexos/historico genericos no schema, porem hardcoded para 'cliente' em varios pontos (estender exige mexer em multiplos arquivos)",
+        "Anexos em bytea ate 25 MB no Postgres: risco de inchaco do banco e payloads grandes em Server Actions",
+        "CrudSection carrega todas as linhas sem paginacao/busca server-side",
+        "Conciliacao DG usa normName e match por inclusao de substring (distribuidora) - fragil a variacoes de nome",
+        "Faturas e propostas tem actions dentro de cadastros/actions.ts mas pertencem a outros modulos",
+        "getFichaCliente retorna vazio silenciosamente quando nao autenticado (mascara sessao expirada)"
+      ],
+      "pendencias": [
+        "Confirmar intencao sobre sobrescrita de potencia na importacao SolisCloud (docstring/painel x codigo divergem)",
+        "Confirmar se ausencia de historico/anexos para UC, usina, contrato e distribuidora e intencional ou backlog",
+        "Fronteira entre este modulo e operacao/geracao: medicoes_geracao esta em queries.ts daqui, mas sync-geracao vive em lib/db/",
+        "Nao ha busca/paginacao server-side; verificar limite pratico de registros esperado",
+        "Avaliar se save/deleteProposta e save/deleteFatura deveriam migrar para os modulos financeiro/propostas"
+      ]
+    },
+    {
+      "nome": "Dados & Banco (Drizzle/Postgres)",
+      "slug": "dados-e-banco",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/db/schema.ts",
+        "ascender-app/src/lib/db/index.ts",
+        "ascender-app/drizzle.config.ts",
+        "ascender-app/drizzle/",
+        "ascender-app/drizzle/meta/_journal.json",
+        "ascender-app/src/lib/db/seed.ts",
+        "ascender-app/docker-entrypoint.sh",
+        "ascender-app/docker-compose.yml",
+        "ascender-app/docker-compose.prod.yml",
+        "ascender-app/Dockerfile",
+        "ascender-app/src/lib/env.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/dados-e-banco.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "integration_credentials",
+        "app_settings",
+        "usuarios",
+        "distribuidoras",
+        "clientes",
+        "unidades_consumidoras",
+        "usinas",
+        "contratos",
+        "faturas",
+        "faturas_dg",
+        "contas_energia",
+        "rateios_dg",
+        "medicoes_geracao",
+        "propostas",
+        "parametros_proposta",
+        "telemetria_estacao",
+        "telemetria_inversor",
+        "telemetria_coletor",
+        "alarmes",
+        "anexos",
+        "cadastro_historico",
+        "sync_runs"
+      ],
+      "riscos": [
+        "Editar schema.ts sem db:generate deixa codigo e banco divergentes; migration so aplica no boot",
+        "Adicionar coluna notNull sem default a tabela populada faz db:migrate falhar no entrypoint e o container nao sobe",
+        "Trocar onDelete restrict<->cascade muda silenciosamente exclusoes (cascade pode apagar em massa)",
+        "Tabelas telemetria_* append-only sem retencao: crescimento indefinido do volume ascender_pgdata",
+        "Alterar uniques compostos de medicoes_geracao/rateios_dg quebra idempotencia dos syncs (duplicatas)",
+        "getDb() cacheia pool em globalThis: mudar DATABASE_URL em runtime nao reconecta",
+        "parametros_proposta como linha unica sem constraint: codigo quebra com 0 ou >1 linhas",
+        "bytea/base64 (anexos.conteudo, contas_energia.arquivo_base64) incham banco e backups",
+        "drizzle.config.ts tem URL fallback localhost: risco de migrar banco errado se DATABASE_URL faltar"
+      ],
+      "pendencias": [
+        "Nao ha migration garantindo unicidade de parametros_proposta (linha unica e convencao no codigo) — confirmar em src/lib/propostas/parametros.ts",
+        "Confirmar se existe rotina de retencao/limpeza para telemetria_* (nao encontrada)",
+        "rateios_dg/faturas_dg nao tem FK para usinas/clientes (vinculo por numero/documento) — verificar joins em src/lib/digitalgrid/queries.ts",
+        "Confirmar que apenas o servico app roda db:migrate no boot (syncs sobrescrevem entrypoint:[]); verificar corrida de migracao paralela",
+        "Fallback de URL localhost em drizzle.config.ts pode apontar para banco errado em migracao"
+      ]
+    },
+    {
+      "nome": "Financeiro & Faturas de Energia",
+      "slug": "financeiro-faturas",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/financeiro/conta.ts",
+        "ascender-app/src/lib/financeiro/parse-conta.ts",
+        "ascender-app/src/lib/ai/extract.ts",
+        "ascender-app/src/app/api/financeiro/conta/route.ts",
+        "ascender-app/src/app/api/financeiro/conta/lote/route.ts",
+        "ascender-app/src/app/api/financeiro/conta/file/route.ts",
+        "ascender-app/src/app/(dashboard)/financeiro/page.tsx",
+        "ascender-app/src/components/ContaEnergiaModal.tsx",
+        "ascender-app/src/components/ImportarBoletosLote.tsx",
+        "ascender-app/src/components/FaturasDgTable.tsx",
+        "ascender-app/src/lib/db/reconciliar-fatura.ts",
+        "ascender-app/src/lib/db/schema.ts",
+        "ascender-app/src/lib/digitalgrid/queries.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/financeiro-faturas.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "faturas_dg",
+        "contas_energia",
+        "rateios_dg",
+        "unidades_consumidoras",
+        "clientes"
+      ],
+      "riscos": [
+        "Regex do parser e especifico de 2 layouts Neoenergia; mudanca de layout da distribuidora quebra a extracao por regex (IA cobre so se houver provedor ativo)",
+        "fatura_dg_id UNIQUE + onConflictDoUpdate assume 1 conta por fatura; permitir varias exige mudar schema, upsert e queries de conciliacao/getFaturaIdsComConta",
+        "Match do lote depende de UC e competencia consistentes nos dois lados; mexer na normalizacao (regexp_replace) gera falsos ambiguo/sem_match",
+        "PDF em base64 na coluna arquivo_base64: SELECT * de contas_energia trafega o PDF inteiro; camposPublicos/getContaFile foram separados de proposito para nao vazar o base64",
+        "Contrato do JSON Schema da IA (extract.ts) precisa bater com ContaParsed; alterar ContaParsed sem atualizar schema/toContaParsed desalinha a extracao por IA",
+        "KPIs derivam de valor_total/valor_pago/economia do sync DG; mudanca de semantica no sync altera KPIs e semaforo sem aviso",
+        "Blindagem CNPJ so protege UCs com documento cadastrado em rateios_dg/clientes; UC sem documento anexa sem conferir"
+      ],
+      "pendencias": [
+        "Confirmar se ha intencao de promover alguma formula (f1..f5) de reconciliar-fatura.ts para validacao financeira em producao (hoje so offline/leitura)",
+        "Nao ha teste automatizado localizado para parse-conta.ts / conciliarBoleto — verificar cobertura",
+        "textoExtraido e persistido mas nao aparece na UI — investigar uso (debug/reprocessamento futuro)",
+        "Comentario em parse-conta.ts:6 diz que campos ficam editaveis manualmente na tela, mas a edicao manual nao foi encontrada na UI (ContaEnergiaModal apenas exibe) — confirmar",
+        "Nao ha validacao de conteudo/antivirus do PDF alem de mime/extensao/tamanho — verificar se e requisito"
+      ]
+    },
+    {
+      "nome": "Infra & Deploy",
+      "slug": "infra-e-deploy",
+      "caminhos_codigo": [
+        "ascender-app/Dockerfile",
+        "ascender-app/docker-compose.yml",
+        "ascender-app/docker-compose.prod.yml",
+        "ascender-app/docker-entrypoint.sh",
+        "ascender-app/Caddyfile",
+        "scripts/deploy-poll.sh",
+        "ascender-app/package.json",
+        "ascender-app/drizzle.config.ts",
+        "ascender-app/.env.example",
+        "ascender-app/.dockerignore",
+        "ascender-app/next.config.mjs",
+        "ascender-app/src/lib/db/index.ts",
+        "ascender-app/src/lib/db/seed.ts",
+        "ascender-app/src/lib/db/sync-run.ts",
+        "ascender-app/src/lib/db/sync-geracao.ts",
+        "ascender-app/src/lib/db/sync-faturas-dg.ts",
+        "ascender-app/src/lib/db/sync-rateio-dg.ts",
+        "ascender-app/src/lib/db/sync-telemetria.ts",
+        "ascender-app/src/lib/env.ts",
+        "ascender-app/src/lib/db/schema.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/infra-e-deploy.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "sync_runs",
+        "usuarios",
+        "__drizzle_migrations"
+      ],
+      "riscos": [
+        "Migrations rodam em todo boot do app; escalar para >1 replica do app pode causar corrida no db:migrate (hoje ha 1 instancia)",
+        "devDependencies (drizzle-kit, tsx, typescript) precisam ficar na imagem para migrate/seed/workers em runtime; um npm ci --omit=dev ou multi-stage otimizado quebraria o entrypoint e os workers",
+        "Remover entrypoint: [] dos workers faria cada um tentar rodar migrate/seed do app",
+        "Trocar porta/dominio exige coerencia entre APP_PORT (compose), Caddyfile (dominio) e APP_BASE_URL (.env, controla cookie Secure)",
+        "Deploy fast-forward-only: qualquer commit local na VPS trava todos os deploys ate resolucao manual",
+        "Reduzir demais os sleeps dos workers pode hammerar SolisCloud/Digital Grid",
+        "Sem backup automatizado do volume ascender_pgdata: perda do volume = perda de dados",
+        "Sem healthcheck do app nem dos workers (so do db); worker vivo-mas-travado nao e detectado alem do sync_runs",
+        "docker image prune -f roda no host e pode remover imagens sem uso de outros projetos em host compartilhado"
+      ],
+      "pendencias": [
+        "Confirmar se o gotcha IPv6-only afeta a VPS Linux de producao (tipicamente e problema de Docker Desktop) e se vale fixar NODE_OPTIONS=--dns-result-order=ipv4first no compose",
+        "APP_PORT real de producao esta no .env nao versionado (comentario do prod indica :3005) — confirmar valor efetivo",
+        "Nao ha estrategia de backup/restore do volume ascender_pgdata no repo",
+        "Sem healthcheck de app/workers; falta de deteccao de worker travado",
+        "Rotacao/limite de tamanho do deploy.log e dos logs dos containers nao configurados",
+        "Diretorio .github presente mas sem workflows — confirmar se ha CI planejado alem do polling"
+      ]
+    },
+    {
+      "nome": "Integracao Digital Grid",
+      "slug": "integracao-digital-grid",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/digitalgrid/endpoints.ts",
+        "ascender-app/src/lib/digitalgrid/credentials.ts",
+        "ascender-app/src/lib/digitalgrid/client.ts",
+        "ascender-app/src/lib/digitalgrid/sync.ts",
+        "ascender-app/src/lib/digitalgrid/cadastros.ts",
+        "ascender-app/src/lib/digitalgrid/queries.ts",
+        "ascender-app/src/lib/db/sync-faturas-dg.ts",
+        "ascender-app/src/lib/db/sync-rateio-dg.ts",
+        "ascender-app/src/lib/db/conciliar-dg.ts",
+        "ascender-app/src/lib/db/dg-preview.ts",
+        "ascender-app/src/lib/db/sync-run.ts",
+        "ascender-app/src/lib/api/digitalgrid.ts",
+        "ascender-app/src/app/api/integrations/digitalgrid/credentials/route.ts",
+        "ascender-app/src/app/api/integrations/digitalgrid/test/route.ts",
+        "ascender-app/src/app/api/financeiro/conta/lote/route.ts",
+        "ascender-app/docker-compose.yml"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/integracao-digital-grid.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "faturas_dg",
+        "rateios_dg",
+        "integration_credentials",
+        "sync_runs",
+        "clientes",
+        "unidades_consumidoras",
+        "usinas",
+        "distribuidoras",
+        "contas_energia"
+      ],
+      "riscos": [
+        "Cadencia divergente na UI: /integracoes rotula faturas_dg/rateio_dg como (6h) mas o cron real e 15 min (integracoes/page.tsx:112-113 vs docker-compose.yml:70)",
+        "Trava page>100 trunca dados silenciosamente se o DG tiver mais de 100 paginas",
+        "Upsert sobrescreve todos os campos e raw a cada ciclo; ajustes manuais nas tabelas espelho sao perdidos",
+        "Sem logica de exclusao: faturas/rateios removidos na origem viram registros orfaos no banco (HIPOTESE)",
+        "Chave do rateio depende de generation_month_id codificar o mes; risco de colisao se o DG reusar ids",
+        "Regras !numero.includes('CANCEL') e match difuso de distribuidora sao fragies a mudanca de nomenclatura no DG",
+        "Token novo salvo sempre entra como Bearer; esquema Token so e ajustado apos teste de conexao",
+        "Descriptografia depende de APP_ENCRYPTION_KEY estavel; rotacao de chave invalida credenciais salvas"
+      ],
+      "pendencias": [
+        "Confirmar cadencia correta a exibir em /integracoes (15 min vs '6h' atual)",
+        "Endpoint financial-credits esta em DG_ENDPOINTS mas nao e consumido em lugar nenhum",
+        "Nao ha rotina de reconciliacao/exclusao de registros removidos no DG",
+        "payment_status gravado como texto livre; confirmar valores possiveis e necessidade de enum",
+        "Semantica de covering e annotations em rateios_dg nao documentada no codigo",
+        "Confirmar unicidade global de generation_month_id no DG (nao so por gerador/mes)"
+      ]
+    },
+    {
+      "nome": "Integracao SolisCloud",
+      "slug": "integracao-soliscloud",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/soliscloud/client.ts",
+        "ascender-app/src/lib/soliscloud/sign.ts",
+        "ascender-app/src/lib/soliscloud/credentials.ts",
+        "ascender-app/src/lib/soliscloud/endpoints.ts",
+        "ascender-app/src/lib/soliscloud/handler.ts",
+        "ascender-app/src/lib/soliscloud/types.ts",
+        "ascender-app/src/lib/soliscloud/mappers.ts",
+        "ascender-app/src/lib/soliscloud/telemetria-sync.ts",
+        "ascender-app/src/lib/soliscloud/telemetria-db.ts",
+        "ascender-app/src/lib/cadastros/sync.ts",
+        "ascender-app/src/lib/db/sync-telemetria.ts",
+        "ascender-app/src/lib/db/sync-geracao.ts",
+        "ascender-app/src/lib/db/sync-run.ts",
+        "ascender-app/src/lib/api/soliscloud.ts",
+        "ascender-app/src/types/soliscloud.ts",
+        "ascender-app/src/lib/crypto/secrets.ts",
+        "ascender-app/src/lib/db/schema.ts",
+        "ascender-app/docker-compose.yml"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/integracao-soliscloud.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "integration_credentials",
+        "telemetria_estacao",
+        "telemetria_inversor",
+        "telemetria_coletor",
+        "alarmes",
+        "sync_runs",
+        "medicoes_geracao",
+        "usinas"
+      ],
+      "riscos": [
+        "Alterar string-to-sign/Content-Type (charset, ordem, resourcePath) quebra a assinatura -> HTTP 403 wrong sign em toda a integracao",
+        "Mexer em MIN_INTERVAL_MS/MAX_RETRIES ou remover a fila global estoura o rate limit por conta na 1a carga das telas",
+        "Validacao do envelope usa codes hardcoded (0/1/1000000); novos codes de sucesso da Solis viram erro",
+        "alarm_id composto e fragil: mudanca no formato de alarmBegTime/alarmCode/deviceSn duplica alarmes ou perde correlacao de resolucao",
+        "Series append-only (telemetria a cada 10 min) crescem sem retencao/particao; tabelas telemetria_* incham",
+        "mapStationMonth/Year nao converte unidade (base) mas mapStationDay converte W->kW; alterar distorce graficos",
+        "geracaoDiariaFrota divide meta mensal por 30 fixo; meses de 28-31 dias e usinas sem meta distorcem/null",
+        "/api/soliscloud/stations/[id] e a unica leitura ao vivo por request; pode falhar/atrasar sob rate limit",
+        "Trocar APP_ENCRYPTION_KEY invalida segredos cifrados em integration_credentials (decrypt falha) e exige re-cadastro",
+        "mapAlarmLevel nunca retorna 'alto' embora o tipo AlarmLevel inclua; filtros de UI por 'alto' ficam vazios"
+      ],
+      "pendencias": [
+        "Confirmar cadencia dos workers em producao (docker-compose.prod.yml nao lido) e interacao com scripts/deploy-poll.sh",
+        "Nao ha politica de retencao/limpeza das tabelas telemetria_*; avaliar crescimento e particionamento",
+        "SOLIS_ERROR_MESSAGES cobre so I0012 e R0000; demais codes caem no msg cru — mapear os comuns",
+        "Endpoints stationDay/stationMonth/inverterDetail declarados mas sem uso ativo (curvas vem do banco) — confirmar se sao legado/mock",
+        "Inconsistencia AlarmLevel ('alto' no tipo, nunca gerado pelo mapper) — verificar consumidor",
+        "Verificar se importStationsFromSolis tem gatilho por rota/tela ou e apenas manual"
+      ]
+    },
+    {
+      "nome": "Integracoes (config) & IA",
+      "slug": "integracoes-config-e-ai",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/crypto/secrets.ts",
+        "ascender-app/src/lib/ai/providers.ts",
+        "ascender-app/src/lib/ai/credentials.ts",
+        "ascender-app/src/lib/ai/test.ts",
+        "ascender-app/src/lib/ai/extract.ts",
+        "ascender-app/src/app/api/integrations/ai/credentials/route.ts",
+        "ascender-app/src/app/api/integrations/ai/test/route.ts",
+        "ascender-app/src/app/api/integrations/soliscloud/credentials/route.ts",
+        "ascender-app/src/app/api/integrations/soliscloud/test/route.ts",
+        "ascender-app/src/app/api/integrations/digitalgrid/credentials/route.ts",
+        "ascender-app/src/app/api/integrations/digitalgrid/test/route.ts",
+        "ascender-app/src/lib/soliscloud/credentials.ts",
+        "ascender-app/src/lib/digitalgrid/credentials.ts",
+        "ascender-app/src/app/(dashboard)/configuracoes/integracoes/page.tsx",
+        "ascender-app/src/components/AiIntegrationCard.tsx",
+        "ascender-app/src/lib/api/ai.ts",
+        "ascender-app/src/lib/db/schema.ts",
+        "ascender-app/src/lib/env.ts",
+        "ascender-app/src/lib/auth/guard.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/integracoes-config-e-ai.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "integration_credentials",
+        "app_settings"
+      ],
+      "riscos": [
+        "Trocar ou perder APP_ENCRYPTION_KEY torna todos os key_secret_enc indecifraveis (sem rotacao/versionamento de chave no codigo).",
+        "Heuristica ambigua da chave: APP_ENCRYPTION_KEY que decodifica em 32 bytes base64 e usado direto (nao passa por SHA-256); mudar isso quebra a decifragem do que ja foi salvo.",
+        "Tabela integration_credentials e compartilhada por Solis/DG/IA com semantica diferente de key_id/is_active/base_url por provedor; mexer nisso pode ativar/desativar a integracao errada.",
+        "Novo provider de IA sem inclusao em AI_PROVIDER_LIST/aiRowKey nao sera desativado no reset de is_active.",
+        "parseContaComIA depende do formato cru de resposta das APIs Anthropic/OpenAI e do suporte a JSON schema; mudanca de contrato quebra a extracao (cai para regex).",
+        "CONTA_SCHEMA e toContaParsed estao acoplados: adicionar campo exige atualizar required e a normalizacao juntos."
+      ],
+      "pendencias": [
+        "app_settings existe no schema mas nao tem consumidor em src/; investigar se e populada por seed/migracao ou e legado nao integrado.",
+        "Confirmar se ha checagem de acesso adicional (middleware/papel) alem de requireSession para configuracoes/integracoes.",
+        "Nao ha processo de rotacao de chave de criptografia no codigo; verificar procedimento operacional externo.",
+        "recordAiTestResult faz UPDATE por provider; se a linha nao existir o update nao afeta nada (teste da chave salva pressupoe linha existente).",
+        "Nao localizado teste automatizado cobrindo cifra/decifra ou os endpoints de credenciais."
+      ]
+    },
+    {
+      "nome": "Operacao & Dashboards",
+      "slug": "operacao-e-dashboards",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/operacao/operational-overview.ts",
+        "ascender-app/src/lib/operacao/health-score.ts",
+        "ascender-app/src/lib/operacao/incidents.ts",
+        "ascender-app/src/lib/operacao/timeline.ts",
+        "ascender-app/src/lib/dashboard-data.ts",
+        "ascender-app/src/app/(dashboard)/page.tsx",
+        "ascender-app/src/app/(dashboard)/layout.tsx",
+        "ascender-app/src/app/(dashboard)/executivo/page.tsx",
+        "ascender-app/src/app/(dashboard)/analise/page.tsx",
+        "ascender-app/src/app/(dashboard)/geracao/page.tsx",
+        "ascender-app/src/app/(dashboard)/mapa/page.tsx",
+        "ascender-app/src/app/(dashboard)/usinas/page.tsx",
+        "ascender-app/src/app/(dashboard)/soliscloud/page.tsx",
+        "ascender-app/src/components/operacao/HealthScore.tsx",
+        "ascender-app/src/components/operacao/AttentionCenter.tsx",
+        "ascender-app/src/components/operacao/IncidentItem.tsx",
+        "ascender-app/src/components/operacao/StatTile.tsx",
+        "ascender-app/src/components/operacao/OperationalTimeline.tsx",
+        "ascender-app/src/components/UsinasMap.tsx",
+        "ascender-app/src/components/GenerationHeatmap.tsx",
+        "ascender-app/src/hooks/useSolis.ts",
+        "ascender-app/src/lib/soliscloud/telemetria-db.ts",
+        "ascender-app/src/lib/cadastros/queries.ts",
+        "ascender-app/src/lib/digitalgrid/queries.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/operacao-e-dashboards.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "telemetria_estacao",
+        "telemetria_inversor",
+        "telemetria_coletor",
+        "alarmes",
+        "sync_runs",
+        "medicoes_geracao",
+        "usinas",
+        "faturas_dg",
+        "faturas"
+      ],
+      "riscos": [
+        "Logica solar/incidentes duplicada entre servidor (incidents.ts) e cliente (soliscloud/page.tsx) pode divergir em comportamento e href",
+        "Pesos e limiares do Health Score sao constantes magicas acopladas ao doc PLANO_FASE_2A; alterar quebra a calibracao de status/rotulo",
+        "Duas convencoes de meta diaria coexistem: metaMensal/30 (geracaoDiariaFrota) vs proporcional aos dias reais (getUsinasComTelemetria)",
+        "Heatmap e geracaoPorUsinaMes filtram por ano corrente; na virada de ano as colunas zeram",
+        "Mapa usa projecao equiretangular e contorno simplificado; mexer no bbox/project() desalinha pinos e contorno",
+        "Janela solar fixa 06-18h ignora estacao/localizacao real",
+        "Se o worker sync-telemetria parar, dashboards mostram dados velhos sem erro (so o selo de frescor denuncia)",
+        "contarFaturasVencidasDg tem catch(()=>0): falha nao derruba overview mas mascara o numero de vencidas"
+      ],
+      "pendencias": [
+        "Documentos referenciados PLANO_FASE_2A_HEALTHSCORE.md e PLANO_FASE_2B_ATTENTION_CENTER.md nao foram localizados/lidos - confirmar existencia e se os pesos batem",
+        "Confirmar onde ha escrita/edicao de coordenadas (lat/lon) das usinas - aparentemente em Cadastros > Usinas, fora deste modulo",
+        "OperationalTimeline so aparece na tela overview; confirmar se e intencional nao expor no Executivo/SolisCloud",
+        "Divergencia de meta diaria (/30 vs dias reais) - verificar se e decisao de produto ou inconsistencia",
+        "Componentes compartilhados (PowerRing, ComparisonChart, GenerationChart, UsinasTable, StatusBanner) usados mas nao lidos em detalhe"
+      ]
+    },
+    {
+      "nome": "Propostas & Gerador FV",
+      "slug": "propostas-gerador",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/propostas/types.ts",
+        "ascender-app/src/lib/propostas/constantes.ts",
+        "ascender-app/src/lib/propostas/dimensionamento.ts",
+        "ascender-app/src/lib/propostas/precificacao.ts",
+        "ascender-app/src/lib/propostas/parametros.ts",
+        "ascender-app/src/lib/propostas/financeiro.ts",
+        "ascender-app/src/lib/propostas/calcular.ts",
+        "ascender-app/src/lib/propostas/actions.ts",
+        "ascender-app/src/lib/propostas/pdf.ts",
+        "ascender-app/src/app/(dashboard)/propostas/gerador/GeradorProposta.tsx",
+        "ascender-app/src/app/(dashboard)/propostas/gerador/page.tsx",
+        "ascender-app/src/app/(dashboard)/propostas/page.tsx",
+        "ascender-app/src/app/(dashboard)/configuracoes/proposta-precos/page.tsx",
+        "ascender-app/src/app/(dashboard)/configuracoes/proposta-precos/ParametrosForm.tsx",
+        "ascender-app/src/lib/db/schema.ts"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/propostas-gerador.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "propostas",
+        "parametros_proposta",
+        "clientes",
+        "unidades_consumidoras",
+        "distribuidoras"
+      ],
+      "riscos": [
+        "Importar precificacao.ts/parametros.ts/calcular.ts (server-only) de componente 'use client' vazaria custo/margem/kit para o bundle; passar CenarioResultado.custo ao pdf.ts (client) vazaria dados sensiveis",
+        "Kit gravado fora de ordem por kwpMax (fora de salvarParametrosProposta) faz faixaKit retornar a faixa errada",
+        "Base do imposto exclui o kit (precificacao.ts:52); mudar isso altera o preco de todas as propostas silenciosamente",
+        "carregarParametros engole erros e cai em PARAMETROS_PADRAO: falha de DB gera proposta com precos padrao sem alertar",
+        "Campos doublePrecision aceitam Infinity; novos KPIs financeiros precisam passar por finito()",
+        "Snapshot dadosGerador (jsonb) inclui custo/margem completos; expor a proposta bruta vazaria dados sensiveis",
+        "Payback simples do Necessario ignora reajuste/degradacao/Fio B; migrar para fluxo mudaria KPIs historicos",
+        "moduloWp coagido para 620/700; novos modulos exigem atualizar MODS, tipo ModuloWp e o coercion",
+        "Textos fixos na UI (14 kWp, cronograma) podem divergir dos parametros configuraveis"
+      ],
+      "pendencias": [
+        "Campo padrao (mono/bi/tri) nao influencia calculo nem adequacao trifasica automatica - confirmar se e intencional ou feature pendente",
+        "Nao ha reimpressao a partir do snapshot dadosGerador: PDF so na mesma sessao (estado em memoria); nenhuma rota reidrata proposta salva",
+        "cronogramaFioB nao e editavel no ParametrosForm (so exibido); confirmar se editar o array e desejado",
+        "tarifaFioB default 0 zera o efeito do Fio B; confirmar se a equipe ja tem a TUSD Fio B real",
+        "KPIs da lista /propostas usam tarifaAscender (simulacao manual) que o gerador grava 0 - verificar unificacao dos dois modelos de economia",
+        "Autorizacao das actions so checa authenticated, sem papel/role - confirmar se qualquer usuario logado pode ver custo/margem"
+      ]
+    },
+    {
+      "nome": "Rateio &amp; Auditoria",
+      "slug": "rateio-e-auditoria",
+      "caminhos_codigo": [
+        "ascender-app/src/lib/auditoria/types.ts",
+        "ascender-app/src/lib/auditoria/queries.ts",
+        "ascender-app/src/lib/auditoria/rules.ts",
+        "ascender-app/src/lib/auditoria/run.ts",
+        "ascender-app/src/lib/db/auditar-rateio.ts",
+        "ascender-app/src/lib/db/inspecionar-rateio.ts",
+        "ascender-app/src/lib/db/investigar-atencao.ts",
+        "ascender-app/src/lib/db/reconciliar-fatura.ts",
+        "ascender-app/src/lib/db/sync-rateio-dg.ts",
+        "ascender-app/src/lib/db/conciliar-dg.ts",
+        "ascender-app/src/lib/digitalgrid/sync.ts",
+        "ascender-app/src/lib/digitalgrid/queries.ts",
+        "ascender-app/src/lib/digitalgrid/cadastros.ts",
+        "ascender-app/src/lib/cadastros/actions.ts",
+        "ascender-app/src/app/(dashboard)/rateio/page.tsx",
+        "ascender-app/src/app/(dashboard)/cadastros/conciliacao/page.tsx"
+      ],
+      "documentos_kb": [
+        "docs/kb/modulos/rateio-e-auditoria.md"
+      ],
+      "status": "completo",
+      "confianca": "alta",
+      "ultima_analise": "2026-07-08",
+      "entidades": [
+        "rateios_dg",
+        "faturas_dg",
+        "unidades_consumidoras",
+        "clientes",
+        "usinas",
+        "distribuidoras",
+        "sync_runs"
+      ],
+      "riscos": [
+        "Auditoria depende da semantica do raw do DG (agent_discount, total_amount_without_discount, total_amount_distributor); mudanca de nome/escala quebra silenciosamente (campo vira null e regra e pulada)",
+        "Constantes embutidas fragil: fator 0.15 do impacto uc_sem_rateio, limiar lockstep 5%, '>2x consumo' do credito parado, agent_discount>=99% como encerramento",
+        "Reativar regras desativadas (soma_percentual, rateio_duplicado, diag uc_subalocada) sem reinterpretar percentage/covering gera enxurrada de falsos positivos",
+        "Escala do percentual e inferida por heuristica; dados atipicos caem em 'indefinida' e desvirtuam regras que dependem de percentual",
+        "Conciliacao (importarCadastrosDg) escreve no banco local e cria clientes/UCs; alterar o match por documento/nome pode duplicar cadastros ou vincular UC ao cliente errado",
+        "covering NAO e kWh (indice 0-3 do DG); regra nova que o trate como energia estara errada",
+        "fatura_duplicada marca critica e soma impacto; reprocessar faturas ou mudar chave dg_bill_id pode gerar falsos criticos"
+      ],
+      "pendencias": [
+        "Confirmar se/como os scripts db:sync-rateio-dg e db:auditar-rateio sao disparados por cron/deploy na VPS (commit recente cita polling/cron, mas o agendamento nao esta nestes arquivos)",
+        "Origem/justificativa do fator 0.15 no impacto de uc_sem_rateio (HIPOTESE) precisa ser documentada ou parametrizada",
+        "Fase 2 (persistencia dos achados / tela de auditoria) prevista nos comentarios mas inexistente: sem tabela de findings, sem historico, sem UI",
+        "Nao ha testes automatizados das funcoes puras de rules.ts, apesar de projetadas para serem 100% testaveis",
+        "Confirmar aderencia de mesesExpiracaoScee=60 a Lei 14.300 (prazo/condicoes de expiracao do saldo SCEE) no cenario real dos clientes",
+        "Vinculo Lei 14.300 aparece so indiretamente (residuo fio B na base de desconto + expiracao SCEE 60m); nao ha modulo dedicado a Fio B dentro deste subsistema"
+      ]
+    }
+  ]
+}

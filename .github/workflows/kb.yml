@@ -1,0 +1,39 @@
+# CI leve da Base de Conhecimento (KB).
+# Fase inicial: AVISA, não bloqueia (exceto JSON inválido da KB, que é erro real).
+# Evoluir para bloqueio (drift --strict) quando a KB estiver madura.
+name: KB
+
+on:
+  pull_request:
+    paths:
+      - "ascender-app/src/**"
+      - "docs/kb/**"
+      - "scripts/kb/**"
+      - "CLAUDE.md"
+  push:
+    branches: [main]
+    paths:
+      - "ascender-app/src/**"
+      - "docs/kb/**"
+
+jobs:
+  kb-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: cobertura.json e manifest.json existem e são JSON válido
+        run: |
+          python3 -c "import json; json.load(open('docs/kb/cobertura.json')); print('cobertura.json OK')"
+          test -f docs/kb/manifest.json && python3 -c "import json; json.load(open('docs/kb/manifest.json')); print('manifest.json OK')" || echo "manifest.json ausente (aviso)"
+
+      - name: Links internos da KB (aviso)
+        continue-on-error: true
+        run: python3 scripts/kb/check_links.py
+
+      - name: Drift código x KB (aviso)
+        continue-on-error: true
+        run: python3 scripts/kb/drift.py

@@ -1,0 +1,324 @@
+{
+  "gerado_em": "2026-07-08",
+  "total_documentos": 34,
+  "documentos": [
+    {
+      "doc": "docs/kb/README.md",
+      "hash": "4678bd305b04",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/fluxos/geracao-de-proposta.md",
+      "hash": "8e38ed58c20b",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/fluxos/sincronizacao-dados.md",
+      "hash": "b973069347fb",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/entidades/modelo-de-dados.md",
+      "hash": "bf8caf285c15",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/contratos/README.md",
+      "hash": "2c6e43f58421",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/arquitetura.md",
+      "hash": "49818f943a06",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/auth-autorizacao.md",
+      "hash": "4e545d564eac",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/cadastros.md",
+      "hash": "b4e6285c6696",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/dados-e-banco.md",
+      "hash": "9c8fe12ca7e2",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/financeiro-faturas.md",
+      "hash": "902b08664c92",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/infra-e-deploy.md",
+      "hash": "e932b5c97804",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/integracao-digital-grid.md",
+      "hash": "546471726128",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/integracao-soliscloud.md",
+      "hash": "4bc0e735aaef",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/integracoes-config-e-ai.md",
+      "hash": "9618dee95b1c",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/operacao-e-dashboards.md",
+      "hash": "f6c2adb2b6f0",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/propostas-gerador.md",
+      "hash": "6817bdf365ba",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/modulos/rateio-e-auditoria.md",
+      "hash": "f6eb2e22f96f",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/runbooks/deploy.md",
+      "hash": "28bda600587e",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/runbooks/dns-docker-build.md",
+      "hash": "4c0c64b5542b",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/runbooks/investigar-sync.md",
+      "hash": "86d4be155a95",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/runbooks/migracoes.md",
+      "hash": "5974eec40854",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/runbooks/rodar-local.md",
+      "hash": "8611dc542097",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/riscos/README.md",
+      "hash": "be8ea8818793",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/pendencias/README.md",
+      "hash": "c6eddd5ddc73",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/telas/README.md",
+      "hash": "c2a154de87cd",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/regras-negocio/README.md",
+      "hash": "b48b13500c98",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/decisoes/README.md",
+      "hash": "6fe0c448d869",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/integracoes/README.md",
+      "hash": "eea380620983",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0001-login-unico-sem-rbac.md",
+      "hash": "f078cd2a0753",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0002-calculo-proposta-server-only.md",
+      "hash": "de6a66ab0237",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0003-arquitetura-sync-first.md",
+      "hash": "0432d444dc80",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0004-migracoes-drizzle-no-boot.md",
+      "hash": "01d12a976378",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0005-deploy-por-polling.md",
+      "hash": "e4a119eb38d6",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0006-premissas-configuraveis-fio-b.md",
+      "hash": "b9d53bb0b6da",
+      "atualizado_em": "2026-07-08"
+    }
+  ],
+  "codigo_analisado": [
+    "ascender-app/.dockerignore",
+    "ascender-app/.env.example",
+    "ascender-app/Caddyfile",
+    "ascender-app/Dockerfile",
+    "ascender-app/docker-compose.prod.yml",
+    "ascender-app/docker-compose.yml",
+    "ascender-app/docker-entrypoint.sh",
+    "ascender-app/drizzle.config.ts",
+    "ascender-app/drizzle/",
+    "ascender-app/drizzle/meta/_journal.json",
+    "ascender-app/next.config.mjs",
+    "ascender-app/package.json",
+    "ascender-app/src/app/(dashboard)/analise/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/clientes/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/conciliacao/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/contratos/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/distribuidoras/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/layout.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/unidades/page.tsx",
+    "ascender-app/src/app/(dashboard)/cadastros/usinas/page.tsx",
+    "ascender-app/src/app/(dashboard)/configuracoes/integracoes/page.tsx",
+    "ascender-app/src/app/(dashboard)/configuracoes/proposta-precos/ParametrosForm.tsx",
+    "ascender-app/src/app/(dashboard)/configuracoes/proposta-precos/page.tsx",
+    "ascender-app/src/app/(dashboard)/configuracoes/senha/page.tsx",
+    "ascender-app/src/app/(dashboard)/configuracoes/usuarios/page.tsx",
+    "ascender-app/src/app/(dashboard)/executivo/page.tsx",
+    "ascender-app/src/app/(dashboard)/financeiro/page.tsx",
+    "ascender-app/src/app/(dashboard)/geracao/page.tsx",
+    "ascender-app/src/app/(dashboard)/layout.tsx",
+    "ascender-app/src/app/(dashboard)/mapa/page.tsx",
+    "ascender-app/src/app/(dashboard)/page.tsx",
+    "ascender-app/src/app/(dashboard)/propostas/gerador/GeradorProposta.tsx",
+    "ascender-app/src/app/(dashboard)/propostas/gerador/page.tsx",
+    "ascender-app/src/app/(dashboard)/propostas/page.tsx",
+    "ascender-app/src/app/(dashboard)/rateio/page.tsx",
+    "ascender-app/src/app/(dashboard)/soliscloud/page.tsx",
+    "ascender-app/src/app/(dashboard)/usinas/page.tsx",
+    "ascender-app/src/app/api/auth/login/route.ts",
+    "ascender-app/src/app/api/auth/logout/route.ts",
+    "ascender-app/src/app/api/auth/password/route.ts",
+    "ascender-app/src/app/api/cadastros/anexo/[id]/route.ts",
+    "ascender-app/src/app/api/cadastros/anexo/route.ts",
+    "ascender-app/src/app/api/financeiro/conta/file/route.ts",
+    "ascender-app/src/app/api/financeiro/conta/lote/route.ts",
+    "ascender-app/src/app/api/financeiro/conta/route.ts",
+    "ascender-app/src/app/api/integrations/ai/credentials/route.ts",
+    "ascender-app/src/app/api/integrations/ai/test/route.ts",
+    "ascender-app/src/app/api/integrations/digitalgrid/credentials/route.ts",
+    "ascender-app/src/app/api/integrations/digitalgrid/test/route.ts",
+    "ascender-app/src/app/api/integrations/soliscloud/credentials/route.ts",
+    "ascender-app/src/app/api/integrations/soliscloud/test/route.ts",
+    "ascender-app/src/app/globals.css",
+    "ascender-app/src/app/layout.tsx",
+    "ascender-app/src/app/login/page.tsx",
+    "ascender-app/src/app/providers.tsx",
+    "ascender-app/src/components/AiIntegrationCard.tsx",
+    "ascender-app/src/components/ContaEnergiaModal.tsx",
+    "ascender-app/src/components/FaturasDgTable.tsx",
+    "ascender-app/src/components/GenerationHeatmap.tsx",
+    "ascender-app/src/components/ImportarBoletosLote.tsx",
+    "ascender-app/src/components/UsinasMap.tsx",
+    "ascender-app/src/components/cadastros/ClienteFicha.tsx",
+    "ascender-app/src/components/cadastros/CrudSection.tsx",
+    "ascender-app/src/components/cadastros/ImportarCadastrosDg.tsx",
+    "ascender-app/src/components/cadastros/ImportarUsinasSolis.tsx",
+    "ascender-app/src/components/cadastros/OrigemBanner.tsx",
+    "ascender-app/src/components/operacao/AttentionCenter.tsx",
+    "ascender-app/src/components/operacao/HealthScore.tsx",
+    "ascender-app/src/components/operacao/IncidentItem.tsx",
+    "ascender-app/src/components/operacao/OperationalTimeline.tsx",
+    "ascender-app/src/components/operacao/StatTile.tsx",
+    "ascender-app/src/hooks/useSolis.ts",
+    "ascender-app/src/lib/ai/credentials.ts",
+    "ascender-app/src/lib/ai/extract.ts",
+    "ascender-app/src/lib/ai/providers.ts",
+    "ascender-app/src/lib/ai/test.ts",
+    "ascender-app/src/lib/api/ai.ts",
+    "ascender-app/src/lib/api/digitalgrid.ts",
+    "ascender-app/src/lib/api/soliscloud.ts",
+    "ascender-app/src/lib/auditoria/queries.ts",
+    "ascender-app/src/lib/auditoria/rules.ts",
+    "ascender-app/src/lib/auditoria/run.ts",
+    "ascender-app/src/lib/auditoria/types.ts",
+    "ascender-app/src/lib/auth/actions.ts",
+    "ascender-app/src/lib/auth/guard.ts",
+    "ascender-app/src/lib/auth/session.ts",
+    "ascender-app/src/lib/auth/users.ts",
+    "ascender-app/src/lib/cache/ttlCache.ts",
+    "ascender-app/src/lib/cadastros/actions.ts",
+    "ascender-app/src/lib/cadastros/anexos.ts",
+    "ascender-app/src/lib/cadastros/historico.ts",
+    "ascender-app/src/lib/cadastros/queries.ts",
+    "ascender-app/src/lib/cadastros/sync.ts",
+    "ascender-app/src/lib/crypto/secrets.ts",
+    "ascender-app/src/lib/dashboard-data.ts",
+    "ascender-app/src/lib/db/auditar-rateio.ts",
+    "ascender-app/src/lib/db/conciliar-dg.ts",
+    "ascender-app/src/lib/db/dg-preview.ts",
+    "ascender-app/src/lib/db/index.ts",
+    "ascender-app/src/lib/db/inspecionar-rateio.ts",
+    "ascender-app/src/lib/db/investigar-atencao.ts",
+    "ascender-app/src/lib/db/reconciliar-fatura.ts",
+    "ascender-app/src/lib/db/schema.ts",
+    "ascender-app/src/lib/db/seed.ts",
+    "ascender-app/src/lib/db/sync-faturas-dg.ts",
+    "ascender-app/src/lib/db/sync-geracao.ts",
+    "ascender-app/src/lib/db/sync-rateio-dg.ts",
+    "ascender-app/src/lib/db/sync-run.ts",
+    "ascender-app/src/lib/db/sync-telemetria.ts",
+    "ascender-app/src/lib/digitalgrid/cadastros.ts",
+    "ascender-app/src/lib/digitalgrid/client.ts",
+    "ascender-app/src/lib/digitalgrid/credentials.ts",
+    "ascender-app/src/lib/digitalgrid/endpoints.ts",
+    "ascender-app/src/lib/digitalgrid/queries.ts",
+    "ascender-app/src/lib/digitalgrid/sync.ts",
+    "ascender-app/src/lib/env.ts",
+    "ascender-app/src/lib/financeiro/conta.ts",
+    "ascender-app/src/lib/financeiro/parse-conta.ts",
+    "ascender-app/src/lib/operacao/health-score.ts",
+    "ascender-app/src/lib/operacao/incidents.ts",
+    "ascender-app/src/lib/operacao/operational-overview.ts",
+    "ascender-app/src/lib/operacao/timeline.ts",
+    "ascender-app/src/lib/propostas/actions.ts",
+    "ascender-app/src/lib/propostas/calcular.ts",
+    "ascender-app/src/lib/propostas/constantes.ts",
+    "ascender-app/src/lib/propostas/dimensionamento.ts",
+    "ascender-app/src/lib/propostas/financeiro.ts",
+    "ascender-app/src/lib/propostas/parametros.ts",
+    "ascender-app/src/lib/propostas/pdf.ts",
+    "ascender-app/src/lib/propostas/precificacao.ts",
+    "ascender-app/src/lib/propostas/types.ts",
+    "ascender-app/src/lib/soliscloud/client.ts",
+    "ascender-app/src/lib/soliscloud/credentials.ts",
+    "ascender-app/src/lib/soliscloud/endpoints.ts",
+    "ascender-app/src/lib/soliscloud/handler.ts",
+    "ascender-app/src/lib/soliscloud/mappers.ts",
+    "ascender-app/src/lib/soliscloud/sign.ts",
+    "ascender-app/src/lib/soliscloud/telemetria-db.ts",
+    "ascender-app/src/lib/soliscloud/telemetria-sync.ts",
+    "ascender-app/src/lib/soliscloud/types.ts",
+    "ascender-app/src/lib/theme.tsx",
+    "ascender-app/src/middleware.ts",
+    "ascender-app/src/types/soliscloud.ts",
+    "ascender-app/tsconfig.json",
+    "scripts/deploy-poll.sh"
+  ]
+}
