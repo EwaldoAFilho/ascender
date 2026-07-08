@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { parametrosProposta, propostas } from "@/lib/db/schema";
+import { clientes, parametrosProposta, propostas } from "@/lib/db/schema";
 import { gerarResultado } from "./calcular";
 import { carregarParametros } from "./parametros";
 import type { GeradorInput, GeradorResultado, ModuloWp } from "./types";
@@ -31,7 +31,9 @@ const telhadoSchema = z.object({
 });
 
 const gerarSchema = z.object({
-  clienteId: z.string().trim().min(1, "Selecione o cliente."),
+  // Cliente livre: aceita o nome digitado (cadastrado ou não). Se casar com um
+  // cliente existente, a proposta é vinculada; senão guarda-se o nome livre.
+  clienteNome: z.string().trim().min(1, "Informe o cliente."),
   unidadeConsumidoraId: optText,
   distribuidoraId: optText,
   instalacao: z.enum(["telhado", "solo"]).default("telhado"),
@@ -81,10 +83,21 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
     const resultado = gerarResultado(geradorInput, parametros, new Date().getFullYear());
     const nec = resultado.necessario;
 
+    // Cliente livre: se o nome casar (case-insensitive) com um cadastro, vincula;
+    // senão guarda o nome livre e deixa clienteId nulo.
+    const [existente] = await getDb()
+      .select({ id: clientes.id })
+      .from(clientes)
+      .where(sql`lower(${clientes.nome}) = lower(${d.clienteNome})`)
+      .limit(1);
+    const clienteId = existente?.id ?? null;
+    const clienteNomeLivre = existente ? null : d.clienteNome;
+
     const [row] = await getDb()
       .insert(propostas)
       .values({
-        clienteId: d.clienteId,
+        clienteId,
+        clienteNomeLivre,
         unidadeConsumidoraId: d.unidadeConsumidoraId,
         distribuidoraId: d.distribuidoraId,
         consumoEstimadoKwh: d.consumoKwh,

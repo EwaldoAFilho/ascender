@@ -354,9 +354,12 @@ export const rateiosDg = pgTable(
 // Propostas comerciais (lançamento manual / simulador de economia).
 export const propostas = pgTable("propostas", {
   id: uuid("id").primaryKey().defaultRandom(),
-  clienteId: uuid("cliente_id")
-    .notNull()
-    .references(() => clientes.id, { onDelete: "restrict" }),
+  // Nullable: propostas podem ser geradas para cliente ainda NÃO cadastrado
+  // (nesse caso guarda-se o nome digitado em `clienteNomeLivre`).
+  clienteId: uuid("cliente_id").references(() => clientes.id, {
+    onDelete: "restrict",
+  }),
+  clienteNomeLivre: text("cliente_nome_livre"),
   unidadeConsumidoraId: uuid("unidade_consumidora_id").references(
     () => unidadesConsumidoras.id,
     { onDelete: "set null" },

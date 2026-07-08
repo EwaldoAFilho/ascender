@@ -136,7 +136,7 @@ export function listPropostas() {
     .select({
       id: propostas.id,
       clienteId: propostas.clienteId,
-      clienteNome: clientes.nome,
+      clienteNome: sql<string | null>`coalesce(${clientes.nome}, ${propostas.clienteNomeLivre})`,
       unidadeConsumidoraId: propostas.unidadeConsumidoraId,
       unidadeCodigo: unidadesConsumidoras.codigoInstalacao,
       distribuidoraId: propostas.distribuidoraId,
@@ -157,7 +157,7 @@ export function listPropostas() {
       eq(propostas.unidadeConsumidoraId, unidadesConsumidoras.id),
     )
     .leftJoin(distribuidoras, eq(propostas.distribuidoraId, distribuidoras.id))
-    .orderBy(asc(clientes.nome));
+    .orderBy(asc(sql`coalesce(${clientes.nome}, ${propostas.clienteNomeLivre})`));
 }
 
 // ===== Histórico de geração (banco) e resumo financeiro =====

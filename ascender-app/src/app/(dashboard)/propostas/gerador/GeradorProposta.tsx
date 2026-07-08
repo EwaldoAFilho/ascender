@@ -59,7 +59,7 @@ export function GeradorProposta({
   distribuidoras: Option[];
 }) {
   // Formulário.
-  const [clienteId, setClienteId] = useState("");
+  const [clienteNome, setClienteNome] = useState("");
   const [unidadeConsumidoraId, setUnidade] = useState("");
   const [distribuidoraId, setDistribuidora] = useState("");
   const [instalacao, setInstalacao] = useState<"telhado" | "solo">("telhado");
@@ -95,12 +95,12 @@ export function GeradorProposta({
 
   async function gerar() {
     setErro(null);
-    if (!clienteId) return setErro("Selecione o cliente.");
+    if (!clienteNome.trim()) return setErro("Informe o cliente.");
     if (!consumoKwh || Number(consumoKwh) <= 0) return setErro("Informe o consumo médio mensal.");
     if (!tarifa || Number(tarifa) <= 0) return setErro("Informe a tarifa (R$/kWh).");
     setBusy(true);
     const r = await gerarProposta({
-      clienteId,
+      clienteNome: clienteNome.trim(),
       unidadeConsumidoraId: unidadeConsumidoraId || undefined,
       distribuidoraId: distribuidoraId || undefined,
       instalacao,
@@ -138,8 +138,7 @@ export function GeradorProposta({
 
   function baixarPdf() {
     if (!resultado) return;
-    const clienteNome =
-      clientes.find((c) => c.value === clienteId)?.label ?? "Cliente";
+    const clienteLabel = clienteNome.trim() || "Cliente";
     const conc = distribuidoras.find((d) => d.value === distribuidoraId)?.label;
     const toPdfCenario = (c: CenarioResultado): PdfCenario => ({
       titulo:
@@ -164,7 +163,7 @@ export function GeradorProposta({
       creditoExcedente: c.creditoExcedente,
     });
     void baixarPropostaPdf({
-      cliente: clienteNome,
+      cliente: clienteLabel,
       concessionaria: conc,
       data: new Date().toLocaleDateString("pt-BR"),
       necessario: toPdfCenario(resultado.necessario),
@@ -346,20 +345,24 @@ export function GeradorProposta({
         <div className="panel-header">
           <div>
             <h2>4 · Cliente</h2>
-            <p>Vincule aos cadastros do sistema</p>
+            <p>Cadastrado ou novo — o cliente não precisa estar cadastrado</p>
           </div>
         </div>
         <div className="form-grid">
           <label className="form-field">
             <span>Cliente</span>
-            <select value={clienteId} onChange={(e) => setClienteId(e.target.value)} required>
-              <option value="">Selecione…</option>
+            <input
+              list="gerador-clientes"
+              value={clienteNome}
+              onChange={(e) => setClienteNome(e.target.value)}
+              placeholder="Nome do cliente (cadastrado ou novo)"
+              required
+            />
+            <datalist id="gerador-clientes">
               {clientes.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
+                <option key={c.value} value={c.label} />
               ))}
-            </select>
+            </datalist>
           </label>
           <label className="form-field">
             <span>Unidade consumidora</span>
