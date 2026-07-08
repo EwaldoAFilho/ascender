@@ -10,6 +10,7 @@ As decisões formais ficam como **ADRs** em [`../adr/`](../adr/). Índice:
 | [ADR-0004](../adr/ADR-0004-migracoes-drizzle-no-boot.md) | Migrações Drizzle aplicadas no boot do container |
 | [ADR-0005](../adr/ADR-0005-deploy-por-polling.md) | Deploy por polling na VPS |
 | [ADR-0006](../adr/ADR-0006-premissas-configuraveis-fio-b.md) | Premissas configuráveis e Fio B (Lei 14.300) no gerador |
+| [ADR-0007](../adr/ADR-0007-multi-tenancy-shared-db-rls.md) | Multi-tenancy: banco compartilhado + tenant_id + RLS (SaaS) |
 
 Para registrar uma nova decisão: crie `../adr/ADR-000X-titulo.md` (template em
 `/create-adr` no [`CLAUDE.md`](../../../CLAUDE.md)) e adicione a linha aqui.

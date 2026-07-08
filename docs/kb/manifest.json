@@ -1,6 +1,6 @@
 {
   "gerado_em": "2026-07-08",
-  "total_documentos": 34,
+  "total_documentos": 35,
   "documentos": [
     {
       "doc": "docs/kb/README.md",
@@ -134,7 +134,7 @@
     },
     {
       "doc": "docs/kb/decisoes/README.md",
-      "hash": "6fe0c448d869",
+      "hash": "7f9d757e922e",
       "atualizado_em": "2026-07-08"
     },
     {
@@ -170,6 +170,11 @@
     {
       "doc": "docs/kb/adr/ADR-0006-premissas-configuraveis-fio-b.md",
       "hash": "b9d53bb0b6da",
+      "atualizado_em": "2026-07-08"
+    },
+    {
+      "doc": "docs/kb/adr/ADR-0007-multi-tenancy-shared-db-rls.md",
+      "hash": "91b620782dcc",
       "atualizado_em": "2026-07-08"
     }
   ],
