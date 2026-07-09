@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/guard";
 import { requireRoleResponse } from "@/lib/auth/rbac";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { getDgRow, saveDgToken } from "@/lib/digitalgrid/credentials";
 import { DG_BASE_URL } from "@/lib/digitalgrid/endpoints";
 
@@ -13,13 +14,15 @@ export async function GET() {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
 
-  const row = await getDgRow();
-  return NextResponse.json({
-    configured: Boolean(row),
-    baseUrl: row?.baseUrl ?? DG_BASE_URL,
-    scheme: row?.keyId ?? null,
-    lastTestAt: row?.lastTestAt ? row.lastTestAt.toISOString() : null,
-    lastTestOk: row?.lastTestOk ?? null,
+  return withSessionTenant(async () => {
+    const row = await getDgRow();
+    return NextResponse.json({
+      configured: Boolean(row),
+      baseUrl: row?.baseUrl ?? DG_BASE_URL,
+      scheme: row?.keyId ?? null,
+      lastTestAt: row?.lastTestAt ? row.lastTestAt.toISOString() : null,
+      lastTestOk: row?.lastTestOk ?? null,
+    });
   });
 }
 
@@ -42,6 +45,8 @@ export async function PUT(request: Request) {
   if (!token.trim()) {
     return NextResponse.json({ error: "Informe o token." }, { status: 400 });
   }
-  await saveDgToken(token.trim(), baseUrl);
-  return NextResponse.json({ ok: true });
+  return withSessionTenant(async () => {
+    await saveDgToken(token.trim(), baseUrl);
+    return NextResponse.json({ ok: true });
+  });
 }

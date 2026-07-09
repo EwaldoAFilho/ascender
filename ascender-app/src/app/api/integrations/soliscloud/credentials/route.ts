@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/guard";
 import { requireRoleResponse } from "@/lib/auth/rbac";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { maskKey } from "@/lib/crypto/secrets";
 import { SOLIS_DEFAULT_BASE_URL } from "@/lib/soliscloud/endpoints";
 import {
@@ -18,13 +19,15 @@ export async function GET() {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
 
-  const row = await getSolisCredentialRow();
-  return NextResponse.json({
-    configured: Boolean(row),
-    keyIdMasked: row ? maskKey(row.keyId) : null,
-    baseUrl: row?.baseUrl ?? SOLIS_DEFAULT_BASE_URL,
-    lastTestAt: row?.lastTestAt ? row.lastTestAt.toISOString() : null,
-    lastTestOk: row?.lastTestOk ?? null,
+  return withSessionTenant(async () => {
+    const row = await getSolisCredentialRow();
+    return NextResponse.json({
+      configured: Boolean(row),
+      keyIdMasked: row ? maskKey(row.keyId) : null,
+      baseUrl: row?.baseUrl ?? SOLIS_DEFAULT_BASE_URL,
+      lastTestAt: row?.lastTestAt ? row.lastTestAt.toISOString() : null,
+      lastTestOk: row?.lastTestOk ?? null,
+    });
   });
 }
 
@@ -47,22 +50,22 @@ export async function PUT(request: Request) {
       { status: 400 },
     );
   }
-
   const { keyId, keySecret, baseUrl } = parsed.data;
-  const existing = await getSolisCredentialRow();
 
-  if (keySecret.trim().length > 0) {
-    // Novo segredo informado: cifra e salva (upsert).
-    await saveSolisCredentials({ keyId, keySecret: keySecret.trim(), baseUrl });
-  } else if (existing) {
-    // Sem novo segredo: atualiza apenas keyId/baseUrl, preservando o cifrado.
-    await updateSolisCredentialMeta({ keyId, baseUrl });
-  } else {
-    return NextResponse.json(
-      { error: "Informe o KeySecret na primeira configuração." },
-      { status: 400 },
-    );
-  }
-
-  return NextResponse.json({ ok: true });
+  return withSessionTenant(async () => {
+    const existing = await getSolisCredentialRow();
+    if (keySecret.trim().length > 0) {
+      // Novo segredo informado: cifra e salva (upsert).
+      await saveSolisCredentials({ keyId, keySecret: keySecret.trim(), baseUrl });
+    } else if (existing) {
+      // Sem novo segredo: atualiza apenas keyId/baseUrl, preservando o cifrado.
+      await updateSolisCredentialMeta({ keyId, baseUrl });
+    } else {
+      return NextResponse.json(
+        { error: "Informe o KeySecret na primeira configuração." },
+        { status: 400 },
+      );
+    }
+    return NextResponse.json({ ok: true });
+  });
 }

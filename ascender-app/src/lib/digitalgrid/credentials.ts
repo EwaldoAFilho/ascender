@@ -1,18 +1,23 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { decryptSecret, encryptSecret } from "@/lib/crypto/secrets";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { integrationCredentials } from "@/lib/db/schema";
 import { DG_BASE_URL } from "./endpoints";
 
 export const DG_PROVIDER = "digital_grid";
 
+function whereDg() {
+  return and(
+    eq(integrationCredentials.tenantId, getCurrentTenantId()),
+    eq(integrationCredentials.provider, DG_PROVIDER),
+  );
+}
+
 // Reusa a tabela integration_credentials: keyId guarda o esquema do header
 // ("Bearer"/"Token"); keySecretEnc guarda o token cifrado.
 export async function getDgRow() {
-  const rows = await getDb()
-    .select()
-    .from(integrationCredentials)
-    .where(eq(integrationCredentials.provider, DG_PROVIDER));
+  const rows = await getDb().select().from(integrationCredentials).where(whereDg());
   return rows[0] ?? null;
 }
 
@@ -36,6 +41,7 @@ export async function saveDgToken(token: string, baseUrl?: string): Promise<void
   await getDb()
     .insert(integrationCredentials)
     .values({
+      tenantId: getCurrentTenantId(),
       provider: DG_PROVIDER,
       keyId: "Bearer",
       keySecretEnc,
@@ -43,7 +49,7 @@ export async function saveDgToken(token: string, baseUrl?: string): Promise<void
       isActive: true,
     })
     .onConflictDoUpdate({
-      target: integrationCredentials.provider,
+      target: [integrationCredentials.tenantId, integrationCredentials.provider],
       set: { keySecretEnc, baseUrl: url, updatedAt: new Date() },
     });
 }
@@ -57,5 +63,5 @@ export async function recordDgTest(ok: boolean, scheme?: string): Promise<void> 
       ...(scheme ? { keyId: scheme } : {}),
       updatedAt: new Date(),
     })
-    .where(eq(integrationCredentials.provider, DG_PROVIDER));
+    .where(whereDg());
 }

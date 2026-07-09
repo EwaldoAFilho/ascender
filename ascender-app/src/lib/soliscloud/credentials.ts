@@ -1,17 +1,23 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { decryptSecret, encryptSecret } from "@/lib/crypto/secrets";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { integrationCredentials } from "@/lib/db/schema";
 import type { SolisCredentials } from "./client";
 import { normalizeBaseUrl, SOLIS_DEFAULT_BASE_URL } from "./endpoints";
 
 export const SOLIS_PROVIDER = "soliscloud";
 
+// Filtro (tenant atual, provider) — credenciais são por tenant.
+function whereSolis() {
+  return and(
+    eq(integrationCredentials.tenantId, getCurrentTenantId()),
+    eq(integrationCredentials.provider, SOLIS_PROVIDER),
+  );
+}
+
 export async function getSolisCredentialRow() {
-  const rows = await getDb()
-    .select()
-    .from(integrationCredentials)
-    .where(eq(integrationCredentials.provider, SOLIS_PROVIDER));
+  const rows = await getDb().select().from(integrationCredentials).where(whereSolis());
   return rows[0] ?? null;
 }
 
@@ -36,6 +42,7 @@ export async function saveSolisCredentials(input: {
   await getDb()
     .insert(integrationCredentials)
     .values({
+      tenantId: getCurrentTenantId(),
       provider: SOLIS_PROVIDER,
       keyId: input.keyId,
       keySecretEnc,
@@ -43,7 +50,7 @@ export async function saveSolisCredentials(input: {
       isActive: true,
     })
     .onConflictDoUpdate({
-      target: integrationCredentials.provider,
+      target: [integrationCredentials.tenantId, integrationCredentials.provider],
       set: { keyId: input.keyId, keySecretEnc, baseUrl, updatedAt: new Date() },
     });
 }
@@ -60,12 +67,12 @@ export async function updateSolisCredentialMeta(input: {
       baseUrl: normalizeBaseUrl(input.baseUrl),
       updatedAt: new Date(),
     })
-    .where(eq(integrationCredentials.provider, SOLIS_PROVIDER));
+    .where(whereSolis());
 }
 
 export async function recordSolisTestResult(ok: boolean): Promise<void> {
   await getDb()
     .update(integrationCredentials)
     .set({ lastTestAt: new Date(), lastTestOk: ok, updatedAt: new Date() })
-    .where(eq(integrationCredentials.provider, SOLIS_PROVIDER));
+    .where(whereSolis());
 }

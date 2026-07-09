@@ -1,6 +1,7 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { decryptSecret, encryptSecret } from "@/lib/crypto/secrets";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { integrationCredentials } from "@/lib/db/schema";
 import {
   AI_PROVIDER_LIST,
@@ -11,12 +12,11 @@ import {
   type AiProvider,
 } from "./providers";
 
-// Reusa a tabela integration_credentials (sem migração). Convenções para as
-// linhas de IA (provider = "ai_anthropic" | "ai_openai"):
-//   - keyId        → modelo selecionado (não é segredo; espelha o uso do DG)
+// Reusa a tabela integration_credentials (linhas de IA por tenant, provider =
+// "ai_anthropic" | "ai_openai"):
+//   - keyId        → modelo selecionado (não é segredo)
 //   - keySecretEnc → chave de API cifrada (AES-256-GCM)
-//   - baseUrl      → URL base (override opcional)
-//   - isActive     → este é o provedor ativo para extração (no máximo um true)
+//   - isActive     → provedor ativo p/ extração (no máximo um true por tenant)
 
 const AI_ROW_KEYS = AI_PROVIDER_LIST.map(aiRowKey);
 
@@ -30,6 +30,10 @@ export type AiProviderStatus = {
   lastTestOk: boolean | null;
 };
 
+function tenantEq() {
+  return eq(integrationCredentials.tenantId, getCurrentTenantId());
+}
+
 function providerFromRowKey(rowKey: string): AiProvider | null {
   const raw = rowKey.startsWith("ai_") ? rowKey.slice(3) : rowKey;
   return isAiProvider(raw) ? raw : null;
@@ -39,7 +43,7 @@ async function getAiRows() {
   return getDb()
     .select()
     .from(integrationCredentials)
-    .where(inArray(integrationCredentials.provider, AI_ROW_KEYS));
+    .where(and(tenantEq(), inArray(integrationCredentials.provider, AI_ROW_KEYS)));
 }
 
 /** Status de ambos os provedores (nunca expõe a chave). */
@@ -70,7 +74,7 @@ export async function getAiApiKey(provider: AiProvider): Promise<string | null> 
   const rows = await getDb()
     .select()
     .from(integrationCredentials)
-    .where(eq(integrationCredentials.provider, aiRowKey(provider)));
+    .where(and(tenantEq(), eq(integrationCredentials.provider, aiRowKey(provider))));
   const row = rows[0];
   return row ? decryptSecret(row.keySecretEnc) : null;
 }
@@ -110,7 +114,7 @@ export async function saveAiProvider(input: {
   const existing = await getDb()
     .select()
     .from(integrationCredentials)
-    .where(eq(integrationCredentials.provider, rowKey));
+    .where(and(tenantEq(), eq(integrationCredentials.provider, rowKey)));
   const current = existing[0];
 
   let keySecretEnc: string;
@@ -126,6 +130,7 @@ export async function saveAiProvider(input: {
   await getDb()
     .insert(integrationCredentials)
     .values({
+      tenantId: getCurrentTenantId(),
       provider: rowKey,
       keyId: model,
       keySecretEnc,
@@ -133,7 +138,7 @@ export async function saveAiProvider(input: {
       isActive: input.makeActive,
     })
     .onConflictDoUpdate({
-      target: integrationCredentials.provider,
+      target: [integrationCredentials.tenantId, integrationCredentials.provider],
       set: {
         keyId: model,
         keySecretEnc,
@@ -149,7 +154,7 @@ export async function saveAiProvider(input: {
       await getDb()
         .update(integrationCredentials)
         .set({ isActive: false, updatedAt: new Date() })
-        .where(inArray(integrationCredentials.provider, others));
+        .where(and(tenantEq(), inArray(integrationCredentials.provider, others)));
     }
   }
 }
@@ -161,5 +166,5 @@ export async function recordAiTestResult(
   await getDb()
     .update(integrationCredentials)
     .set({ lastTestAt: new Date(), lastTestOk: ok, updatedAt: new Date() })
-    .where(eq(integrationCredentials.provider, aiRowKey(provider)));
+    .where(and(tenantEq(), eq(integrationCredentials.provider, aiRowKey(provider))));
 }

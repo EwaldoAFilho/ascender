@@ -5,7 +5,7 @@ import { getSession } from "./session";
 /** Tenant da sessão atual (fallback = tenant 0 enquanto a sessão não o carrega). */
 export async function getSessionTenantId(): Promise<string> {
   const session = await getSession();
-  return session.tenantId ?? TENANT0_ID;
+  return session.tenantId || TENANT0_ID;
 }
 
 /**

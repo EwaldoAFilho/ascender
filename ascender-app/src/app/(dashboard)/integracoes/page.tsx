@@ -12,6 +12,7 @@ import {
 import { maskKey } from "@/lib/crypto/secrets";
 import { getDb } from "@/lib/db";
 import { faturasDg, medicoesGeracao, rateiosDg } from "@/lib/db/schema";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { getDgRow } from "@/lib/digitalgrid/credentials";
 import { getSolisCredentialRow } from "@/lib/soliscloud/credentials";
 import { SummaryStrip, type SummaryItem } from "@/components/SummaryStrip";
@@ -89,23 +90,26 @@ function RecursoList({
 }
 
 export default async function IntegracoesPage() {
-  const db = getDb();
-  const [solis, dg] = await Promise.all([getSolisCredentialRow(), getDgRow()]);
+  const { solis, dg, histG, histF, histR, syncSaude } = await withSessionTenant(
+    async () => {
+      const db = getDb();
+      const [solis, dg] = await Promise.all([getSolisCredentialRow(), getDgRow()]);
+      const [histG] = await db
+        .select({ total: count(), ultima: max(medicoesGeracao.sincronizadoEm) })
+        .from(medicoesGeracao);
+      const [histF] = await db
+        .select({ total: count(), ultima: max(faturasDg.sincronizadoEm) })
+        .from(faturasDg);
+      const [histR] = await db
+        .select({ total: count(), ultima: max(rateiosDg.sincronizadoEm) })
+        .from(rateiosDg);
+      const syncSaude = await getSyncRunsResumo();
+      return { solis, dg, histG, histF, histR, syncSaude };
+    },
+  );
   const solisOk = solis?.lastTestOk === true;
   const dgOk = dg?.lastTestOk === true;
-
-  const [histG] = await db
-    .select({ total: count(), ultima: max(medicoesGeracao.sincronizadoEm) })
-    .from(medicoesGeracao);
-  const [histF] = await db
-    .select({ total: count(), ultima: max(faturasDg.sincronizadoEm) })
-    .from(faturasDg);
-  const [histR] = await db
-    .select({ total: count(), ultima: max(rateiosDg.sincronizadoEm) })
-    .from(rateiosDg);
-
   const fontesAtivas = (solisOk ? 1 : 0) + (dgOk ? 1 : 0);
-  const syncSaude = await getSyncRunsResumo();
   const nomeJob: Record<string, string> = {
     telemetria: "Telemetria · estações, inversores, coletores e alarmes (~10 min)",
     geracao: "Geração mensal · SolisCloud (6h)",

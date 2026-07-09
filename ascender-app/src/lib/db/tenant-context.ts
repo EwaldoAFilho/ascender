@@ -16,7 +16,9 @@ export const tenantAls = new AsyncLocalStorage<Store>();
  * workers) — mantem a app funcionando durante o rollout.
  */
 export function getCurrentTenantId(): string {
-  return tenantAls.getStore()?.tenantId ?? TENANT0_ID;
+  // `||` (não `??`) para tratar string vazia como ausência → tenant 0. Garante
+  // que nunca retornamos um tenant inválido para as queries/RLS.
+  return tenantAls.getStore()?.tenantId || TENANT0_ID;
 }
 
 /** Transacao com o tenant fixado (para a RLS), se dentro de withTenant. */

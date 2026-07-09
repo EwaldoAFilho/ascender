@@ -19,13 +19,22 @@ const bytea = customType<{ data: Buffer; default: false }>({
   },
 });
 
+// Id fixo do "tenant 0" (instância atual — Ascender). Definido cedo para servir
+// de DEFAULT da coluna tenant_id em qualquer tabela abaixo.
+export const TENANT0_ID = "00000000-0000-0000-0000-000000000001";
+
 // ===== Integrações / configurações (já existentes) =====
 
 // Credenciais de integração (cifradas). `provider` é único: uma credencial por
 // fonte. Extensível para outras integrações (ex.: 'digital_grid') no futuro.
 export const integrationCredentials = pgTable("integration_credentials", {
   id: uuid("id").primaryKey().defaultRandom(),
-  provider: text("provider").notNull().unique(),
+  // Credenciais por tenant (cada integradora tem sua própria conta).
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .default(TENANT0_ID)
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  provider: text("provider").notNull(),
   keyId: text("key_id").notNull(),
   // AES-256-GCM: "base64(iv):base64(tag):base64(ciphertext)".
   keySecretEnc: text("key_secret_enc").notNull(),
@@ -41,7 +50,9 @@ export const integrationCredentials = pgTable("integration_credentials", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => [
+  unique("integration_credentials_tenant_provider").on(t.tenantId, t.provider),
+]);
 
 // Configurações chave/valor. No MVP: 'login_email' e 'login_password_hash'.
 export const appSettings = pgTable("app_settings", {
@@ -73,8 +84,6 @@ export const usuarios = pgTable("usuarios", {
 // fica em `tenant_memberships`. Os dados de negócio ganham `tenant_id` na próxima
 // etapa. O "tenant 0" (id fixo abaixo) representa a instância atual (Ascender),
 // para a qual todos os dados existentes serão atribuídos — nada é perdido.
-export const TENANT0_ID = "00000000-0000-0000-0000-000000000001";
-
 export const tenants = pgTable("tenants", {
   id: uuid("id").primaryKey().defaultRandom(),
   nome: text("nome").notNull(),

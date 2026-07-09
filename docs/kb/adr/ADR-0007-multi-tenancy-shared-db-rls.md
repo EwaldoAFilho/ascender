@@ -31,7 +31,7 @@ todas as queries retornam tudo. Roadmap completo em
   `integration_credentials.provider`). `usuarios.email` permanece global.
 - `parametros_proposta` e `integration_credentials` (hoje globais) passam a 1 por tenant.
 
-## Estado (2026-07-08)
+## Estado (2026-07-09)
 - **Fase 1a (identidade) — feita:** tabelas `tenants` + `tenant_memberships`
   (migração `drizzle/0018`), seed do tenant 0 + membership `owner`, e
   `SessionData.tenantId`/`role` no login (`session.ts`, `api/auth/login`, `seed.ts`).
@@ -54,9 +54,26 @@ todas as queries retornam tudo. Roadmap completo em
   nas 19 tabelas. Migração `0021`: role restrita `ascender_app` (NOSUPERUSER,
   NOBYPASSRLS) usada pelo runtime (`APP_DATABASE_URL`); migrate/seed seguem como o
   dono. Provado: `SELECT` sem `WHERE` é filtrado pela RLS ao tenant do contexto.
-- **Próximo:** Fase 4 (RBAC — `requireRole`, convites, troca de tenant), Fase 5
-  (credenciais por tenant + rotação de chave), Fase 6 (sync por tenant + Redis),
-  Fase 7 (infra: migrations fora do boot, Redis, backups), Fase 8 (billing Stripe).
+- **Fase 4 (RBAC) — feita:** papéis por tenant (`owner > admin > operador > leitura`)
+  em `tenant_memberships`; `auth/rbac.ts` com `getSessionRole()` (revalida o membership
+  no banco, com fallback), `roleAtLeast`, `requireRole(min)` (server actions) e
+  `requireRoleResponse(min)` (route handlers → 403). Rotas sensíveis gated: gestão de
+  usuários/membros (tela e ações escopadas ao tenant, com coluna/edição de papel),
+  premissas de proposta (preços/margem) e PUT das credenciais de integração. Provado:
+  admin enxerga usuários + papéis; operador é bloqueado nas ações mas usa a app normal.
+- **Fase 5 (credenciais por tenant) — feita:** `integration_credentials` ganhou
+  `tenant_id` + `unique(tenant_id, provider)` (migração `0022`, que também aplica
+  `ENABLE`/`FORCE ROW LEVEL SECURITY` + policy `tenant_isolation` na tabela). Os
+  loaders `soliscloud/credentials.ts`, `digitalgrid/credentials.ts` e `ai/credentials.ts`
+  filtram/gravam por `getCurrentTenantId()` (upsert no alvo composto `(tenant_id,
+  provider)`); os route handlers de credenciais rodam dentro de `withSessionTenant` e a
+  página `/integracoes` carrega tudo no contexto do tenant. Endurecimento do contexto:
+  `getCurrentTenantId()`/`getSessionTenantId()` usam `|| TENANT0_ID` (string vazia →
+  tenant 0), evitando `uuid ""` no render RSC. Provado: cada tenant só lê a própria
+  credencial; salvar a do tenant B não altera a do tenant 0. *Rotação de chave por
+  tenant (envelope/KEK) fica para depois — o blob de cripto ainda usa a chave mestra única.*
+- **Próximo:** Fase 6 (sync por tenant + Redis + fila/lock), Fase 7 (infra: migrations
+  fora do boot, Redis, backups, réplicas), Fase 8 (billing Stripe + planos/quotas).
 
 > **Nota de segurança:** a senha de `ascender_app` está fixa no `0021` (dev). Em
 > produção, parametrizar via env/secret. O banco não é exposto externamente.
@@ -65,4 +82,4 @@ todas as queries retornam tudo. Roadmap completo em
 - Schema-per-tenant / DB-per-tenant: rejeitados por custo operacional neste porte.
 
 ## Data
-2026-07-08
+2026-07-09
