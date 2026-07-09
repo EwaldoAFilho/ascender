@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { getSessionTenantId } from "@/lib/auth/tenant";
 import { requireRole } from "@/lib/auth/rbac";
+import { quotaUsuarios } from "@/lib/plans";
 import {
   atualizarMembro,
   countMembrosAtivos,
@@ -64,6 +65,14 @@ export async function salvarUsuario(
     } else {
       if (!senha || senha.trim().length < 8) {
         return { ok: false, error: "A senha deve ter ao menos 8 caracteres." };
+      }
+      // Quota do plano: bloqueia adicionar usuário acima do limite.
+      const quota = await quotaUsuarios(tenantId);
+      if (!quota.temEspaco) {
+        return {
+          ok: false,
+          error: `Limite do plano ${quota.planoNome ?? ""} atingido (${quota.usadas}/${quota.limite} usuários). Faça upgrade do plano para adicionar mais.`,
+        };
       }
       await criarMembro(tenantId, { nome, email, senha: senha.trim(), ativo: ativoBool, role });
     }

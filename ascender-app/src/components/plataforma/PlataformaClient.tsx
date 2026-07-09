@@ -268,6 +268,9 @@ export function PlataformaClient({
                   </span>
                 </td>
                 <td>
+                  {t.ehTenant0 ? (
+                    <span>{t.plano}</span>
+                  ) : (
                   <select
                     value={t.plano}
                     disabled={pending}
@@ -283,6 +286,7 @@ export function PlataformaClient({
                       </option>
                     ))}
                   </select>
+                  )}
                 </td>
                 <td>{t.usuarios}</td>
                 <td>

@@ -182,9 +182,23 @@ todas as queries retornam tudo. Roadmap completo em
   (rebaixar/promover vale na hora), com carve-out do operador impersonando (owner efetivo).
   Provado: leitura=403 nas mutações, operador=403 nas ações admin, admin ok, e promover
   no banco surte efeito imediato (mesmo cookie).
-- **Próximo (produto):** Passo 3 — cobrança (gateway; avaliar BR-native
-  Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant. *Só quando
-  houver um piloto rodando e um preço definido.*
+- **Produto/SaaS — Passo 3a (planos + quota) — feito:** operacionaliza o modelo de
+  precificação (doc `docs/edital-fapdf-start-bsb/04-precificacao-licenciamento.md`) SEM
+  gateway. Tabela `planos` (migração 0026; `max_usinas` nullable=ilimitado, preço em
+  centavos) — sem RLS (config de plataforma). Seed: interno(∞)/starter(15)/pro(50)/
+  enterprise(150); Ascender=interno; novos tenants=starter. `lib/plans.ts::quotaUsinas`
+  (tenantId explícito; plano desconhecido=sem limite, fail-open). Enforcement: `saveUsina`
+  (create) bloqueia acima do limite; `importStationsFromSolis` importa até o limite e
+  reporta bloqueadas. Painel: seletor de plano por empresa (`mudarPlanoAction`, operador)
+  + coluna uso×limite. *Cobrança automática (metering/gateway) fica para o Passo 3b.*
+  **Endurecimento (revisão):** default de `tenants.plano` mudou de `padrao` (slug
+  inexistente → fail-open) para `starter` + migração 0027 faz backfill dos legados;
+  `mudarPlanoAction` bloqueia trocar o plano da Ascender (tenant 0) e o painel desabilita
+  o seletor dela; `max_usuarios` passou a ser enforced (`quotaUsuarios` no add de membro).
+  A quota é **best-effort** (check-then-insert não-atômico) — pequeno overshoot concorrente
+  é aceito (quota comercial/soft, não fronteira de segurança).
+- **Próximo (produto):** Passo 3b — cobrança automática (gateway; avaliar BR-native
+  Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto). *Só quando houver piloto + preço validado.*
 - **Próximo (infra):** Fase 7 restante (quando houver carga): **Redis** + **réplicas
   horizontais**, quotas por tenant, cópia **offsite** dos backups. *Pendente: rotação de
   chave de cripto por tenant (envelope/KEK), herdada da Fase 5; e revalidação de status

@@ -1,7 +1,7 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { planos, tenants, usinas } from "@/lib/db/schema";
+import { planos, tenantMemberships, tenants, usinas } from "@/lib/db/schema";
 
 export type Plano = {
   slug: string;
@@ -73,6 +73,37 @@ export async function quotaUsinas(tenantId: string): Promise<QuotaUsinas> {
     limite,
     usadas,
     excedente,
+    temEspaco: limite == null || usadas < limite,
+  };
+}
+
+export type QuotaUsuarios = {
+  planoNome: string | null;
+  limite: number | null;
+  usadas: number;
+  temEspaco: boolean;
+};
+
+/** Quota de usuários (memberships) de um tenant. `tenantId` explícito. */
+export async function quotaUsuarios(tenantId: string): Promise<QuotaUsuarios> {
+  const [tRow] = await getDb()
+    .select({ planoSlug: tenants.plano })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId));
+  const planoSlug = tRow?.planoSlug ?? "";
+  const plano = planoSlug ? await getPlano(planoSlug) : null;
+  const limite = plano?.maxUsuarios ?? null;
+
+  const [uRow] = await getDb()
+    .select({ usadas: sql<number>`count(*)::int` })
+    .from(tenantMemberships)
+    .where(eq(tenantMemberships.tenantId, tenantId));
+  const usadas = uRow?.usadas ?? 0;
+
+  return {
+    planoNome: plano?.nome ?? null,
+    limite,
+    usadas,
     temEspaco: limite == null || usadas < limite,
   };
 }

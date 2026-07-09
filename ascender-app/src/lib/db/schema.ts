@@ -97,7 +97,7 @@ export const tenants = pgTable("tenants", {
   //   trial     = em avaliação (entra) · ativo = cliente pagante (entra)
   //   suspenso  = inadimplente/desligado (não entra) · cancelado (não entra)
   status: text("status").notNull().default("ativo"),
-  plano: text("plano").notNull().default("padrao"),
+  plano: text("plano").notNull().default("starter"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

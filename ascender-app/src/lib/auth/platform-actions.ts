@@ -134,6 +134,11 @@ export async function mudarPlanoAction(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
   const { tenantId, plano } = parsed.data;
+  // A Ascender (tenant 0) fica no plano interno (ilimitado) — não pode ser posta
+  // num plano limitado, o que travaria a criação de usinas na própria plataforma.
+  if (tenantId === TENANT0_ID) {
+    return { ok: false, error: "O plano da Ascender não pode ser alterado." };
+  }
   if (!(await getPlano(plano))) {
     return { ok: false, error: "Plano inválido." };
   }

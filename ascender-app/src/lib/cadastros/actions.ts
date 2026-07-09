@@ -390,7 +390,10 @@ export async function saveUsina(input: unknown): Promise<ActionResult> {
         .set({ ...data, updatedAt: new Date() })
         .where(and(eq(usinas.id, id), eq(usinas.tenantId, tenantId)));
     } else {
-      // Quota do plano: bloqueia criar usina acima do limite.
+      // Quota do plano: bloqueia criar usina acima do limite. É best-effort (check
+      // não-atômico): dois creates concorrentes no limite podem exceder por 1 — a
+      // quota é comercial/soft (o modelo até prevê excedente cobrado), não uma
+      // fronteira de segurança, então o pequeno overshoot é aceitável.
       const quota = await quotaUsinas(tenantId);
       if (!quota.temEspaco) {
         return {
