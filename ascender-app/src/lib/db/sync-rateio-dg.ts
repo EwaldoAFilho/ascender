@@ -1,19 +1,11 @@
 import "dotenv/config";
-import { registrarSyncRun } from "@/lib/db/sync-run";
-import { syncRateioDg } from "@/lib/digitalgrid/sync";
+import { rodarJobTodosTenants } from "@/lib/sync/jobs";
 
-async function main() {
-  console.log("Sincronizando rateio do Digital Grid...");
-  const r = await registrarSyncRun("rateio_dg", syncRateioDg, (r) => ({
-    itens: r.rateios,
-    mensagem: `${r.rateios} cota(s) em ${r.paginas} página(s)`,
-  }));
-  console.log(`OK: ${r.rateios} cota(s) em ${r.paginas} página(s).`);
-}
-
-main()
+// Sincroniza o rateio de créditos do Digital Grid de TODOS os tenants com
+// credencial DG ativa. Usado pelo serviço de cron (sync-dg) e manualmente.
+rodarJobTodosTenants("rateio_dg")
   .then(() => process.exit(0))
   .catch((e) => {
-    console.error("Falha ao sincronizar rateio do Digital Grid:", e);
+    console.error("[sync-rateio-dg] Falhou:", e);
     process.exit(1);
   });

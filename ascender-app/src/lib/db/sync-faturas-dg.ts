@@ -1,19 +1,11 @@
 import "dotenv/config";
-import { registrarSyncRun } from "@/lib/db/sync-run";
-import { syncFaturasDg } from "@/lib/digitalgrid/sync";
+import { rodarJobTodosTenants } from "@/lib/sync/jobs";
 
-async function main() {
-  console.log("Sincronizando faturas do Digital Grid...");
-  const r = await registrarSyncRun("faturas_dg", syncFaturasDg, (r) => ({
-    itens: r.faturas,
-    mensagem: `${r.faturas} fatura(s) em ${r.paginas} página(s)`,
-  }));
-  console.log(`OK: ${r.faturas} fatura(s) em ${r.paginas} página(s).`);
-}
-
-main()
+// Sincroniza as faturas do Digital Grid de TODOS os tenants com credencial DG
+// ativa. Usado pelo serviço de cron (sync-dg) e manualmente.
+rodarJobTodosTenants("faturas_dg")
   .then(() => process.exit(0))
   .catch((e) => {
-    console.error("Falha ao sincronizar faturas do Digital Grid:", e);
+    console.error("[sync-faturas-dg] Falhou:", e);
     process.exit(1);
   });
