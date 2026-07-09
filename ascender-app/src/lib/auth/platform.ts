@@ -1,4 +1,5 @@
 import "server-only";
+import { hash } from "@node-rs/argon2";
 import { redirect } from "next/navigation";
 import { asc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
@@ -10,7 +11,6 @@ import {
   usuarios,
 } from "@/lib/db/schema";
 import { getSession } from "./session";
-import { criarMembro } from "./users";
 
 // Ciclo de vida do tenant (assinatura). Controla o ACESSO no login.
 export const TENANT_STATUSES = [
@@ -162,7 +162,11 @@ async function slugUnico(nome: string): Promise<string> {
   return `${base}-${Date.now()}`;
 }
 
-/** Cria uma empresa (tenant) + usuário dono (owner). Retorna o id do tenant. */
+/**
+ * Cria uma empresa (tenant) + usuário dono (owner) de forma ATÔMICA. Retorna o id
+ * do tenant. A criação roda numa única transação: se o INSERT do dono falhar (ex.:
+ * corrida de e-mail duplicado / erro de DB), o tenant é desfeito — sem tenant órfão.
+ */
 export async function criarEmpresaComDono(input: {
   nomeEmpresa: string;
   status: TenantStatus;
@@ -171,19 +175,24 @@ export async function criarEmpresaComDono(input: {
   donoSenha: string;
 }): Promise<string> {
   const slug = await slugUnico(input.nomeEmpresa);
-  const [t] = await getDb()
-    .insert(tenants)
-    .values({ nome: input.nomeEmpresa.trim(), slug, status: input.status })
-    .returning({ id: tenants.id });
-  // Reusa criarMembro (faz o hash da senha e vincula com papel).
-  await criarMembro(t.id, {
-    nome: input.donoNome,
-    email: input.donoEmail,
-    senha: input.donoSenha,
-    ativo: true,
-    role: "owner",
+  // Hash FORA da transação (é custoso) — mantém a transação curta.
+  const senhaHash = await hash(input.donoSenha);
+  const email = input.donoEmail.trim().toLowerCase();
+
+  return getDb().transaction(async (tx) => {
+    const [t] = await tx
+      .insert(tenants)
+      .values({ nome: input.nomeEmpresa.trim(), slug, status: input.status })
+      .returning({ id: tenants.id });
+    const [u] = await tx
+      .insert(usuarios)
+      .values({ nome: input.donoNome.trim(), email, senhaHash, ativo: true })
+      .returning({ id: usuarios.id });
+    await tx
+      .insert(tenantMemberships)
+      .values({ tenantId: t.id, userId: u.id, role: "owner" });
+    return t.id;
   });
-  return t.id;
 }
 
 /** Muda o status de um tenant (aprovar/ativar/suspender/cancelar). */

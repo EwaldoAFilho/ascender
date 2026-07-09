@@ -1,10 +1,15 @@
 # Modulo: Autenticacao & Autorizacao
 
-> Status: completo  ·  Ultima analise: 2026-07-08  ·  Confianca: alta
-> Codigo: ascender-app/src/lib/auth/session.ts, ascender-app/src/lib/auth/guard.ts, ascender-app/src/lib/auth/users.ts, ascender-app/src/lib/auth/actions.ts, ascender-app/src/middleware.ts, ascender-app/src/app/api/auth/login/route.ts, ascender-app/src/app/api/auth/logout/route.ts, ascender-app/src/app/api/auth/password/route.ts, ascender-app/src/app/login/page.tsx, ascender-app/src/lib/db/seed.ts, ascender-app/src/lib/crypto/secrets.ts, ascender-app/src/lib/env.ts
+> Status: completo  ·  Ultima analise: 2026-07-09  ·  Confianca: alta
+> Codigo: ascender-app/src/lib/auth/session.ts, ascender-app/src/lib/auth/guard.ts, ascender-app/src/lib/auth/rbac.ts, ascender-app/src/lib/auth/tenant.ts, ascender-app/src/lib/auth/platform.ts, ascender-app/src/lib/auth/platform-actions.ts, ascender-app/src/lib/auth/users.ts, ascender-app/src/lib/auth/actions.ts, ascender-app/src/middleware.ts, ascender-app/src/app/api/auth/login/route.ts, ascender-app/src/app/api/me/route.ts, ascender-app/src/app/api/auth/logout/route.ts, ascender-app/src/app/api/auth/password/route.ts, ascender-app/src/app/login/page.tsx, ascender-app/src/lib/db/seed.ts, ascender-app/src/lib/crypto/secrets.ts, ascender-app/src/lib/env.ts
 
 ## Visao geral
-Controla quem entra na aplicacao ASCENDER e mantem a sessao. Usa `iron-session` (cookie cifrado/assinado, sem tabela de sessoes) sobre uma tabela `usuarios` com senhas em hash argon2. Nao ha RBAC: qualquer usuario autenticado tem acesso total (o campo `roles` existe no payload da sessao mas nunca e populado). O gating de rota e feito em duas camadas: o `middleware.ts` (Edge) bloqueia por presenca do cookie, e `requireSession`/`ensureAuth` revalidam a sessao em route handlers e server actions. Evoluiu de um "login unico compartilhado" (ainda refletido em `env` e na tabela legada `app_settings`) para multiusuario gerido pela propria app.
+Controla quem entra na aplicacao ASCENDER e mantem a sessao. Usa `iron-session` (cookie cifrado/assinado, sem tabela de sessoes) sobre uma tabela `usuarios` com senhas em hash argon2. O gating de rota e feito em camadas: o `middleware.ts` (Edge) bloqueia por presenca do cookie (libera `/login`, `/api/auth/login` e `/api/health`), e `requireSession`/`ensureAuth` revalidam a sessao em route handlers e server actions.
+
+> **Atualizado nas Fases 4–8 (SaaS multi-tenant, ver [ADR-0007](../adr/ADR-0007-multi-tenancy-shared-db-rls.md)):**
+> - **RBAC por tenant** (Fase 4): papeis `owner > admin > operador > leitura` em `tenant_memberships`; `rbac.ts` (`getSessionRole`, `roleAtLeast`, `requireRole`, `requireRoleResponse`) revalida no banco. O campo `roles` da sessao continua legado/nao usado.
+> - **Operador da PLATAFORMA** (Passo 1, `platform.ts`): flag `usuarios.is_platform_admin` (staff Ascender) — nivel ACIMA do RBAC por-tenant. Administra TODOS os tenants no painel `/plataforma` (cross-tenant, roda FORA de `withSessionTenant`). Guards: `requirePlatformAdmin` (actions), `requirePlatformAdminPage` (paginas → redirect). `/api/me` alimenta o link do nav.
+> - **Controle de ACESSO por status do tenant** (Passo 1, no login): `tenants.status` = `pendente | trial | ativo | suspenso | cancelado`; so `trial`/`ativo` entram (os demais → 403 com mensagem). O operador da plataforma nunca e bloqueado por status. *Limitacao conhecida: sessoes ativas nao sao revalidadas por request — suspender um tenant so bloqueia novos logins (a sessao vigente expira em ate 8h).*
 
 ## Responsabilidades
 - Autenticar e-mail + senha contra a tabela `usuarios` (somente ativos) usando argon2 (`verifyLogin`).

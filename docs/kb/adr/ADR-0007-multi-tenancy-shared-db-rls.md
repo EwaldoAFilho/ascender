@@ -121,10 +121,21 @@ todas as queries retornam tudo. Roadmap completo em
     `wget 127.0.0.1` (IPv4, senão `localhost`→::1 dá connection refused); o `worker`
     escreve um heartbeat (`/tmp/worker-heartbeat`) e o healthcheck marca unhealthy se
     o event loop travar. `deploy-poll.sh` já usa `--remove-orphans` (Fase 6d).
-- **Próximo:** Fase 7 (restante, quando houver carga): **Redis** + **réplicas
-  horizontais** do app, quotas por tenant, cópia **offsite** dos backups. Fase 8
-  (billing Stripe + planos/quotas). *Pendente também: rotação de chave de cripto por
-  tenant (envelope/KEK), herdada da Fase 5.*
+- **Produto/SaaS — Passo 1 (operador da plataforma) — feito:** camada de administração
+  ACIMA do RBAC por-tenant, sem depender de cobrança. Flag `usuarios.is_platform_admin`
+  (migração 0024; seed marca o `LOGIN_EMAIL`); painel `/plataforma` (`platform.ts` +
+  `PlataformaClient`) lista/cria/aprova/suspende/cancela empresas — cross-tenant, roda
+  FORA de `withSessionTenant`. **Controle de acesso por status** no login: `tenants.status`
+  (`pendente|trial|ativo|suspenso|cancelado`); só `trial`/`ativo` entram (demais → 403).
+  O operador nunca é bloqueado por status; a Ascender (tenant 0) não pode ter o status
+  alterado. Detalhe: ver [`../modulos/auth-autorizacao.md`](../modulos/auth-autorizacao.md).
+- **Próximo (produto):** Passo 2 — autocadastro `/signup` (empresa entra `pendente`) +
+  fila de aprovação no painel. Passo 3 — cobrança (gateway; avaliar BR-native
+  Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant.
+- **Próximo (infra):** Fase 7 restante (quando houver carga): **Redis** + **réplicas
+  horizontais**, quotas por tenant, cópia **offsite** dos backups. *Pendente: rotação de
+  chave de cripto por tenant (envelope/KEK), herdada da Fase 5; e revalidação de status
+  por request (hoje suspender só bloqueia novos logins).*
 
 > **Nota de segurança:** a senha de `ascender_app` está fixa no `0021` (dev). Em
 > produção, parametrizar via env/secret. O banco não é exposto externamente.
