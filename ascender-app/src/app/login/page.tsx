@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -103,6 +104,9 @@ export default function LoginPage() {
             </button>
           </form>
 
+          <p className="login-foot">
+            É uma integradora? <Link href="/signup">Cadastre sua empresa</Link>
+          </p>
           <p className="login-foot">ASCENDER Energia Solar · Brasília-DF</p>
         </div>
       </section>

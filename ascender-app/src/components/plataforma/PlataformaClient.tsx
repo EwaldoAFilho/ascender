@@ -62,6 +62,7 @@ export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
   );
   const [form, setForm] = useState(FORM_VAZIO);
   const [abrirForm, setAbrirForm] = useState(false);
+  const pendentes = empresas.filter((e) => e.status === "pendente").length;
 
   function criar(e: React.FormEvent) {
     e.preventDefault();
@@ -110,6 +111,14 @@ export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
             <h2 style={{ margin: 0 }}>Empresas na plataforma</h2>
             <p style={{ color: "var(--muted)", margin: "0.25rem 0 0" }}>
               {empresas.length} empresa(s). Controle o acesso pelo status.
+              {pendentes > 0 ? (
+                <span
+                  className="status status-aguardando"
+                  style={{ marginLeft: "0.5rem" }}
+                >
+                  {pendentes} aguardando aprovação
+                </span>
+              ) : null}
             </p>
           </div>
           <button

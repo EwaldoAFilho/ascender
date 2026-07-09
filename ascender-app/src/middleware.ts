@@ -7,9 +7,10 @@ const SESSION_COOKIE = "ascender_session";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rotas públicas: tela de login, endpoint de login e healthcheck (liveness).
+  // Rotas públicas: login, endpoint de login, autocadastro e healthcheck (liveness).
   if (
     pathname === "/login" ||
+    pathname === "/signup" ||
     pathname.startsWith("/api/auth/login") ||
     pathname === "/api/health"
   ) {
