@@ -52,7 +52,9 @@ if ! git pull --ff-only origin "$BRANCH" >>"$LOG" 2>&1; then
 fi
 
 cd "$APP_DIR"
-if docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build >>"$LOG" 2>&1; then
+# --remove-orphans: remove contêineres de serviços que saíram do compose (ex.: os
+# 3 workers sync/sync-dg/sync-telemetria colapsados no serviço único `worker`).
+if docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans >>"$LOG" 2>&1; then
   # Limpa imagens órfãs geradas pelo rebuild (não remove imagens em uso).
   docker image prune -f >>"$LOG" 2>&1 || true
   log "Deploy concluído: $(git -C "$REPO_DIR" rev-parse --short HEAD)."

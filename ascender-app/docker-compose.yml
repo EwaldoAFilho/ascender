@@ -29,9 +29,13 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
 
-  # Cron: histórico mensal de geração (SolisCloud → banco). Dado MENSAL — cadência
-  # longa de propósito (a cada 6h); não faz sentido refazer isso a cada 15 min.
-  sync:
+  # Worker único de sincronização: pg-boss (fila + cron + lock) sobre o próprio
+  # Postgres — substitui os 3 loops shell. Cada cron enfileira 1 job por tenant
+  # (singletonKey = job:tenant = lock contra sobreposição). Cadências: telemetria
+  # 10min, faturas/rateio DG 15min, geração 6h. Conecta como DONO (DATABASE_URL,
+  # sem APP_DATABASE_URL): pg-boss cria/mantém o schema `pgboss`; o isolamento por
+  # tenant no sync é feito no código (withTenant/getCurrentTenantId por tenant).
+  worker:
     build: .
     restart: unless-stopped
     depends_on:
@@ -41,56 +45,7 @@ services:
     environment:
       DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
     entrypoint: []
-    command: >
-      sh -c "sleep 45;
-      while true; do
-        echo '[sync] iniciando sincronizacao de geracao';
-        npm run db:sync-geracao || echo '[sync] geracao falhou; nova tentativa no proximo ciclo';
-        sleep 21600;
-      done"
-
-  # Cron: faturas e rateio do Digital Grid → banco, a cada 15 min (900s).
-  # Loop próprio (separado da geração) para manter o financeiro/rateio fresco
-  # sem hammerar a SolisCloud. O Digital Grid é somente leitura.
-  sync-dg:
-    build: .
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file: .env
-    environment:
-      DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
-    entrypoint: []
-    command: >
-      sh -c "sleep 50;
-      while true; do
-        echo '[sync-dg] iniciando sincronizacao de faturas (Digital Grid)';
-        npm run db:sync-faturas-dg || echo '[sync-dg] faturas DG puladas (sem token?); nova tentativa no proximo ciclo';
-        echo '[sync-dg] iniciando sincronizacao de rateio (Digital Grid)';
-        npm run db:sync-rateio-dg || echo '[sync-dg] rateio DG pulado (sem token?); nova tentativa no proximo ciclo';
-        sleep 900;
-      done"
-
-  # Cron rápido: coleta a telemetria da SolisCloud (estações, inversores,
-  # coletores, alarmes) para o banco a cada ~10 min. As telas leem só do banco.
-  sync-telemetria:
-    build: .
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file: .env
-    environment:
-      DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
-    entrypoint: []
-    command: >
-      sh -c "sleep 30;
-      while true; do
-        echo '[sync-telemetria] coletando telemetria (SolisCloud)';
-        npm run db:sync-telemetria || echo '[sync-telemetria] falhou (sem credencial?); nova tentativa no proximo ciclo';
-        sleep 600;
-      done"
+    command: npm run worker
 
 volumes:
   ascender_pgdata:
