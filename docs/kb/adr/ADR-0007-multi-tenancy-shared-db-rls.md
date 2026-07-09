@@ -72,8 +72,45 @@ todas as queries retornam tudo. Roadmap completo em
   tenant 0), evitando `uuid ""` no render RSC. Provado: cada tenant só lê a própria
   credencial; salvar a do tenant B não altera a do tenant 0. *Rotação de chave por
   tenant (envelope/KEK) fica para depois — o blob de cripto ainda usa a chave mestra única.*
-- **Próximo:** Fase 6 (sync por tenant + Redis + fila/lock), Fase 7 (infra: migrations
-  fora do boot, Redis, backups, réplicas), Fase 8 (billing Stripe + planos/quotas).
+- **RLS hardening (migração `0023`) — feito:** a policy `tenant_isolation` passou a
+  usar `NULLIF(current_setting('app.current_tenant', true), '')::uuid` nas 20 tabelas.
+  A forma anterior (`IS NULL OR = ''`) não bastava: o Postgres não garante
+  short-circuit de `OR` e avaliava o cast de `''` para uuid mesmo com as guardas
+  verdadeiras (raiz do 500 de `/integracoes` na Fase 5, pois o valor de reset de um
+  GUC custom numa conexão de pool passa a ser `''`, não NULL). `NULLIF` converte `''`
+  em NULL antes do cast → nunca dispara. Corrige na origem (a mitigação da Fase 5 só
+  tratava os call sites de código, não a policy).
+- **Fase 6a (writes dos workers) — feita:** os upserts de `medicoes_geracao` e
+  `alarmes` usavam os `ON CONFLICT` antigos (dropados pela 0019) → erro 42P10 a cada
+  ciclo (bug em produção). Agora batem com as UNIQUE compostas `(tenant_id, …)` e todas
+  as escritas dos syncs setam `tenant_id` explícito (telemetria_*, usinas, sync_runs);
+  reads auxiliares de `usinas` e o painel `getSyncRunsResumo` escopados por tenant.
+- **Fase 6b (sync por tenant) — feita:** `db/tenants.ts::listarTenantsComCredencial`
+  enumera tenants ativos com credencial do provider (fora de contexto); `sync/jobs.ts`
+  é o registro único dos 4 jobs + `rodarJobParaTenant` (usa `runWithTenant` — só ALS,
+  sem transação longa durante o I/O de rede) e `rodarJobTodosTenants` (loop com
+  try/catch POR TENANT). Os 4 entrypoints `db:sync-*` viram wrappers. Provado com um
+  tenant B (credenciais próprias fake): cada tenant usa a SUA credencial (403 no B) e
+  a falha de um não derruba os outros; `sync_runs` por tenant; zero vazamento.
+- **Fase 6c (cache/rate-limit por conta) — feita:** no cliente SolisCloud a chave de
+  cache passou a `${keyId}:${resourcePath}:${body}` e o rate-limit virou um balde
+  (fila+timestamp) por `keyId` — contas de tenants distintos não vazam resposta nem se
+  serializam. As rotas de leitura Solis (`withSolis`, `/test`) rodam em
+  `withSessionTenant`. In-process (sem Redis).
+- **Fase 6d (fila/lock via pg-boss) — feita:** worker único (`src/lib/worker/index.ts`)
+  sobre **pg-boss** (fila+cron+lock no próprio Postgres) substitui os 3 loops shell.
+  Cron por tipo de job → fanout que enumera tenants e enfileira 1 `sync-run` por tenant
+  com `singletonKey = job:tenant`; a fila `sync-run` usa `policy: 'stately'` →
+  índice único parcial `(name,state,singleton_key) WHERE state<=active` = no máximo 1
+  rodando + 1 na fila por `(tenant,job)` (sem sobreposição nem acúmulo). `docker-compose`
+  colapsa 3 serviços em `worker`; `deploy-poll.sh` ganhou `--remove-orphans`.
+- **Decisão (Fase 6): Redis adiado para a Fase 7.** O sistema é single-instance (1 app
+  + 1 worker); namespacing in-process resolve cache/rate-limit e pg-boss provê
+  fila/cron/lock sobre o Postgres — nada na Fase 6 exige Redis. Redis passa a ser
+  necessário só com réplicas horizontais (bucket/cache compartilhados) → Fase 7.
+- **Próximo:** Fase 7 (infra/escala: migrations fora do boot, Redis, backups, réplicas,
+  quotas por tenant), Fase 8 (billing Stripe + planos/quotas). *Pendente também: rotação
+  de chave de cripto por tenant (envelope/KEK), herdada da Fase 5.*
 
 > **Nota de segurança:** a senha de `ascender_app` está fixa no `0021` (dev). Em
 > produção, parametrizar via env/secret. O banco não é exposto externamente.

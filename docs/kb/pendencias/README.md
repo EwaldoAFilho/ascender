@@ -103,3 +103,25 @@
 - [ ] Nao ha testes automatizados das funcoes puras de rules.ts, apesar de projetadas para serem 100% testaveis
 - [ ] Confirmar aderencia de mesesExpiracaoScee=60 a Lei 14.300 (prazo/condicoes de expiracao do saldo SCEE) no cenario real dos clientes
 - [ ] Vinculo Lei 14.300 aparece so indiretamente (residuo fio B na base de desconto + expiracao SCEE 60m); nao ha modulo dedicado a Fio B dentro deste subsistema
+
+## Multi-tenancy / SaaS (Fase 6+) — [`adr/ADR-0007`](../adr/ADR-0007-multi-tenancy-shared-db-rls.md)
+
+Resolvido na Fase 6 (fecha pendências antigas de infra/soliscloud/rateio): a cadência
+dos syncs agora é cron do pg-boss (telemetria */10, DG */15, geração 6h) num serviço
+único `worker`; o agendamento vive em `src/lib/worker/index.ts` (não mais nos loops
+shell do compose). Sync é por tenant, com lock `stately` por `(tenant, job)`.
+
+Deferidos (endereçar nas Fases 7–8):
+
+- [ ] **Redis** (Fase 7): cache/rate-limit do Solis e a fila são in-process/por-conta;
+      com réplicas horizontais será preciso bucket/cache compartilhado (Redis).
+- [ ] **Migrations fora do boot** (Fase 7): `db:migrate` ainda roda no boot do `app`
+      (docker-entrypoint.sh); com réplicas há corrida — mover para job dedicado ou
+      `pg_advisory_lock`. O `worker` NÃO roda migrations (só o `app`).
+- [ ] **Rotação de chave de cripto por tenant** (envelope/KEK): herdada da Fase 5 — o
+      blob ainda usa a chave mestra única (`APP_ENCRYPTION_KEY`), sem key-id/rotação.
+- [ ] **Backup do volume `ascender_pgdata`** e **healthcheck do `worker`** (Fase 7).
+- [ ] **Senha de `ascender_app`** fixa na migração 0021 (dev) — parametrizar em prod.
+- [ ] **pg-boss como dono**: o `worker` conecta com a role dona (DATABASE_URL) p/ criar
+      o schema `pgboss`; avaliar pré-criar o schema e rodar o worker com role restrita.
+- [ ] **Quotas/planos por tenant** (Fase 8): sem limite de usinas/usuários/cadência.

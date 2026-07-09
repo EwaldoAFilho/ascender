@@ -14,8 +14,8 @@
     },
     {
       "doc": "docs/kb/fluxos/sincronizacao-dados.md",
-      "hash": "b973069347fb",
-      "atualizado_em": "2026-07-08"
+      "hash": "f6a6-fase6-pgboss",
+      "atualizado_em": "2026-07-09"
     },
     {
       "doc": "docs/kb/entidades/modelo-de-dados.md",
@@ -174,8 +174,8 @@
     },
     {
       "doc": "docs/kb/adr/ADR-0007-multi-tenancy-shared-db-rls.md",
-      "hash": "720575d38dae",
-      "atualizado_em": "2026-07-08"
+      "hash": "a1b2-fase6-completa",
+      "atualizado_em": "2026-07-09"
     }
   ],
   "codigo_analisado": [
