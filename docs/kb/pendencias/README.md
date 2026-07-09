@@ -111,16 +111,22 @@ dos syncs agora é cron do pg-boss (telemetria */10, DG */15, geração 6h) num 
 único `worker`; o agendamento vive em `src/lib/worker/index.ts` (não mais nos loops
 shell do compose). Sync é por tenant, com lock `stately` por `(tenant, job)`.
 
-Deferidos (endereçar nas Fases 7–8):
+Feito na Fase 7 (ops hardening):
 
-- [ ] **Redis** (Fase 7): cache/rate-limit do Solis e a fila são in-process/por-conta;
-      com réplicas horizontais será preciso bucket/cache compartilhado (Redis).
-- [ ] **Migrations fora do boot** (Fase 7): `db:migrate` ainda roda no boot do `app`
-      (docker-entrypoint.sh); com réplicas há corrida — mover para job dedicado ou
-      `pg_advisory_lock`. O `worker` NÃO roda migrations (só o `app`).
+- [x] **Migrations fora do boot:** serviço one-shot `migrate` (compose) roda antes de
+      `app`/`worker` (`service_completed_successfully`); entrypoint do `app` só faz `start`.
+- [x] **Backup automático (local):** serviço `backup` (`pg_dump` diário no volume
+      `ascender_backups`, retenção). Runbook `runbooks/backup-restore.md`.
+- [x] **Healthchecks:** `app` (`/api/health`) e `worker` (heartbeat).
+
+Deferidos (endereçar nas Fases 7 restante / 8):
+
+- [ ] **Redis + réplicas horizontais** (Fase 7, quando houver carga): cache/rate-limit do
+      Solis e a fila são in-process/por-conta; com réplicas será preciso store compartilhado.
+- [ ] **Cópia offsite dos backups** (S3-compatível): hoje o dump é só local (mesmo VPS);
+      requer credenciais do bucket. Ver `runbooks/backup-restore.md`.
 - [ ] **Rotação de chave de cripto por tenant** (envelope/KEK): herdada da Fase 5 — o
       blob ainda usa a chave mestra única (`APP_ENCRYPTION_KEY`), sem key-id/rotação.
-- [ ] **Backup do volume `ascender_pgdata`** e **healthcheck do `worker`** (Fase 7).
 - [ ] **Senha de `ascender_app`** fixa na migração 0021 (dev) — parametrizar em prod.
 - [ ] **pg-boss como dono**: o `worker` conecta com a role dona (DATABASE_URL) p/ criar
       o schema `pgboss`; avaliar pré-criar o schema e rodar o worker com role restrita.

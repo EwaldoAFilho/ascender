@@ -32,6 +32,38 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
+  # Backup automático do Postgres (produção): pg_dump diário comprimido para o
+  # volume `ascender_backups`, com retenção de BACKUP_RETENTION_DAYS. Local (mesmo
+  # VPS) — protege contra migração ruim/corrupção/exclusão acidental. Para cópia
+  # offsite (perda do VPS), ver runbook de backup. Restore: gunzip -c <arq> | psql.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ascender
+      BACKUP_RETENTION_DAYS: "7"
+    volumes:
+      - ascender_backups:/backups
+    entrypoint: []
+    command: >
+      sh -c 'echo "[backup] serviço iniciado (retenção $${BACKUP_RETENTION_DAYS:-7}d)";
+      while true; do
+        ts=$$(date +%Y%m%d-%H%M%S);
+        echo "[backup] pg_dump $$ts";
+        if pg_dump -h db -U ascender -d ascender | gzip > /backups/ascender-$$ts.sql.gz.tmp; then
+          mv /backups/ascender-$$ts.sql.gz.tmp /backups/ascender-$$ts.sql.gz;
+          echo "[backup] ok: ascender-$$ts.sql.gz";
+        else
+          echo "[backup] FALHOU"; rm -f /backups/ascender-$$ts.sql.gz.tmp;
+        fi;
+        find /backups -name "*.sql.gz" -mtime +$${BACKUP_RETENTION_DAYS:-7} -delete;
+        sleep 86400;
+      done'
+
 volumes:
   caddy_data:
   caddy_config:
+  ascender_backups:

@@ -14,20 +14,47 @@ services:
       timeout: 5s
       retries: 12
 
+  # Migração one-shot: roda db:migrate + db:seed UMA vez por deploy e sai. app e
+  # worker esperam por ela (service_completed_successfully), então as migrations
+  # NÃO rodam mais no boot do app — evita corrida quando houver 2+ instâncias.
+  # Um único contêiner de migração serializa a aplicação por si só.
+  migrate:
+    build: .
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
+    entrypoint: []
+    command: sh -c "npm run db:migrate && (npm run db:seed || echo '[migrate] seed pulado/falhou — seguindo')"
+
   app:
     build: .
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     env_file: .env
     environment:
-      # Migrations/seed usam o dono (DATABASE_URL). O RUNTIME da app usa a role
-      # restrita ascender_app (sem BYPASSRLS) para a RLS por tenant valer.
+      # O RUNTIME da app usa a role restrita ascender_app (sem BYPASSRLS) para a
+      # RLS por tenant valer. DATABASE_URL (dono) fica disponível mas não é usado
+      # em runtime (migrations/seed rodam no serviço `migrate`).
       DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
       APP_DATABASE_URL: postgresql://ascender_app:ascender_app@db:5432/ascender
     ports:
       - "${APP_PORT:-3000}:3000"
+    healthcheck:
+      # 127.0.0.1 (não 'localhost'): o app escuta em IPv4 0.0.0.0; 'localhost'
+      # resolveria ::1 (IPv6) primeiro e daria "connection refused".
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # Worker único de sincronização: pg-boss (fila + cron + lock) sobre o próprio
   # Postgres — substitui os 3 loops shell. Cada cron enfileira 1 job por tenant
@@ -41,6 +68,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     env_file: .env
     environment:
       DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
@@ -51,6 +80,14 @@ services:
     # mata o worker no meio de um sync longo e o job fica preso 'active' (ocupando
     # o slot stately do tenant) até expirar (~15 min).
     stop_grace_period: 35s
+    # Liveness: o worker escreve /tmp/worker-heartbeat a cada ~30s (WORKER_HEARTBEAT_FILE);
+    # marca unhealthy se o event loop travar (arquivo velho > 2 min).
+    healthcheck:
+      test: ["CMD-SHELL", "find /tmp/worker-heartbeat -mmin -2 | grep -q . || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
 volumes:
   ascender_pgdata:

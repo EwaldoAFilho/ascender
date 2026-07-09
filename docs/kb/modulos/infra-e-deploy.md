@@ -1,10 +1,16 @@
 # Modulo: Infra & Deploy
 
-> Status: completo  ·  Ultima analise: 2026-07-08  ·  Confianca: alta
-> Codigo: ascender-app/Dockerfile, ascender-app/docker-compose.yml, ascender-app/docker-compose.prod.yml, ascender-app/docker-entrypoint.sh, ascender-app/Caddyfile, scripts/deploy-poll.sh, ascender-app/package.json, ascender-app/drizzle.config.ts, ascender-app/src/lib/db/index.ts, ascender-app/src/lib/db/sync-run.ts, ascender-app/src/lib/env.ts
+> Status: completo  ·  Ultima analise: 2026-07-09  ·  Confianca: alta
+> Codigo: ascender-app/Dockerfile, ascender-app/docker-compose.yml, ascender-app/docker-compose.prod.yml, ascender-app/docker-entrypoint.sh, ascender-app/Caddyfile, scripts/deploy-poll.sh, ascender-app/package.json, ascender-app/drizzle.config.ts, ascender-app/src/lib/db/index.ts, ascender-app/src/lib/worker/index.ts, ascender-app/src/app/api/health/route.ts, ascender-app/src/lib/env.ts
 
 ## Visao geral
-Empacotamento e operacao da aplicacao ASCENDER em containers Docker num servidor proprio (VPS). O `app` sobe aplicando migrations + seed no boot; um Postgres dedicado e o banco; tres workers de sincronizacao (SolisCloud e Digital Grid) rodam como loops `sh` infinitos (cron caseiro) atualizando o banco em cadencias diferentes; em producao o Caddy termina TLS (Let's Encrypt) e faz proxy reverso. O deploy e feito por polling: um script no cron da VPS detecta mudanca no branch remoto e refaz o build/subida do compose de producao. Existe para dar deploy repetivel, HTTPS automatico e frescor de dados sem depender de PaaS.
+Empacotamento e operacao da aplicacao ASCENDER em containers Docker num servidor proprio (VPS). Um Postgres dedicado e o banco; em producao o Caddy termina TLS (Let's Encrypt) e faz proxy reverso. O deploy e feito por polling: um script no cron da VPS detecta mudanca no branch remoto e refaz o build/subida do compose de producao (com `--remove-orphans`). Existe para dar deploy repetivel, HTTPS automatico e frescor de dados sem depender de PaaS.
+
+> **Atualizado nas Fases 6–7 (multi-tenant, ver [ADR-0007](../adr/ADR-0007-multi-tenancy-shared-db-rls.md)):**
+> - **Migrations fora do boot:** servico one-shot **`migrate`** roda `db:migrate` + `db:seed` uma vez por deploy; `app` e `worker` esperam (`depends_on: service_completed_successfully`). O `docker-entrypoint.sh` do `app` agora so faz `start`.
+> - **Sync:** os 3 loops `sh` (`sync`/`sync-dg`/`sync-telemetria`) foram colapsados num **`worker`** unico com **pg-boss** (fila+cron+lock), sync **por tenant** (ver [`fluxos/sincronizacao-dados.md`](../fluxos/sincronizacao-dados.md)).
+> - **Backup (prod):** servico **`backup`** faz `pg_dump` diario no volume `ascender_backups` (retencao configuravel). Runbook: [`runbooks/backup-restore.md`](../runbooks/backup-restore.md).
+> - **Healthchecks:** `app` (`/api/health`, liveness) e `worker` (heartbeat `/tmp/worker-heartbeat`).
 
 ## Responsabilidades
 - Build da imagem Next.js 15 de producao (`Dockerfile`, multi-camada simples node:20-alpine).

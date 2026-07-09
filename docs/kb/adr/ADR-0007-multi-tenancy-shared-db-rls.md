@@ -108,9 +108,23 @@ todas as queries retornam tudo. Roadmap completo em
   + 1 worker); namespacing in-process resolve cache/rate-limit e pg-boss provê
   fila/cron/lock sobre o Postgres — nada na Fase 6 exige Redis. Redis passa a ser
   necessário só com réplicas horizontais (bucket/cache compartilhados) → Fase 7.
-- **Próximo:** Fase 7 (infra/escala: migrations fora do boot, Redis, backups, réplicas,
-  quotas por tenant), Fase 8 (billing Stripe + planos/quotas). *Pendente também: rotação
-  de chave de cripto por tenant (envelope/KEK), herdada da Fase 5.*
+- **Fase 7 (ops hardening) — feita (parcial):** endurecimento de operação que vale já
+  no cenário single-instance (Redis + réplicas horizontais adiados até haver carga real):
+  - **Migrations fora do boot:** serviço one-shot `migrate` (docker-compose) roda
+    `db:migrate` + `db:seed` uma vez por deploy; `app` e `worker` esperam via
+    `depends_on: { migrate: service_completed_successfully }`. O `docker-entrypoint.sh`
+    do `app` agora só faz `start` — não migra mais no boot (evita corrida com réplicas).
+  - **Backup automático (prod):** serviço `backup` faz `pg_dump` diário comprimido no
+    volume `ascender_backups` com retenção (`BACKUP_RETENTION_DAYS`, default 7). Local
+    (mesmo VPS). Runbook: `runbooks/backup-restore.md`.
+  - **Healthchecks:** `app` expõe `/api/health` (liveness pública) + healthcheck via
+    `wget 127.0.0.1` (IPv4, senão `localhost`→::1 dá connection refused); o `worker`
+    escreve um heartbeat (`/tmp/worker-heartbeat`) e o healthcheck marca unhealthy se
+    o event loop travar. `deploy-poll.sh` já usa `--remove-orphans` (Fase 6d).
+- **Próximo:** Fase 7 (restante, quando houver carga): **Redis** + **réplicas
+  horizontais** do app, quotas por tenant, cópia **offsite** dos backups. Fase 8
+  (billing Stripe + planos/quotas). *Pendente também: rotação de chave de cripto por
+  tenant (envelope/KEK), herdada da Fase 5.*
 
 > **Nota de segurança:** a senha de `ascender_app` está fixa no `0021` (dev). Em
 > produção, parametrizar via env/secret. O banco não é exposto externamente.

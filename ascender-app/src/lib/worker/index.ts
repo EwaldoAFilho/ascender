@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { writeFileSync } from "node:fs";
 import PgBoss from "pg-boss";
 import { listarTenantsComCredencial } from "@/lib/db/tenants";
 import { env } from "@/lib/env";
@@ -25,10 +26,23 @@ const AGENDAMENTOS: { job: SyncJobName; cron: string }[] = [
 // Fila de execução de 1 job para 1 tenant.
 const FILA_EXEC = "sync-run";
 
+// Heartbeat de liveness: o healthcheck do Docker checa a atualização deste arquivo.
+const HEARTBEAT_FILE =
+  process.env.WORKER_HEARTBEAT_FILE || "/tmp/worker-heartbeat";
+function heartbeat() {
+  try {
+    writeFileSync(HEARTBEAT_FILE, new Date().toISOString());
+  } catch {
+    // não derruba o worker por falha de escrita do heartbeat
+  }
+}
+
 async function main() {
   const boss = new PgBoss({ connectionString: env.databaseUrl(), schema: "pgboss" });
   boss.on("error", (e) => console.error("[worker] pg-boss erro:", e));
   await boss.start();
+  heartbeat();
+  const heartbeatTimer = setInterval(heartbeat, 30_000);
 
   // Execução por tenant. Política 'stately' + singletonKey = job:tenant = lock:
   // no máximo 1 job por (tenant, job) em cada estado até 'active' — ou seja, no
@@ -71,6 +85,7 @@ async function main() {
   // puxar jobs, deixa os em andamento terminarem e fecha as conexões.
   const parar = async (sig: string) => {
     console.log(`[worker] ${sig} recebido; parando pg-boss...`);
+    clearInterval(heartbeatTimer);
     try {
       // timeout < stop_grace_period do compose (35s) para resolver antes do SIGKILL.
       await boss.stop({ graceful: true, wait: true, timeout: 25000 });
