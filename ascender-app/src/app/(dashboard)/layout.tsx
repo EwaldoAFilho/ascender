@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
+  Building2,
   LayoutDashboard,
   LineChart,
   LogOut,
@@ -68,6 +70,20 @@ export default function DashboardLayout({
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const isDarkTheme = theme === "dark";
+  // Só operadores da plataforma (staff Ascender) veem o link do painel /plataforma.
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  useEffect(() => {
+    let ativo = true;
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (ativo && d) setIsPlatformAdmin(Boolean(d.isPlatformAdmin));
+      })
+      .catch(() => {});
+    return () => {
+      ativo = false;
+    };
+  }, []);
   const header = resolveHeader(pathname);
   const activeModule = modules.find((module) =>
     moduleMatches(module.href, pathname),
@@ -139,6 +155,15 @@ export default function DashboardLayout({
           >
             <Settings size={18} /> Configuracoes
           </button>
+          {isPlatformAdmin ? (
+            <button
+              className={pathname.startsWith("/plataforma") ? "active" : ""}
+              type="button"
+              onClick={() => router.push("/plataforma")}
+            >
+              <Building2 size={18} /> Plataforma
+            </button>
+          ) : null}
         </nav>
       </aside>
 

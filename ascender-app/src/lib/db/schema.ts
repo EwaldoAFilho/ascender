@@ -70,6 +70,10 @@ export const usuarios = pgTable("usuarios", {
   email: text("email").notNull().unique(),
   senhaHash: text("senha_hash").notNull(),
   ativo: boolean("ativo").notNull().default(true),
+  // Operador da PLATAFORMA (staff da Ascender): enxerga/administra TODOS os tenants
+  // no painel /plataforma. É um nível ACIMA do RBAC por-tenant (owner/admin/...).
+  // Default false — quase todo usuário é de um tenant cliente, não da plataforma.
+  isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -88,7 +92,11 @@ export const tenants = pgTable("tenants", {
   id: uuid("id").primaryKey().defaultRandom(),
   nome: text("nome").notNull(),
   slug: text("slug").notNull().unique(),
-  status: text("status").notNull().default("ativo"), // trial | ativo | suspenso
+  // Ciclo de vida da assinatura (controla o ACESSO no login):
+  //   pendente  = cadastrou, aguarda aprovação do operador (não entra)
+  //   trial     = em avaliação (entra) · ativo = cliente pagante (entra)
+  //   suspenso  = inadimplente/desligado (não entra) · cancelado (não entra)
+  status: text("status").notNull().default("ativo"),
   plano: text("plano").notNull().default("padrao"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

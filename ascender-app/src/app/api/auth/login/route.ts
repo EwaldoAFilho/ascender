@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  getTenantStatus,
+  mensagemStatus,
+  STATUS_COM_ACESSO,
+  type TenantStatus,
+} from "@/lib/auth/platform";
 import { getSession } from "@/lib/auth/session";
 import { getDefaultMembership, verifyLogin } from "@/lib/auth/users";
 
@@ -25,13 +31,23 @@ export async function POST(request: Request) {
     );
   }
 
+  // Escopa a sessão ao tenant do usuário (membership padrão) e checa o ACESSO
+  // pelo status da empresa. O operador da plataforma (staff Ascender) nunca é
+  // bloqueado por status (precisa entrar para administrar a plataforma).
+  const membership = await getDefaultMembership(user.id);
+  if (membership && !user.isPlatformAdmin) {
+    const status = await getTenantStatus(membership.tenantId);
+    if (status && !STATUS_COM_ACESSO.includes(status as TenantStatus)) {
+      return NextResponse.json({ error: mensagemStatus(status) }, { status: 403 });
+    }
+  }
+
   const session = await getSession();
   session.authenticated = true;
   session.userId = user.id;
   session.email = user.email;
   session.loginAt = Date.now();
-  // Escopa a sessão ao tenant do usuário (membership padrão).
-  const membership = await getDefaultMembership(user.id);
+  session.isPlatformAdmin = user.isPlatformAdmin;
   if (membership) {
     session.tenantId = membership.tenantId;
     session.role = membership.role;

@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { hash } from "@node-rs/argon2";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "./index";
 import { TENANT0_ID, tenantMemberships, tenants, usuarios } from "./schema";
 
@@ -52,6 +52,14 @@ async function main() {
       .onConflictDoNothing();
   }
   console.log(`[seed] Tenant 0 + ${users.length} membership(s) garantidos.`);
+
+  // 4) O admin (LOGIN_EMAIL) é operador da PLATAFORMA (staff Ascender) — enxerga e
+  //    administra todos os tenants no painel /plataforma. Idempotente.
+  await db
+    .update(usuarios)
+    .set({ isPlatformAdmin: true, updatedAt: new Date() })
+    .where(eq(usuarios.email, email));
+  console.log(`[seed] ${email} marcado como operador da plataforma.`);
 }
 
 main()

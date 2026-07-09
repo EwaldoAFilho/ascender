@@ -10,10 +10,17 @@ export type UsuarioPublico = {
   nome: string;
   email: string;
   ativo: boolean;
+  isPlatformAdmin: boolean;
 };
 
 function publico(u: Usuario): UsuarioPublico {
-  return { id: u.id, nome: u.nome, email: u.email, ativo: u.ativo };
+  return {
+    id: u.id,
+    nome: u.nome,
+    email: u.email,
+    ativo: u.ativo,
+    isPlatformAdmin: u.isPlatformAdmin,
+  };
 }
 
 /** Valida e-mail + senha contra a tabela de usuários (somente ativos). */
@@ -132,7 +139,13 @@ export async function deleteUsuario(id: string): Promise<void> {
 
 // ===== Membros do tenant (RBAC / multi-tenant) =====
 
-export type Membro = UsuarioPublico & { role: string };
+export type Membro = {
+  id: string;
+  nome: string;
+  email: string;
+  ativo: boolean;
+  role: string;
+};
 
 /** Usuários que são membros do tenant, com seu papel. */
 export async function listMembros(tenantId: string): Promise<Membro[]> {

@@ -1,0 +1,1 @@
+ALTER TABLE "usuarios" ADD COLUMN "is_platform_admin" boolean DEFAULT false NOT NULL;

@@ -13,6 +13,9 @@ export type SessionData = {
   // sempre revalidada no servidor (a sessão não é fonte de verdade).
   tenantId?: string;
   role?: string;
+  // Operador da plataforma (staff Ascender). Conveniência para a UI; o guard
+  // (requirePlatformAdmin) sempre revalida no banco.
+  isPlatformAdmin?: boolean;
   roles?: string[]; // legado — não usado
 };
 
