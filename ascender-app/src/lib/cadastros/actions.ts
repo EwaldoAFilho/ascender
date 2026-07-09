@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
-import { getSessionTenantId } from "@/lib/auth/tenant";
+import { getSessionTenantId, withSessionTenant } from "@/lib/auth/tenant";
 import { getDb } from "@/lib/db";
 import {
   clientes,
@@ -234,11 +234,14 @@ export async function getFichaCliente(
 ): Promise<FichaCliente> {
   const auth = await ensureAuth();
   if (auth) return { anexos: [], historico: [] };
-  const [anexosLista, historico] = await Promise.all([
-    listarAnexos("cliente", clienteId),
-    listarHistorico("cliente", clienteId),
-  ]);
-  return { anexos: anexosLista, historico };
+  // Escopa as leituras (anexos/histórico usam getCurrentTenantId) ao tenant da sessão.
+  return withSessionTenant(async () => {
+    const [anexosLista, historico] = await Promise.all([
+      listarAnexos("cliente", clienteId),
+      listarHistorico("cliente", clienteId),
+    ]);
+    return { anexos: anexosLista, historico };
+  });
 }
 
 export async function excluirAnexoCliente(
@@ -585,7 +588,8 @@ export async function importarUsinasSolis(): Promise<
   const auth = await ensureAuth();
   if (auth) return auth;
   try {
-    const result = await importStationsFromSolis();
+    // Fixa o tenant da sessão: credenciais Solis e escrita em `usinas` escopadas.
+    const result = await withSessionTenant(() => importStationsFromSolis());
     revalidate();
     return { ok: true, ...result };
   } catch (error) {
@@ -602,7 +606,8 @@ export async function importarCadastrosDg(): Promise<
   const auth = await ensureAuth();
   if (auth) return auth;
   try {
-    const result = await runImportarCadastrosDg();
+    // Fixa o tenant da sessão: credenciais DG e escritas de conciliação escopadas.
+    const result = await withSessionTenant(() => runImportarCadastrosDg());
     revalidate();
     return { ok: true, ...result };
   } catch (error) {

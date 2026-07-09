@@ -159,6 +159,17 @@ todas as queries retornam tudo. Roadmap completo em
   dados da Ascender a qualquer usuário (vazamento cross-tenant dormente, latente desde
   a Fase 2/5). Provado: usuário de outra empresa recebe os PRÓPRIOS dados (vazios), não
   os da Ascender; operador não-impersonando falha fechado (500).
+- **Varredura de isolamento (6 dimensões, multi-agente) — feita:** auditoria completa de
+  server actions, páginas, leituras, escritas, cobertura de RLS e fronteira de contexto/
+  cache/segredos. Resultado **limpo** no backstop: RLS cobre todas as tabelas com tenant_id
+  (ENABLE+FORCE, policy NULLIF), `ascender_app` é NOBYPASSRLS, os módulos de query filtram
+  por `getCurrentTenantId()`, o cache Solis é namespaced por keyId e custo/margem seguem
+  server-only. Foram achados e corrigidos **5 entry points** que tocavam dados sem
+  `withSessionTenant` (mesmo padrão): server actions `importarUsinasSolis`,
+  `importarCadastrosDg` e `getFichaCliente` (`cadastros/actions.ts`), a leitura de premissas
+  em `gerarProposta` (`propostas/actions.ts`) e a página `/configuracoes/proposta-precos`
+  (esta última expunha kit/custos/margem do tenant 0 — confidencial). Todos envolvidos em
+  `withSessionTenant`.
 - **Próximo (produto):** Passo 3 — cobrança (gateway; avaliar BR-native
   Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant. *Só quando
   houver um piloto rodando e um preço definido.*

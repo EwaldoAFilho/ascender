@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { requireRole } from "@/lib/auth/rbac";
-import { getSessionTenantId } from "@/lib/auth/tenant";
+import { getSessionTenantId, withSessionTenant } from "@/lib/auth/tenant";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { clientes, parametrosProposta, propostas } from "@/lib/db/schema";
@@ -84,7 +84,9 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
   };
 
   try {
-    const parametros = await carregarParametros();
+    // Escopa a leitura das premissas (kit/custos/margem) ao tenant da sessão —
+    // carregarParametros filtra por getCurrentTenantId, que sem contexto cai no T0.
+    const parametros = await withSessionTenant(() => carregarParametros());
     const resultado = gerarResultado(geradorInput, parametros, new Date().getFullYear());
     const nec = resultado.necessario;
 
