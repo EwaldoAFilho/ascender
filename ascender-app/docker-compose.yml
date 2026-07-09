@@ -46,6 +46,11 @@ services:
       DATABASE_URL: postgresql://ascender:ascender@db:5432/ascender
     entrypoint: []
     command: npm run worker
+    # Dá tempo do encerramento gracioso do pg-boss (boss.stop, timeout 25s) drenar
+    # um sync em andamento antes do SIGKILL. Sem isto, o default de 10s do Docker
+    # mata o worker no meio de um sync longo e o job fica preso 'active' (ocupando
+    # o slot stately do tenant) até expirar (~15 min).
+    stop_grace_period: 35s
 
 volumes:
   ascender_pgdata:

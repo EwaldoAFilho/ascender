@@ -72,7 +72,8 @@ async function main() {
   const parar = async (sig: string) => {
     console.log(`[worker] ${sig} recebido; parando pg-boss...`);
     try {
-      await boss.stop({ graceful: true, wait: true });
+      // timeout < stop_grace_period do compose (35s) para resolver antes do SIGKILL.
+      await boss.stop({ graceful: true, wait: true, timeout: 25000 });
     } finally {
       process.exit(0);
     }
