@@ -18,6 +18,16 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 
 const PATH = "/plataforma";
 
+// Validação LENIENTE de tenantId (formato Postgres uuid, 8-4-4-4-12 hex). NÃO usar
+// z.string().uuid(): o Zod v4 é estrito quanto ao RFC-4122 e rejeita o TENANT0_ID
+// ("00000000-0000-0000-0000-000000000001", versão 0), que o Postgres aceita.
+const tenantIdSchema = z
+  .string()
+  .regex(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    "Empresa inválida.",
+  );
+
 const criarSchema = z.object({
   nomeEmpresa: z.string().min(2, "Informe o nome da empresa.").max(120),
   donoNome: z.string().min(2, "Informe o nome do responsável.").max(120),
@@ -67,7 +77,7 @@ export async function criarEmpresaAction(
 }
 
 const statusSchema = z.object({
-  tenantId: z.string().uuid("Empresa inválida."),
+  tenantId: tenantIdSchema,
   status: z.enum(["pendente", "trial", "ativo", "suspenso", "cancelado"]),
 });
 
@@ -105,7 +115,7 @@ export async function mudarStatusAction(
   return { ok: true };
 }
 
-const acessarSchema = z.object({ tenantId: z.string().uuid("Empresa inválida.") });
+const acessarSchema = z.object({ tenantId: tenantIdSchema });
 
 /**
  * "Acessar empresa": o operador passa a operar dentro de uma empresa (impersonar).
