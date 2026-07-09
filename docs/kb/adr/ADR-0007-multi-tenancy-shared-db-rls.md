@@ -129,9 +129,19 @@ todas as queries retornam tudo. Roadmap completo em
   (`pendente|trial|ativo|suspenso|cancelado`); só `trial`/`ativo` entram (demais → 403).
   O operador nunca é bloqueado por status; a Ascender (tenant 0) não pode ter o status
   alterado. Detalhe: ver [`../modulos/auth-autorizacao.md`](../modulos/auth-autorizacao.md).
-- **Próximo (produto):** Passo 2 — autocadastro `/signup` (empresa entra `pendente`) +
-  fila de aprovação no painel. Passo 3 — cobrança (gateway; avaliar BR-native
-  Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant.
+- **Produto/SaaS — Passo 2 (autocadastro + aprovação) — feito:** `/signup` PÚBLICO
+  (`signup-actions.ts::signupAction`, sem sessão; honeypot anti-bot) cria a empresa com
+  status `pendente` + dono via `criarEmpresaComDono` (atômico). O dono NÃO entra até o
+  operador aprovar (login bloqueia `pendente`). O painel `/plataforma` aprova/recusa
+  pendentes (Aprovar → `trial`) e mostra "N aguardando aprovação". `middleware` libera
+  `/signup`; `/login` ganhou link cruzado.
+  Endurecimento (revisão adversarial): `/signup` tem rate-limit por IP (5/h) + teto
+  global (30/10min) in-memory (`auth/rate-limit.ts`), `.max()` em todos os campos,
+  honeypot, e **não** vaza erro cru do banco (`db/erros.ts::ehViolacaoUnica` → mensagem
+  amigável). *Falta captcha e o rate-limit é por-processo (migrar p/ Redis com réplicas).*
+- **Próximo (produto):** Passo 3 — cobrança (gateway; avaliar BR-native
+  Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant. *Só quando
+  houver um piloto rodando e um preço definido.*
 - **Próximo (infra):** Fase 7 restante (quando houver carga): **Redis** + **réplicas
   horizontais**, quotas por tenant, cópia **offsite** dos backups. *Pendente: rotação de
   chave de cripto por tenant (envelope/KEK), herdada da Fase 5; e revalidação de status

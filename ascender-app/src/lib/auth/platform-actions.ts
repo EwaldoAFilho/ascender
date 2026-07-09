@@ -9,16 +9,17 @@ import {
   requirePlatformAdmin,
 } from "@/lib/auth/platform";
 import { emailEmUso } from "@/lib/auth/users";
+import { ehViolacaoUnica } from "@/lib/db/erros";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 const PATH = "/plataforma";
 
 const criarSchema = z.object({
-  nomeEmpresa: z.string().min(2, "Informe o nome da empresa."),
-  donoNome: z.string().min(2, "Informe o nome do responsável."),
-  donoEmail: z.string().email("E-mail inválido."),
-  donoSenha: z.string().min(8, "A senha deve ter ao menos 8 caracteres."),
+  nomeEmpresa: z.string().min(2, "Informe o nome da empresa.").max(120),
+  donoNome: z.string().min(2, "Informe o nome do responsável.").max(120),
+  donoEmail: z.string().email("E-mail inválido.").max(254),
+  donoSenha: z.string().min(8, "A senha deve ter ao menos 8 caracteres.").max(200),
   // Empresa criada manualmente entra em avaliação (trial) ou já ativa.
   status: z.enum(["trial", "ativo"]).optional().default("trial"),
 });
@@ -52,10 +53,11 @@ export async function criarEmpresaAction(
       donoSenha,
     });
   } catch (e) {
-    return {
-      ok: false,
-      error: e instanceof Error ? e.message : "Erro ao criar a empresa.",
-    };
+    console.error("[plataforma] erro ao criar empresa:", e);
+    if (ehViolacaoUnica(e)) {
+      return { ok: false, error: "Já existe uma conta com esse e-mail." };
+    }
+    return { ok: false, error: "Erro ao criar a empresa." };
   }
   revalidatePath(PATH);
   return { ok: true };
