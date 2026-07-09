@@ -5,6 +5,7 @@ import { asc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   TENANT0_ID,
+  operadorAcessos,
   tenantMemberships,
   tenants,
   usinas,
@@ -135,6 +136,27 @@ export async function getTenantStatus(tenantId: string): Promise<string | null> 
     .from(tenants)
     .where(eq(tenants.id, tenantId));
   return rows[0]?.status ?? null;
+}
+
+/** Dados básicos de um tenant (para o "acessar empresa" e o banner de impersonação). */
+export async function getTenant(
+  tenantId: string,
+): Promise<{ id: string; nome: string; status: string } | null> {
+  const rows = await getDb()
+    .select({ id: tenants.id, nome: tenants.nome, status: tenants.status })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId));
+  return rows[0] ?? null;
+}
+
+/** Registra na auditoria que um operador acessou (impersonou) uma empresa. */
+export async function registrarAcessoOperador(input: {
+  operadorUserId: string;
+  operadorEmail: string;
+  tenantId: string;
+  tenantNome: string;
+}): Promise<void> {
+  await getDb().insert(operadorAcessos).values(input);
 }
 
 // ===== Mutações (chamadas pelas server actions, que já aplicam o guard) =====

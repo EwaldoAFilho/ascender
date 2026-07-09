@@ -21,14 +21,21 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        redirect?: string;
+      };
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
         setError(data.error ?? "Não foi possível entrar.");
         setLoading(false);
         return;
       }
+      // Operador da plataforma cai no painel (data.redirect); usuário de empresa
+      // vai para `next` (se veio de uma rota protegida) ou para a home.
       const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next && next.startsWith("/") ? next : "/");
+      const dest =
+        data.redirect || (next && next.startsWith("/") ? next : "/");
+      router.push(dest);
       router.refresh();
     } catch {
       setError("Erro de conexão. Tente novamente.");

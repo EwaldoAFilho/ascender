@@ -3,9 +3,9 @@ import { listarTenantsAdmin, requirePlatformAdminPage } from "@/lib/auth/platfor
 
 export const dynamic = "force-dynamic";
 
-// Painel do OPERADOR da plataforma (staff Ascender): administra todas as empresas
-// (tenants). NÃO roda em withSessionTenant — precisa enxergar todos os tenants
-// (cross-tenant). requirePlatformAdminPage redireciona quem não for operador.
+// Painel do OPERADOR: administra todas as empresas (cross-tenant, FORA de
+// withSessionTenant). O layout do grupo (plataforma) já exige operador; a checagem
+// aqui é defesa em profundidade.
 export default async function PlataformaPage() {
   await requirePlatformAdminPage();
   const empresas = await listarTenantsAdmin();

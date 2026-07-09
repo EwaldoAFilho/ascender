@@ -5,9 +5,12 @@ import { z } from "zod";
 import { TENANT0_ID } from "@/lib/db/schema";
 import {
   criarEmpresaComDono,
+  getTenant,
   mudarStatusTenant,
+  registrarAcessoOperador,
   requirePlatformAdmin,
 } from "@/lib/auth/platform";
+import { getSession } from "@/lib/auth/session";
 import { emailEmUso } from "@/lib/auth/users";
 import { ehViolacaoUnica } from "@/lib/db/erros";
 
@@ -99,5 +102,57 @@ export async function mudarStatusAction(
     };
   }
   revalidatePath(PATH);
+  return { ok: true };
+}
+
+const acessarSchema = z.object({ tenantId: z.string().uuid("Empresa inválida.") });
+
+/**
+ * "Acessar empresa": o operador passa a operar dentro de uma empresa (impersonar).
+ * A sessão aponta para o tenant acessado (papel efetivo `owner`) e o acesso é
+ * registrado na auditoria. Restrito ao operador da plataforma.
+ */
+export async function acessarEmpresaAction(
+  input: Record<string, unknown>,
+): Promise<ActionResult> {
+  const deny = await requirePlatformAdmin();
+  if (deny) return deny;
+
+  const parsed = acessarSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const { tenantId } = parsed.data;
+
+  const empresa = await getTenant(tenantId);
+  if (!empresa) return { ok: false, error: "Empresa não encontrada." };
+
+  const session = await getSession();
+  session.tenantId = tenantId;
+  session.role = "owner"; // operador age como owner na empresa acessada
+  session.impersonando = true;
+  session.empresaNome = empresa.nome;
+  await session.save();
+
+  await registrarAcessoOperador({
+    operadorUserId: session.userId ?? "",
+    operadorEmail: session.email ?? "",
+    tenantId,
+    tenantNome: empresa.nome,
+  });
+  return { ok: true };
+}
+
+/** "Sair da empresa": encerra a impersonação e volta o operador ao painel. */
+export async function sairDaEmpresaAction(): Promise<ActionResult> {
+  const deny = await requirePlatformAdmin();
+  if (deny) return deny;
+
+  const session = await getSession();
+  session.tenantId = undefined;
+  session.role = undefined;
+  session.impersonando = false;
+  session.empresaNome = undefined;
+  await session.save();
   return { ok: true };
 }

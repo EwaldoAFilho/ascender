@@ -37,29 +37,39 @@ async function main() {
     console.log(`[seed] Já existem ${n} usuário(s) — seed do admin pulado.`);
   }
 
-  // 3) Vincula todos os usuários ao tenant 0 (idempotente). O admin (LOGIN_EMAIL)
-  //    vira `owner`; os demais, `operador`. onConflictDoNothing preserva papéis já
-  //    ajustados na app.
-  const users = await db.select({ id: usuarios.id, email: usuarios.email }).from(usuarios);
-  for (const u of users) {
-    await db
-      .insert(tenantMemberships)
-      .values({
-        tenantId: TENANT0_ID,
-        userId: u.id,
-        role: u.email === email ? "owner" : "operador",
-      })
-      .onConflictDoNothing();
-  }
-  console.log(`[seed] Tenant 0 + ${users.length} membership(s) garantidos.`);
-
-  // 4) O admin (LOGIN_EMAIL) é operador da PLATAFORMA (staff Ascender) — enxerga e
-  //    administra todos os tenants no painel /plataforma. Idempotente.
+  // 3) O admin (LOGIN_EMAIL) é OPERADOR da PLATAFORMA (staff Ascender) — administra
+  //    todas as empresas no painel /plataforma. Idempotente.
   await db
     .update(usuarios)
     .set({ isPlatformAdmin: true, updatedAt: new Date() })
     .where(eq(usuarios.email, email));
-  console.log(`[seed] ${email} marcado como operador da plataforma.`);
+
+  // 4) Operador NÃO pertence a nenhuma empresa: remove eventuais memberships (ele
+  //    acessa uma empresa via "Acessar", com auditoria). Assim o login do operador
+  //    cai no painel, não no app de uma empresa.
+  const operadores = await db
+    .select({ id: usuarios.id })
+    .from(usuarios)
+    .where(eq(usuarios.isPlatformAdmin, true));
+  for (const op of operadores) {
+    await db.delete(tenantMemberships).where(eq(tenantMemberships.userId, op.id));
+  }
+
+  // 5) Usuários de EMPRESA (não-operadores) ficam vinculados ao tenant 0 (Ascender),
+  //    idempotente. onConflictDoNothing preserva papéis já ajustados na app.
+  const membros = await db
+    .select({ id: usuarios.id })
+    .from(usuarios)
+    .where(eq(usuarios.isPlatformAdmin, false));
+  for (const u of membros) {
+    await db
+      .insert(tenantMemberships)
+      .values({ tenantId: TENANT0_ID, userId: u.id, role: "operador" })
+      .onConflictDoNothing();
+  }
+  console.log(
+    `[seed] Operador(es): ${operadores.length}; membro(s) do tenant 0: ${membros.length}.`,
+  );
 }
 
 main()

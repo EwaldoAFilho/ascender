@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  acessarEmpresaAction,
   criarEmpresaAction,
   mudarStatusAction,
 } from "@/lib/auth/platform-actions";
@@ -74,6 +75,19 @@ export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
         setForm(FORM_VAZIO);
         setAbrirForm(false);
         router.refresh();
+      } else {
+        setMsg({ tipo: "erro", texto: r.error });
+      }
+    });
+  }
+
+  function acessar(tenantId: string) {
+    setMsg(null);
+    startTransition(async () => {
+      const r = await acessarEmpresaAction({ tenantId });
+      if (r.ok) {
+        // Nav completo: a sessão agora tem o contexto da empresa acessada.
+        window.location.assign("/");
       } else {
         setMsg({ tipo: "erro", texto: r.error });
       }
@@ -240,25 +254,34 @@ export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
                 <td>{t.usinas}</td>
                 <td>{new Date(t.criadoEm).toLocaleDateString("pt-BR")}</td>
                 <td>
-                  {t.ehTenant0 ? (
-                    <span style={{ color: "var(--muted)" }}>—</span>
-                  ) : (
-                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                      {acoesPara(t.status).map((a) => (
-                        <button
-                          key={a.novo + a.label}
-                          type="button"
-                          className={
-                            a.tom === "ok" ? "btn-secondary" : "btn-secondary danger"
-                          }
-                          disabled={pending}
-                          onClick={() => mudarStatus(t.id, a.novo, t.nome)}
-                        >
-                          {a.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={pending}
+                      onClick={() => acessar(t.id)}
+                      title="Entrar no app desta empresa como operador"
+                    >
+                      Acessar
+                    </button>
+                    {t.ehTenant0
+                      ? null
+                      : acoesPara(t.status).map((a) => (
+                          <button
+                            key={a.novo + a.label}
+                            type="button"
+                            className={
+                              a.tom === "ok"
+                                ? "btn-secondary"
+                                : "btn-secondary danger"
+                            }
+                            disabled={pending}
+                            onClick={() => mudarStatus(t.id, a.novo, t.nome)}
+                          >
+                            {a.label}
+                          </button>
+                        ))}
+                  </div>
                 </td>
               </tr>
             ))}

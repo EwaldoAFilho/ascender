@@ -119,6 +119,20 @@ export const tenantMemberships = pgTable(
   (t) => [unique("tenant_memberships_tenant_user").on(t.tenantId, t.userId)],
 );
 
+// Auditoria de quando um OPERADOR da plataforma "acessou" (impersonou) uma empresa.
+// Campos denormalizados (email/nome) para o log sobreviver a exclusões. Sem RLS
+// (é um log de nível plataforma, lido só pelo operador). Sem FK rígida de propósito.
+export const operadorAcessos = pgTable("operador_acessos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  operadorUserId: uuid("operador_user_id").notNull(),
+  operadorEmail: text("operador_email").notNull(),
+  tenantId: uuid("tenant_id").notNull(),
+  tenantNome: text("tenant_nome").notNull(),
+  iniciadoEm: timestamp("iniciado_em", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // Coluna `tenant_id` das tabelas de negócio. NOT NULL com DEFAULT = tenant 0:
 // o Postgres backfilla as linhas atuais e os inserts do app (ainda sem escopo)
 // caem no tenant 0 — não-quebra. O DEFAULT será removido quando o escopo por

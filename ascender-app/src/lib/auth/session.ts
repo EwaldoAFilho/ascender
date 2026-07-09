@@ -16,6 +16,10 @@ export type SessionData = {
   // Operador da plataforma (staff Ascender). Conveniência para a UI; o guard
   // (requirePlatformAdmin) sempre revalida no banco.
   isPlatformAdmin?: boolean;
+  // Um operador (sem empresa própria) pode "acessar" uma empresa (impersonar):
+  // aí `tenantId`/`role` apontam para a empresa acessada e isto fica true.
+  impersonando?: boolean;
+  empresaNome?: string; // nome da empresa acessada (para o banner), quando impersonando
   roles?: string[]; // legado — não usado
 };
 

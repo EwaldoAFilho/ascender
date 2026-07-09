@@ -31,27 +31,44 @@ export async function POST(request: Request) {
     );
   }
 
-  // Escopa a sessão ao tenant do usuário (membership padrão) e checa o ACESSO
-  // pelo status da empresa. O operador da plataforma (staff Ascender) nunca é
-  // bloqueado por status (precisa entrar para administrar a plataforma).
-  const membership = await getDefaultMembership(user.id);
-  if (membership && !user.isPlatformAdmin) {
-    const status = await getTenantStatus(membership.tenantId);
-    if (status && !STATUS_COM_ACESSO.includes(status as TenantStatus)) {
-      return NextResponse.json({ error: mensagemStatus(status) }, { status: 403 });
-    }
+  const session = await getSession();
+
+  // OPERADOR da plataforma: não pertence a nenhuma empresa — começa no painel,
+  // sem contexto de empresa (acessa uma empresa depois, via "Acessar", auditado).
+  if (user.isPlatformAdmin) {
+    session.authenticated = true;
+    session.userId = user.id;
+    session.email = user.email;
+    session.loginAt = Date.now();
+    session.isPlatformAdmin = true;
+    session.impersonando = false;
+    session.tenantId = undefined;
+    session.role = undefined;
+    await session.save();
+    return NextResponse.json({ ok: true, redirect: "/plataforma" });
   }
 
-  const session = await getSession();
+  // Usuário de EMPRESA: escopa ao tenant do membership e checa o acesso pelo status.
+  const membership = await getDefaultMembership(user.id);
+  if (!membership) {
+    return NextResponse.json(
+      { error: "Sua conta não está vinculada a nenhuma empresa." },
+      { status: 403 },
+    );
+  }
+  const status = await getTenantStatus(membership.tenantId);
+  if (status && !STATUS_COM_ACESSO.includes(status as TenantStatus)) {
+    return NextResponse.json({ error: mensagemStatus(status) }, { status: 403 });
+  }
+
   session.authenticated = true;
   session.userId = user.id;
   session.email = user.email;
   session.loginAt = Date.now();
-  session.isPlatformAdmin = user.isPlatformAdmin;
-  if (membership) {
-    session.tenantId = membership.tenantId;
-    session.role = membership.role;
-  }
+  session.isPlatformAdmin = false;
+  session.impersonando = false;
+  session.tenantId = membership.tenantId;
+  session.role = membership.role;
   await session.save();
 
   return NextResponse.json({ ok: true });

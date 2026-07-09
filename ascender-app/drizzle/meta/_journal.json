@@ -176,6 +176,13 @@
       "when": 1783607077289,
       "tag": "0024_sturdy_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1783611302937,
+      "tag": "0025_gifted_james_howlett",
+      "breakpoints": true
     }
   ]
 }
