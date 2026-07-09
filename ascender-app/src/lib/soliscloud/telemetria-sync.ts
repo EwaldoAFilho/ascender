@@ -1,4 +1,6 @@
+import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import {
   alarmes,
   telemetriaColetor,
@@ -45,12 +47,14 @@ export async function syncTelemetria(): Promise<TelemetriaSyncResult> {
   if (!creds) throw new Error("Integração SolisCloud não configurada.");
 
   const db = getDb();
+  const tenantId = getCurrentTenantId();
   const capturadoEm = new Date();
 
   // stationId -> usinaId (vincula as leituras às usinas cadastradas)
   const usinasCad = await db
     .select({ id: usinas.id, station: usinas.stationIdSoliscloud })
-    .from(usinas);
+    .from(usinas)
+    .where(eq(usinas.tenantId, tenantId));
   const usinaPorStation = new Map<string, string>();
   for (const u of usinasCad) if (u.station) usinaPorStation.set(u.station, u.id);
 
@@ -67,6 +71,7 @@ export async function syncTelemetria(): Promise<TelemetriaSyncResult> {
   if (estacoes.length > 0) {
     await db.insert(telemetriaEstacao).values(
       estacoes.map((t) => ({
+        tenantId,
         usinaId: usinaPorStation.get(t.stationId) ?? null,
         stationId: t.stationId,
         estado: t.state,
@@ -93,6 +98,7 @@ export async function syncTelemetria(): Promise<TelemetriaSyncResult> {
   if (inversores.length > 0) {
     await db.insert(telemetriaInversor).values(
       inversores.map((i) => ({
+        tenantId,
         usinaId: usinaPorStation.get(i.plantId) ?? null,
         stationId: i.plantId || null,
         serial: i.serialNumber,
@@ -119,6 +125,7 @@ export async function syncTelemetria(): Promise<TelemetriaSyncResult> {
   if (coletores.length > 0) {
     await db.insert(telemetriaColetor).values(
       coletores.map((c) => ({
+        tenantId,
         usinaId: usinaPorStation.get(c.plantId) ?? null,
         stationId: c.plantId || null,
         sn: c.sn,
@@ -155,6 +162,7 @@ export async function syncTelemetria(): Promise<TelemetriaSyncResult> {
       realId && realId !== "-1" && realId !== "0" ? realId : composta;
     if (!chave) continue;
     alarmesPorChave.set(chave, {
+      tenantId,
       alarmId: chave,
       usinaId: usinaPorStation.get(a.plantId) ?? null,
       stationId: a.plantId || null,
@@ -173,7 +181,7 @@ export async function syncTelemetria(): Promise<TelemetriaSyncResult> {
       .insert(alarmes)
       .values(row)
       .onConflictDoUpdate({
-        target: alarmes.alarmId,
+        target: [alarmes.tenantId, alarmes.alarmId],
         set: {
           status: row.status,
           nivel: row.nivel,

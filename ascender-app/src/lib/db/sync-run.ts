@@ -1,5 +1,6 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { syncRuns } from "@/lib/db/schema";
 
 export type SyncRunResumo = {
@@ -22,6 +23,7 @@ export async function getSyncRunsResumo(): Promise<SyncRunResumo[]> {
       mensagem: syncRuns.mensagem,
     })
     .from(syncRuns)
+    .where(eq(syncRuns.tenantId, getCurrentTenantId()))
     .orderBy(syncRuns.job, desc(syncRuns.iniciadoEm));
   return rows.map((r) => ({
     job: r.job,
@@ -43,11 +45,13 @@ export async function registrarSyncRun<T>(
   resumo: (r: T) => { itens: number; mensagem?: string },
 ): Promise<T> {
   const db = getDb();
+  const tenantId = getCurrentTenantId();
   const iniciadoEm = new Date();
   try {
     const r = await fn();
     const { itens, mensagem } = resumo(r);
     await db.insert(syncRuns).values({
+      tenantId,
       job,
       iniciadoEm,
       terminadoEm: new Date(),
@@ -61,6 +65,7 @@ export async function registrarSyncRun<T>(
     await db
       .insert(syncRuns)
       .values({
+        tenantId,
         job,
         iniciadoEm,
         terminadoEm: new Date(),

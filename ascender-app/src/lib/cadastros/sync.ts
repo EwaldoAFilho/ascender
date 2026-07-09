@@ -1,5 +1,6 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { medicoesGeracao, usinas } from "@/lib/db/schema";
 import { callSolis } from "@/lib/soliscloud/client";
 import { getSolisCredentials } from "@/lib/soliscloud/credentials";
@@ -39,6 +40,7 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
   );
 
   const db = getDb();
+  const tenantId = getCurrentTenantId();
   let criadas = 0;
   let atualizadas = 0;
   let total = 0;
@@ -54,7 +56,12 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
     const existing = await db
       .select({ id: usinas.id })
       .from(usinas)
-      .where(eq(usinas.stationIdSoliscloud, t.stationId));
+      .where(
+        and(
+          eq(usinas.stationIdSoliscloud, t.stationId),
+          eq(usinas.tenantId, tenantId),
+        ),
+      );
     if (existing.length > 0) {
       await db
         .update(usinas)
@@ -69,6 +76,7 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
       atualizadas++;
     } else {
       await db.insert(usinas).values({
+        tenantId,
         nome: t.stationName ?? t.stationId,
         stationIdSoliscloud: t.stationId,
         potenciaKwp,
@@ -98,9 +106,11 @@ export async function syncGeracaoMensal(): Promise<SyncGeracaoResult> {
   if (!creds) throw new Error("Integração SolisCloud não configurada.");
 
   const db = getDb();
+  const tenantId = getCurrentTenantId();
   const lista = await db
     .select({ id: usinas.id, station: usinas.stationIdSoliscloud })
-    .from(usinas);
+    .from(usinas)
+    .where(eq(usinas.tenantId, tenantId));
   const ano = String(new Date().getFullYear());
 
   let usinasOk = 0;
@@ -123,6 +133,7 @@ export async function syncGeracaoMensal(): Promise<SyncGeracaoResult> {
       await db
         .insert(medicoesGeracao)
         .values({
+          tenantId,
           usinaId: u.id,
           competencia,
           geracaoKwh,
@@ -132,6 +143,7 @@ export async function syncGeracaoMensal(): Promise<SyncGeracaoResult> {
         })
         .onConflictDoUpdate({
           target: [
+            medicoesGeracao.tenantId,
             medicoesGeracao.usinaId,
             medicoesGeracao.competencia,
             medicoesGeracao.fonte,
@@ -148,9 +160,13 @@ export async function syncGeracaoMensal(): Promise<SyncGeracaoResult> {
     UPDATE usinas SET geracao_esperada_kwh_mes = sub.media
     FROM (
       SELECT usina_id, AVG(geracao_kwh) AS media
-      FROM medicoes_geracao GROUP BY usina_id
+      FROM medicoes_geracao
+      WHERE tenant_id = ${tenantId}
+      GROUP BY usina_id
     ) sub
-    WHERE usinas.id = sub.usina_id AND usinas.geracao_esperada_kwh_mes = 0
+    WHERE usinas.id = sub.usina_id
+      AND usinas.tenant_id = ${tenantId}
+      AND usinas.geracao_esperada_kwh_mes = 0
   `);
 
   return { usinas: usinasOk, competencias };
