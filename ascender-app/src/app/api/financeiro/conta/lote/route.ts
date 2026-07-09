@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { getDocumentoPorInstalacao } from "@/lib/digitalgrid/queries";
 import { conciliarBoleto, type ConciliacaoBoleto } from "@/lib/financeiro/conta";
 
@@ -33,49 +34,51 @@ export async function POST(request: Request) {
     );
   }
 
-  // Carrega o mapa UC→documento uma vez por lote (evita 1 query por arquivo).
-  const docMap = await getDocumentoPorInstalacao();
+  return withSessionTenant(async () => {
+    // Carrega o mapa UC→documento uma vez por lote (evita 1 query por arquivo).
+    const docMap = await getDocumentoPorInstalacao();
 
-  const resultados: ConciliacaoBoleto[] = [];
-  for (const file of arquivos) {
-    const nome = file.name || "conta.pdf";
-    const mimeType = file.type || "application/pdf";
-    if (!mimeType.includes("pdf") && !nome.toLowerCase().endsWith(".pdf")) {
-      resultados.push({
-        arquivo: nome,
-        status: "erro",
-        uc: null,
-        competencia: null,
-        cliente: null,
-        detalhe: "Não é um PDF.",
-      });
-      continue;
+    const resultados: ConciliacaoBoleto[] = [];
+    for (const file of arquivos) {
+      const nome = file.name || "conta.pdf";
+      const mimeType = file.type || "application/pdf";
+      if (!mimeType.includes("pdf") && !nome.toLowerCase().endsWith(".pdf")) {
+        resultados.push({
+          arquivo: nome,
+          status: "erro",
+          uc: null,
+          competencia: null,
+          cliente: null,
+          detalhe: "Não é um PDF.",
+        });
+        continue;
+      }
+      const buffer = Buffer.from(await file.arrayBuffer());
+      if (buffer.byteLength === 0 || buffer.byteLength > MAX_BYTES) {
+        resultados.push({
+          arquivo: nome,
+          status: "erro",
+          uc: null,
+          competencia: null,
+          cliente: null,
+          detalhe: buffer.byteLength === 0 ? "Arquivo vazio." : "Acima de 15 MB.",
+        });
+        continue;
+      }
+      try {
+        resultados.push(await conciliarBoleto(nome, mimeType, buffer, docMap));
+      } catch {
+        resultados.push({
+          arquivo: nome,
+          status: "erro",
+          uc: null,
+          competencia: null,
+          cliente: null,
+          detalhe: "Falha ao processar.",
+        });
+      }
     }
-    const buffer = Buffer.from(await file.arrayBuffer());
-    if (buffer.byteLength === 0 || buffer.byteLength > MAX_BYTES) {
-      resultados.push({
-        arquivo: nome,
-        status: "erro",
-        uc: null,
-        competencia: null,
-        cliente: null,
-        detalhe: buffer.byteLength === 0 ? "Arquivo vazio." : "Acima de 15 MB.",
-      });
-      continue;
-    }
-    try {
-      resultados.push(await conciliarBoleto(nome, mimeType, buffer, docMap));
-    } catch {
-      resultados.push({
-        arquivo: nome,
-        status: "erro",
-        uc: null,
-        competencia: null,
-        cliente: null,
-        detalhe: "Falha ao processar.",
-      });
-    }
-  }
 
-  return NextResponse.json({ ok: true, resultados });
+    return NextResponse.json({ ok: true, resultados });
+  });
 }

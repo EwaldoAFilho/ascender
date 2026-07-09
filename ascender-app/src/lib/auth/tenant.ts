@@ -1,11 +1,27 @@
-import { TENANT0_ID } from "@/lib/db/schema";
 import { withTenant } from "@/lib/db";
 import { getSession } from "./session";
 
-/** Tenant da sessão atual (fallback = tenant 0 enquanto a sessão não o carrega). */
+/** Erro quando uma sessão autenticada tenta operar sem uma empresa ativa. */
+export class SemEmpresaAtivaError extends Error {
+  constructor() {
+    super(
+      "Nenhuma empresa ativa na sessão. Um operador da plataforma precisa 'Acessar' uma empresa antes de usar o app.",
+    );
+    this.name = "SemEmpresaAtivaError";
+  }
+}
+
+/**
+ * Tenant (empresa) da sessão atual. FAIL-CLOSED: se a sessão está autenticada mas
+ * sem empresa (operador da plataforma que ainda não "Acessou" uma empresa), NEGA em
+ * vez de cair no tenant 0 (Ascender real) — o operador só toca dados de uma empresa
+ * via impersonação auditada (`acessarEmpresaAction`). O fallback para o tenant 0
+ * fica só no contexto SEM sessão (workers/scripts), via `getCurrentTenantId`.
+ */
 export async function getSessionTenantId(): Promise<string> {
   const session = await getSession();
-  return session.tenantId || TENANT0_ID;
+  if (session.tenantId) return session.tenantId;
+  throw new SemEmpresaAtivaError();
 }
 
 /**

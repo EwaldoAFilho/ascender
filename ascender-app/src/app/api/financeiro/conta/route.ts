@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import {
   excluirContaEnergia,
   getContaEnergia,
@@ -19,8 +20,10 @@ export async function GET(request: Request) {
   if (!faturaDgId) {
     return NextResponse.json({ error: "faturaDgId obrigatório." }, { status: 400 });
   }
-  const conta = await getContaEnergia(faturaDgId);
-  return NextResponse.json({ conta });
+  return withSessionTenant(async () => {
+    const conta = await getContaEnergia(faturaDgId);
+    return NextResponse.json({ conta });
+  });
 }
 
 export async function DELETE(request: Request) {
@@ -31,15 +34,17 @@ export async function DELETE(request: Request) {
   if (!faturaDgId) {
     return NextResponse.json({ error: "faturaDgId obrigatório." }, { status: 400 });
   }
-  try {
-    await excluirContaEnergia(faturaDgId);
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json(
-      { error: "Falha ao excluir a conta." },
-      { status: 500 },
-    );
-  }
+  return withSessionTenant(async () => {
+    try {
+      await excluirContaEnergia(faturaDgId);
+      return NextResponse.json({ ok: true });
+    } catch {
+      return NextResponse.json(
+        { error: "Falha ao excluir a conta." },
+        { status: 500 },
+      );
+    }
+  });
 }
 
 export async function POST(request: Request) {
@@ -75,31 +80,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "PDF acima de 15 MB." }, { status: 400 });
   }
 
-  try {
-    const result = await salvarContaEnergia(
-      faturaDgId,
-      nome,
-      mimeType,
-      buffer,
-      force,
-    );
-    if (result.status === "divergencia") {
-      return NextResponse.json({
-        ok: true,
-        divergencia: result.divergencia,
-        parsed: result.parsed,
-      });
+  return withSessionTenant(async () => {
+    try {
+      const result = await salvarContaEnergia(
+        faturaDgId,
+        nome,
+        mimeType,
+        buffer,
+        force,
+      );
+      if (result.status === "divergencia") {
+        return NextResponse.json({
+          ok: true,
+          divergencia: result.divergencia,
+          parsed: result.parsed,
+        });
+      }
+      return NextResponse.json({ ok: true, parsed: result.parsed });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? `Falha ao processar o PDF: ${error.message}`
+              : "Falha ao processar o PDF.",
+        },
+        { status: 500 },
+      );
     }
-    return NextResponse.json({ ok: true, parsed: result.parsed });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? `Falha ao processar o PDF: ${error.message}`
-            : "Falha ao processar o PDF.",
-      },
-      { status: 500 },
-    );
-  }
+  });
 }

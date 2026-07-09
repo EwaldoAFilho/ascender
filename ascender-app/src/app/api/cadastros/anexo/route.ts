@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { salvarAnexo } from "@/lib/cadastros/anexos";
 
 export const runtime = "nodejs";
@@ -41,10 +42,12 @@ export async function POST(request: Request) {
   const nome = file.name || "anexo";
   const mimeType = file.type || "application/octet-stream";
 
-  try {
-    const id = await salvarAnexo(entidade, entidadeId, nome, mimeType, buffer);
-    return NextResponse.json({ ok: true, id });
-  } catch {
-    return NextResponse.json({ error: "Falha ao salvar o anexo." }, { status: 500 });
-  }
+  return withSessionTenant(async () => {
+    try {
+      const id = await salvarAnexo(entidade, entidadeId, nome, mimeType, buffer);
+      return NextResponse.json({ ok: true, id });
+    } catch {
+      return NextResponse.json({ error: "Falha ao salvar o anexo." }, { status: 500 });
+    }
+  });
 }

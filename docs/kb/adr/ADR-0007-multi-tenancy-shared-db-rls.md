@@ -127,8 +127,18 @@ todas as queries retornam tudo. Roadmap completo em
   `PlataformaClient`) lista/cria/aprova/suspende/cancela empresas — cross-tenant, roda
   FORA de `withSessionTenant`. **Controle de acesso por status** no login: `tenants.status`
   (`pendente|trial|ativo|suspenso|cancelado`); só `trial`/`ativo` entram (demais → 403).
-  O operador nunca é bloqueado por status; a Ascender (tenant 0) não pode ter o status
-  alterado. Detalhe: ver [`../modulos/auth-autorizacao.md`](../modulos/auth-autorizacao.md).
+- **Operador SEPARADO da empresa + impersonação — feito (ajuste de identidade):** o
+  operador deixou de ser "um usuário da Ascender com flag" e virou uma identidade à
+  parte — **não pertence a nenhuma empresa** (o seed remove seus memberships). No login,
+  o operador não recebe `tenantId` e cai no painel; grupo de rotas **`(plataforma)`** com
+  shell próprio (guard `requirePlatformAdminPage`), separado do app solar (grupo
+  `(dashboard)`, cujo layout server redireciona operador-sem-empresa para o painel).
+  Usuário de empresa sem membership é bloqueado no login. **"Acessar empresa"**
+  (`acessarEmpresaAction`, restrita a operador) fixa o tenant na sessão (papel efetivo
+  `owner`), registra **auditoria** (`operador_acessos`, migração 0025) e leva ao app da
+  empresa (banner "acessando <empresa> · Sair"); `sairDaEmpresaAction` limpa o contexto.
+  A Ascender vira só mais uma empresa na lista. Detalhe: ver
+  [`../modulos/auth-autorizacao.md`](../modulos/auth-autorizacao.md).
 - **Produto/SaaS — Passo 2 (autocadastro + aprovação) — feito:** `/signup` PÚBLICO
   (`signup-actions.ts::signupAction`, sem sessão; honeypot anti-bot) cria a empresa com
   status `pendente` + dono via `criarEmpresaComDono` (atômico). O dono NÃO entra até o
@@ -139,6 +149,16 @@ todas as queries retornam tudo. Roadmap completo em
   global (30/10min) in-memory (`auth/rate-limit.ts`), `.max()` em todos os campos,
   honeypot, e **não** vaza erro cru do banco (`db/erros.ts::ehViolacaoUnica` → mensagem
   amigável). *Falta captcha e o rate-limit é por-processo (migrar p/ Redis com réplicas).*
+- **Endurecimento de isolamento (revisão adversarial do operador) — feito:** dois
+  ajustes de segurança: (1) `getSessionTenantId()` agora é **fail-CLOSED** — sessão
+  autenticada sem empresa (operador não-impersonando) é NEGADA (`SemEmpresaAtivaError`)
+  em vez de cair no tenant 0 (Ascender real); o fallback tenant-0 fica só no contexto
+  sem sessão (`getCurrentTenantId`, workers). (2) **~16 rotas de API** (`/api/soliscloud/*`,
+  `/api/financeiro/conta*`, `/api/cadastros/anexo*`) que liam/gravavam dados de tenant
+  **sem** `withSessionTenant` foram envolvidas — antes caíam no tenant 0 e devolviam
+  dados da Ascender a qualquer usuário (vazamento cross-tenant dormente, latente desde
+  a Fase 2/5). Provado: usuário de outra empresa recebe os PRÓPRIOS dados (vazios), não
+  os da Ascender; operador não-impersonando falha fechado (500).
 - **Próximo (produto):** Passo 3 — cobrança (gateway; avaliar BR-native
   Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant. *Só quando
   houver um piloto rodando e um preço definido.*

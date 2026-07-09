@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { curvaGeracaoBanco } from "@/lib/soliscloud/telemetria-db";
 
 export const runtime = "nodejs";
@@ -18,5 +19,7 @@ export async function GET(
   const p = new URL(request.url).searchParams.get("period");
   const period = p === "month" || p === "year" ? p : "day";
 
-  return NextResponse.json(await curvaGeracaoBanco(id, period));
+  return withSessionTenant(async () =>
+    NextResponse.json(await curvaGeracaoBanco(id, period)),
+  );
 }
