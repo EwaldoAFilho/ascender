@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/guard";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { callSolis, SolisApiError, type SolisCredentials } from "@/lib/soliscloud/client";
 import {
   getSolisCredentials,
@@ -33,40 +34,45 @@ export async function POST(request: Request) {
 
   // Testa credenciais recém-digitadas (keyId + keySecret) ou as já salvas.
   const testingTyped = Boolean(provided?.keyId && provided?.keySecret);
-  let creds: SolisCredentials | null;
-  if (testingTyped) {
-    creds = {
-      keyId: provided!.keyId!,
-      keySecret: provided!.keySecret!,
-      baseUrl: provided!.baseUrl?.trim() || SOLIS_DEFAULT_BASE_URL,
-    };
-  } else {
-    creds = await getSolisCredentials();
-    if (!creds) {
-      return NextResponse.json(
-        { ok: false, error: "Nenhuma credencial salva para testar." },
-        { status: 400 },
-      );
-    }
-  }
 
-  try {
-    const data = await callSolis<SolisPaged<SolisStationRecord>>(
-      creds,
-      SOLIS_ENDPOINTS.userStationList,
-      { pageNo: 1, pageSize: 100 },
-      { cache: false },
-    );
-    const stationCount = extractRecords(data).length;
-    if (!testingTyped) await recordSolisTestResult(true);
-    return NextResponse.json({ ok: true, stationCount });
-  } catch (error) {
-    if (!testingTyped) await recordSolisTestResult(false);
-    const message =
-      error instanceof SolisApiError
-        ? error.message
-        : "Falha ao testar a conexão com a SolisCloud.";
-    const code = error instanceof SolisApiError ? error.code : undefined;
-    return NextResponse.json({ ok: false, error: message, code });
-  }
+  // Fixa o tenant da sessão: ler as credenciais salvas e gravar o resultado do
+  // teste (recordSolisTestResult) devem ser escopados à conta do tenant logado.
+  return withSessionTenant(async () => {
+    let creds: SolisCredentials | null;
+    if (testingTyped) {
+      creds = {
+        keyId: provided!.keyId!,
+        keySecret: provided!.keySecret!,
+        baseUrl: provided!.baseUrl?.trim() || SOLIS_DEFAULT_BASE_URL,
+      };
+    } else {
+      creds = await getSolisCredentials();
+      if (!creds) {
+        return NextResponse.json(
+          { ok: false, error: "Nenhuma credencial salva para testar." },
+          { status: 400 },
+        );
+      }
+    }
+
+    try {
+      const data = await callSolis<SolisPaged<SolisStationRecord>>(
+        creds,
+        SOLIS_ENDPOINTS.userStationList,
+        { pageNo: 1, pageSize: 100 },
+        { cache: false },
+      );
+      const stationCount = extractRecords(data).length;
+      if (!testingTyped) await recordSolisTestResult(true);
+      return NextResponse.json({ ok: true, stationCount });
+    } catch (error) {
+      if (!testingTyped) await recordSolisTestResult(false);
+      const message =
+        error instanceof SolisApiError
+          ? error.message
+          : "Falha ao testar a conexão com a SolisCloud.";
+      const code = error instanceof SolisApiError ? error.code : undefined;
+      return NextResponse.json({ ok: false, error: message, code });
+    }
+  });
 }

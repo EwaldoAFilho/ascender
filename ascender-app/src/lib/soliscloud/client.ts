@@ -10,33 +10,44 @@ export type SolisCredentials = {
 };
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // dados SolisCloud atualizam a cada ~5 min
-// Espaçamento GLOBAL entre chamadas. A SolisCloud aplica rate limit por conta
-// (não por endpoint), então telas que disparam várias chamadas ao mesmo tempo
-// (estações + inversores + alarmes + coletores) precisam compartilhar a fila.
+// Espaçamento entre chamadas POR CONTA SolisCloud (keyId). A SolisCloud aplica
+// rate limit por conta (não por endpoint), então telas que disparam várias
+// chamadas ao mesmo tempo (estações + inversores + alarmes + coletores) da MESMA
+// conta compartilham a fila — mas contas de tenants diferentes têm filas
+// independentes e não se serializam entre si.
 const MIN_INTERVAL_MS = 600; // ~1,6 req/s, com folga sobre o limite da conta
 const MAX_RETRIES = 2; // tentativas extras para erros transitórios (rede/5xx/429)
 
-let lastCallAt = 0;
-let queue: Promise<unknown> = Promise.resolve();
+// Um balde (fila FIFO + timestamp) por conta SolisCloud. In-process: suficiente
+// com uma instância; múltiplas réplicas exigiriam um bucket compartilhado
+// (Redis) — ver Fase 7.
+type SolisBucket = { queue: Promise<unknown>; lastCallAt: number };
+const buckets = new Map<string, SolisBucket>();
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
- * Reserva um "slot" de envio na fila global, garantindo MIN_INTERVAL_MS entre o
- * início de duas chamadas quaisquer à SolisCloud — mesmo de requisições
- * concorrentes. Sem isso, abrir a tela (4 chamadas paralelas) estoura o rate
- * limit e a 1ª carga falha; só depois, com o cache quente, ela passa.
+ * Reserva um "slot" de envio na fila DAQUELA conta (accountKey = keyId),
+ * garantindo MIN_INTERVAL_MS entre o início de duas chamadas quaisquer à mesma
+ * conta — mesmo de requisições concorrentes. Sem isso, abrir a tela (4 chamadas
+ * paralelas) estoura o rate limit e a 1ª carga falha. Contas distintas usam
+ * baldes distintos, então tenants diferentes não se serializam entre si.
  */
-function reserveSlot(): Promise<void> {
-  const run = queue.then(async () => {
-    const wait = Math.max(0, lastCallAt + MIN_INTERVAL_MS - Date.now());
+function reserveSlot(accountKey: string): Promise<void> {
+  const bucket = buckets.get(accountKey) ?? {
+    queue: Promise.resolve(),
+    lastCallAt: 0,
+  };
+  buckets.set(accountKey, bucket);
+  const run = bucket.queue.then(async () => {
+    const wait = Math.max(0, bucket.lastCallAt + MIN_INTERVAL_MS - Date.now());
     if (wait > 0) await sleep(wait);
-    lastCallAt = Date.now();
+    bucket.lastCallAt = Date.now();
   });
   // A próxima chamada espera esta reservar o slot, mesmo que ela falhe depois.
-  queue = run.then(
+  bucket.queue = run.then(
     () => undefined,
     () => undefined,
   );
@@ -83,7 +94,9 @@ export async function callSolis<T>(
   opts?: { cache?: boolean },
 ): Promise<T> {
   const body = JSON.stringify(payload);
-  const cacheKey = `${resourcePath}:${body}`;
+  // Namespaced pela conta (keyId, não-secreto): impede que a resposta de uma
+  // conta seja servida a outra quando resourcePath+body coincidem entre tenants.
+  const cacheKey = `${creds.keyId}:${resourcePath}:${body}`;
   const useCache = opts?.cache ?? true;
 
   if (useCache) {
@@ -98,7 +111,7 @@ export async function callSolis<T>(
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) await sleep(800 * attempt); // backoff linear: 0,8s / 1,6s
-    await reserveSlot();
+    await reserveSlot(creds.keyId);
 
     // Assinatura refeita a cada tentativa: o Date (±15 min) fica sempre fresco.
     const headers = buildAuthHeaders({
