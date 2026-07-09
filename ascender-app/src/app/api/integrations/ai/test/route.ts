@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/guard";
+import { requireRoleResponse } from "@/lib/auth/rbac";
+import { withSessionTenant } from "@/lib/auth/tenant";
 import { getAiApiKey, recordAiTestResult } from "@/lib/ai/credentials";
 import { testAiConnection } from "@/lib/ai/test";
 
@@ -16,6 +18,8 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
+  const deny = await requireRoleResponse("admin");
+  if (deny) return deny;
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
@@ -25,7 +29,9 @@ export async function POST(request: Request) {
   const { provider, baseUrl } = parsed.data;
   const typedKey = parsed.data.apiKey?.trim();
   const usingSaved = !typedKey;
-  const apiKey = typedKey ?? (await getAiApiKey(provider));
+  // Ler a chave salva é escopado ao tenant (getAiApiKey usa getCurrentTenantId).
+  const apiKey =
+    typedKey ?? (await withSessionTenant(() => getAiApiKey(provider)));
   if (!apiKey) {
     return NextResponse.json({
       ok: false,
@@ -35,7 +41,7 @@ export async function POST(request: Request) {
 
   const result = await testAiConnection(provider, apiKey, baseUrl);
   if (usingSaved) {
-    await recordAiTestResult(provider, result.ok);
+    await withSessionTenant(() => recordAiTestResult(provider, result.ok));
   }
   return NextResponse.json(result);
 }

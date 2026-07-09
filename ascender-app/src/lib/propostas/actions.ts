@@ -62,6 +62,9 @@ function finito(v: number): number | null {
 export async function gerarProposta(input: unknown): Promise<GerarPropostaResult> {
   const session = await getSession();
   if (!session.authenticated) return { ok: false, error: "Não autenticado." };
+  // Gerar/gravar proposta é operação de negócio (usa custo/margem) → operador+.
+  const deny = await requireRole("operador");
+  if (deny) return deny;
 
   const parsed = gerarSchema.safeParse(input);
   if (!parsed.success) {

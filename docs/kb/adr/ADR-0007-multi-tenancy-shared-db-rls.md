@@ -170,6 +170,18 @@ todas as queries retornam tudo. Roadmap completo em
   em `gerarProposta` (`propostas/actions.ts`) e a página `/configuracoes/proposta-precos`
   (esta última expunha kit/custos/margem do tenant 0 — confidencial). Todos envolvidos em
   `withSessionTenant`.
+- **Varredura de RBAC (5 dimensões, multi-agente) — feita:** auditoria dos gates de
+  papel. Achado principal: os papéis existiam mas quase nenhuma mutação os checava —
+  um usuário `leitura` conseguia criar/editar/excluir. Corrigido (política:
+  leitura=só-leitura, operador=negócio, admin=config): `requireRole("operador")` em
+  todas as mutações de `cadastros/actions.ts` (via helper `ensureOperador`) e em
+  `gerarProposta`; `requireRoleResponse("operador")` nas rotas de financeiro/conta(+lote)
+  e cadastros/anexo; `requireRoleResponse("admin")` nos `/test` das integrações
+  (Solis/DG/IA) — e estes `/test` também ganharam `withSessionTenant` (liam credencial
+  salva sem contexto). `getSessionRole` passou a **revalidar o papel no banco por request**
+  (rebaixar/promover vale na hora), com carve-out do operador impersonando (owner efetivo).
+  Provado: leitura=403 nas mutações, operador=403 nas ações admin, admin ok, e promover
+  no banco surte efeito imediato (mesmo cookie).
 - **Próximo (produto):** Passo 3 — cobrança (gateway; avaliar BR-native
   Asaas/Iugu/Vindi vs. Stripe, dado Pix/boleto) + planos/quotas por tenant. *Só quando
   houver um piloto rodando e um preço definido.*

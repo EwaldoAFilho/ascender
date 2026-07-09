@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/guard";
+import { requireRoleResponse } from "@/lib/auth/rbac";
 import { withSessionTenant } from "@/lib/auth/tenant";
 import { callSolis, SolisApiError, type SolisCredentials } from "@/lib/soliscloud/client";
 import {
@@ -28,6 +29,8 @@ const bodySchema = z
 export async function POST(request: Request) {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
+  const deny = await requireRoleResponse("admin");
+  if (deny) return deny;
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   const provided = parsed.success ? parsed.data : null;

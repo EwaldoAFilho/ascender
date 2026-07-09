@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDefaultMembership } from "./users";
+import { papelNoTenant } from "./users";
 import { getSession } from "./session";
 
 // Papéis por tenant (hierarquia). owner > admin > operador > leitura.
@@ -12,16 +12,18 @@ function isRole(v: unknown): v is Role {
 }
 
 /**
- * Papel do usuário no tenant ativo. Usa `session.role` (populado no login) e, se
- * ausente (cookies antigos), deriva do membership no banco. Sem membership →
- * "leitura" (acesso mínimo).
+ * Papel do usuário no tenant ativo — REVALIDADO no banco a cada request (rebaixar/
+ * promover alguém vale na hora, não só no próximo login). Exceção: o operador da
+ * plataforma impersonando uma empresa age como `owner` efetivo (não tem membership
+ * próprio), então confia no papel fixado na sessão em `acessarEmpresaAction`. Sem
+ * membership no tenant → "leitura" (acesso mínimo).
  */
 export async function getSessionRole(): Promise<Role> {
   const session = await getSession();
-  if (isRole(session.role)) return session.role;
-  if (session.userId) {
-    const m = await getDefaultMembership(session.userId);
-    if (m && isRole(m.role)) return m.role;
+  if (session.impersonando && isRole(session.role)) return session.role;
+  if (session.userId && session.tenantId) {
+    const papel = await papelNoTenant(session.tenantId, session.userId);
+    if (isRole(papel)) return papel;
   }
   return "leitura";
 }

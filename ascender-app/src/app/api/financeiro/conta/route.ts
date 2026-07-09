@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/guard";
+import { requireRoleResponse } from "@/lib/auth/rbac";
 import { withSessionTenant } from "@/lib/auth/tenant";
 import {
   excluirContaEnergia,
@@ -29,6 +30,8 @@ export async function GET(request: Request) {
 export async function DELETE(request: Request) {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
+  const deny = await requireRoleResponse("operador");
+  if (deny) return deny;
 
   const faturaDgId = new URL(request.url).searchParams.get("faturaDgId");
   if (!faturaDgId) {
@@ -50,6 +53,8 @@ export async function DELETE(request: Request) {
 export async function POST(request: Request) {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
+  const deny = await requireRoleResponse("operador");
+  if (deny) return deny;
 
   let form: FormData;
   try {

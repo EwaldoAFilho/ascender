@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { requireRole } from "@/lib/auth/rbac";
 import { getSession } from "@/lib/auth/session";
 import { getSessionTenantId, withSessionTenant } from "@/lib/auth/tenant";
 import { getDb } from "@/lib/db";
@@ -35,6 +36,15 @@ async function ensureAuth(): Promise<ActionResult | null> {
   const session = await getSession();
   if (!session.authenticated) return { ok: false, error: "Não autenticado." };
   return null;
+}
+
+// Mutações de dados de negócio (criar/editar/excluir, imports): exigem papel
+// operador+ — o papel "leitura" é só leitura. Leituras (ex.: getFichaCliente)
+// seguem apenas com ensureAuth.
+async function ensureOperador(): Promise<ActionResult | null> {
+  const auth = await ensureOperador();
+  if (auth) return auth;
+  return requireRole("operador");
 }
 
 function revalidate() {
@@ -78,7 +88,7 @@ const distribuidoraSchema = z.object({
 });
 
 export async function saveDistribuidora(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = distribuidoraSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -105,7 +115,7 @@ export async function saveDistribuidora(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteDistribuidora(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -164,7 +174,7 @@ const normValor = (v: unknown): string | null => {
 };
 
 export async function saveCliente(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = clienteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -247,7 +257,7 @@ export async function getFichaCliente(
 export async function excluirAnexoCliente(
   anexoId: string,
 ): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   try {
     await excluirAnexo(anexoId);
@@ -259,7 +269,7 @@ export async function excluirAnexoCliente(
 }
 
 export async function deleteCliente(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -287,7 +297,7 @@ const unidadeSchema = z.object({
 });
 
 export async function saveUnidade(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = unidadeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -317,7 +327,7 @@ export async function saveUnidade(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteUnidade(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -366,7 +376,7 @@ const usinaSchema = z.object({
 });
 
 export async function saveUsina(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = usinaSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -391,7 +401,7 @@ export async function saveUsina(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteUsina(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -425,7 +435,7 @@ const contratoSchema = z.object({
 });
 
 export async function saveContrato(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = contratoSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -450,7 +460,7 @@ export async function saveContrato(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteContrato(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -484,7 +494,7 @@ const faturaSchema = z.object({
 });
 
 export async function saveFatura(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = faturaSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -509,7 +519,7 @@ export async function saveFatura(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteFatura(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -541,7 +551,7 @@ const propostaSchema = z.object({
 });
 
 export async function saveProposta(input: unknown): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const parsed = propostaSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -566,7 +576,7 @@ export async function saveProposta(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteProposta(id: string): Promise<ActionResult> {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   const tenantId = await getSessionTenantId();
   try {
@@ -585,7 +595,7 @@ export async function deleteProposta(id: string): Promise<ActionResult> {
 export async function importarUsinasSolis(): Promise<
   ActionResult & Partial<ImportResult>
 > {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   try {
     // Fixa o tenant da sessão: credenciais Solis e escrita em `usinas` escopadas.
@@ -603,7 +613,7 @@ export async function importarUsinasSolis(): Promise<
 export async function importarCadastrosDg(): Promise<
   ActionResult & Partial<ConciliacaoResult>
 > {
-  const auth = await ensureAuth();
+  const auth = await ensureOperador();
   if (auth) return auth;
   try {
     // Fixa o tenant da sessão: credenciais DG e escritas de conciliação escopadas.
