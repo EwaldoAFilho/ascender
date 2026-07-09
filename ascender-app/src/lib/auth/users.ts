@@ -1,5 +1,5 @@
 import { hash, verify } from "@node-rs/argon2";
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { tenantMemberships, usuarios, type Usuario } from "@/lib/db/schema";
 
@@ -128,4 +128,98 @@ export async function updateUsuario(
 
 export async function deleteUsuario(id: string): Promise<void> {
   await getDb().delete(usuarios).where(eq(usuarios.id, id));
+}
+
+// ===== Membros do tenant (RBAC / multi-tenant) =====
+
+export type Membro = UsuarioPublico & { role: string };
+
+/** Usuários que são membros do tenant, com seu papel. */
+export async function listMembros(tenantId: string): Promise<Membro[]> {
+  return getDb()
+    .select({
+      id: usuarios.id,
+      nome: usuarios.nome,
+      email: usuarios.email,
+      ativo: usuarios.ativo,
+      role: tenantMemberships.role,
+    })
+    .from(tenantMemberships)
+    .innerJoin(usuarios, eq(usuarios.id, tenantMemberships.userId))
+    .where(eq(tenantMemberships.tenantId, tenantId))
+    .orderBy(asc(usuarios.nome));
+}
+
+/** Papel do usuário nesse tenant (null se não for membro). */
+export async function papelNoTenant(
+  tenantId: string,
+  userId: string,
+): Promise<string | null> {
+  const rows = await getDb()
+    .select({ role: tenantMemberships.role })
+    .from(tenantMemberships)
+    .where(
+      and(eq(tenantMemberships.tenantId, tenantId), eq(tenantMemberships.userId, userId)),
+    );
+  return rows[0]?.role ?? null;
+}
+
+export async function countMembrosAtivos(tenantId: string): Promise<number> {
+  const rows = await getDb()
+    .select({ n: sql<number>`count(*)::int` })
+    .from(tenantMemberships)
+    .innerJoin(usuarios, eq(usuarios.id, tenantMemberships.userId))
+    .where(
+      and(eq(tenantMemberships.tenantId, tenantId), eq(usuarios.ativo, true)),
+    );
+  return rows[0]?.n ?? 0;
+}
+
+/** Cria um usuário (identidade global) e o vincula ao tenant com um papel. */
+export async function criarMembro(
+  tenantId: string,
+  input: { nome: string; email: string; senha: string; ativo: boolean; role: string },
+): Promise<void> {
+  const senhaHash = await hash(input.senha);
+  const [u] = await getDb()
+    .insert(usuarios)
+    .values({ nome: input.nome.trim(), email: norm(input.email), senhaHash, ativo: input.ativo })
+    .returning({ id: usuarios.id });
+  await getDb()
+    .insert(tenantMemberships)
+    .values({ tenantId, userId: u.id, role: input.role })
+    .onConflictDoNothing();
+}
+
+export async function atualizarMembro(
+  tenantId: string,
+  userId: string,
+  input: { nome: string; email: string; ativo: boolean; senha?: string; role: string },
+): Promise<void> {
+  await updateUsuario(userId, {
+    nome: input.nome,
+    email: input.email,
+    ativo: input.ativo,
+    senha: input.senha,
+  });
+  await getDb()
+    .update(tenantMemberships)
+    .set({ role: input.role })
+    .where(
+      and(eq(tenantMemberships.tenantId, tenantId), eq(tenantMemberships.userId, userId)),
+    );
+}
+
+/** Remove o vínculo com o tenant; se o usuário não pertence a mais nenhum, apaga-o. */
+export async function removerMembro(tenantId: string, userId: string): Promise<void> {
+  await getDb()
+    .delete(tenantMemberships)
+    .where(
+      and(eq(tenantMemberships.tenantId, tenantId), eq(tenantMemberships.userId, userId)),
+    );
+  const [{ n }] = await getDb()
+    .select({ n: sql<number>`count(*)::int` })
+    .from(tenantMemberships)
+    .where(eq(tenantMemberships.userId, userId));
+  if (n === 0) await getDb().delete(usuarios).where(eq(usuarios.id, userId));
 }

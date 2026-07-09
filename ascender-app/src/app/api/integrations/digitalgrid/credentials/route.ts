@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/guard";
+import { requireRoleResponse } from "@/lib/auth/rbac";
 import { getDgRow, saveDgToken } from "@/lib/digitalgrid/credentials";
 import { DG_BASE_URL } from "@/lib/digitalgrid/endpoints";
 
@@ -30,6 +31,8 @@ const putSchema = z.object({
 export async function PUT(request: Request) {
   const auth = await requireSession();
   if (!auth.ok) return auth.response;
+  const deny = await requireRoleResponse("admin");
+  if (deny) return deny;
 
   const parsed = putSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {

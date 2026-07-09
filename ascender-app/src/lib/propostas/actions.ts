@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/rbac";
 import { getSessionTenantId } from "@/lib/auth/tenant";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
@@ -192,6 +193,9 @@ const parametrosSchema = z.object({
 export async function salvarParametrosProposta(input: unknown): Promise<ActionResult> {
   const session = await getSession();
   if (!session.authenticated) return { ok: false, error: "Não autenticado." };
+  // Preços/margem/premissas são sensíveis: só admin+ altera.
+  const deny = await requireRole("admin");
+  if (deny) return deny;
 
   const parsed = parametrosSchema.safeParse(input);
   if (!parsed.success) {
