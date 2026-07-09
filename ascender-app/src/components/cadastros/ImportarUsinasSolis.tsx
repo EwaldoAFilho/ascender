@@ -17,8 +17,12 @@ export function ImportarUsinasSolis() {
     setBusy(false);
     if (r.ok) {
       router.refresh();
+      const bloq = r.bloqueadas ?? 0;
+      const extra =
+        bloq > 0 ? ` ${bloq} não importada(s) pelo limite do plano.` : "";
       toast({
-        message: `Importação concluída: ${r.criadas ?? 0} nova(s), ${r.atualizadas ?? 0} atualizada(s) de ${r.total ?? 0} estações.`,
+        message: `Importação concluída: ${r.criadas ?? 0} nova(s), ${r.atualizadas ?? 0} atualizada(s) de ${r.total ?? 0} estações.${extra}`,
+        variant: bloq > 0 ? "error" : undefined,
         duration: 7000,
       });
     } else {

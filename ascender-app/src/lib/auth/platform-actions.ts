@@ -6,6 +6,7 @@ import { TENANT0_ID } from "@/lib/db/schema";
 import {
   criarEmpresaComDono,
   getTenant,
+  mudarPlanoTenant,
   mudarStatusTenant,
   registrarAcessoOperador,
   requirePlatformAdmin,
@@ -13,6 +14,7 @@ import {
 import { getSession } from "@/lib/auth/session";
 import { emailEmUso } from "@/lib/auth/users";
 import { ehViolacaoUnica } from "@/lib/db/erros";
+import { getPlano } from "@/lib/plans";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -110,6 +112,36 @@ export async function mudarStatusAction(
       ok: false,
       error: e instanceof Error ? e.message : "Erro ao alterar o status.",
     };
+  }
+  revalidatePath(PATH);
+  return { ok: true };
+}
+
+const planoSchema = z.object({
+  tenantId: tenantIdSchema,
+  plano: z.string().min(1).max(40),
+});
+
+/** Muda o plano de assinatura de uma empresa. Restrito ao operador da plataforma. */
+export async function mudarPlanoAction(
+  input: Record<string, unknown>,
+): Promise<ActionResult> {
+  const deny = await requirePlatformAdmin();
+  if (deny) return deny;
+
+  const parsed = planoSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const { tenantId, plano } = parsed.data;
+  if (!(await getPlano(plano))) {
+    return { ok: false, error: "Plano inválido." };
+  }
+  try {
+    await mudarPlanoTenant(tenantId, plano);
+  } catch (e) {
+    console.error("[plataforma] erro ao mudar plano:", e);
+    return { ok: false, error: "Erro ao alterar o plano." };
   }
   revalidatePath(PATH);
   return { ok: true };

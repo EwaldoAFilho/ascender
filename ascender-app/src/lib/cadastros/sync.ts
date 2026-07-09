@@ -2,6 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { getCurrentTenantId } from "@/lib/db/tenant-context";
 import { medicoesGeracao, usinas } from "@/lib/db/schema";
+import { quotaUsinas } from "@/lib/plans";
 import { callSolis } from "@/lib/soliscloud/client";
 import { getSolisCredentials } from "@/lib/soliscloud/credentials";
 import { SOLIS_ENDPOINTS } from "@/lib/soliscloud/endpoints";
@@ -21,6 +22,7 @@ export type ImportResult = {
   criadas: number;
   atualizadas: number;
   total: number;
+  bloqueadas: number; // novas usinas não importadas por limite do plano
 };
 
 /**
@@ -41,9 +43,14 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
 
   const db = getDb();
   const tenantId = getCurrentTenantId();
+  // Quota do plano: só NOVAS usinas consomem; atualizações de existentes não.
+  const quota = await quotaUsinas(tenantId);
+  let restante =
+    quota.limite == null ? Infinity : Math.max(0, quota.limite - quota.usadas);
   let criadas = 0;
   let atualizadas = 0;
   let total = 0;
+  let bloqueadas = 0;
 
   for (const rec of extractRecords(data)) {
     const t = mapStationRecord(rec);
@@ -75,6 +82,10 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
         .where(eq(usinas.id, existing[0].id));
       atualizadas++;
     } else {
+      if (restante <= 0) {
+        bloqueadas++;
+        continue; // limite do plano atingido — não cria novas
+      }
       await db.insert(usinas).values({
         tenantId,
         nome: t.stationName ?? t.stationId,
@@ -85,10 +96,11 @@ export async function importStationsFromSolis(): Promise<ImportResult> {
         origemSincronizadoEm: new Date(),
       });
       criadas++;
+      restante--;
     }
   }
 
-  return { criadas, atualizadas, total };
+  return { criadas, atualizadas, total, bloqueadas };
 }
 
 export type SyncGeracaoResult = {

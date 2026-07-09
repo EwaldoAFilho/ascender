@@ -11,6 +11,7 @@ import {
   usinas,
   usuarios,
 } from "@/lib/db/schema";
+import { getPlanos } from "@/lib/plans";
 import { getSession } from "./session";
 
 // Ciclo de vida do tenant (assinatura). Controla o ACESSO no login.
@@ -75,6 +76,7 @@ export type TenantAdminRow = {
   criadoEm: string;
   usuarios: number;
   usinas: number;
+  limiteUsinas: number | null; // do plano; null = ilimitado
   ehTenant0: boolean;
 };
 
@@ -116,6 +118,10 @@ export async function listarTenantsAdmin(): Promise<TenantAdminRow[]> {
     usinasPorTenant.set(r.tenantId, r.n);
   }
 
+  // Limite de usinas por plano (para o painel mostrar uso × limite).
+  const limitePorPlano = new Map<string, number | null>();
+  for (const p of await getPlanos()) limitePorPlano.set(p.slug, p.maxUsinas);
+
   return base.map((t) => ({
     id: t.id,
     nome: t.nome,
@@ -125,6 +131,9 @@ export async function listarTenantsAdmin(): Promise<TenantAdminRow[]> {
     criadoEm: t.criadoEm.toISOString(),
     usuarios: usuariosPorTenant.get(t.id) ?? 0,
     usinas: usinasPorTenant.get(t.id) ?? 0,
+    limiteUsinas: limitePorPlano.has(t.plano)
+      ? (limitePorPlano.get(t.plano) ?? null)
+      : null,
     ehTenant0: t.id === TENANT0_ID,
   }));
 }
@@ -204,7 +213,12 @@ export async function criarEmpresaComDono(input: {
   return getDb().transaction(async (tx) => {
     const [t] = await tx
       .insert(tenants)
-      .values({ nome: input.nomeEmpresa.trim(), slug, status: input.status })
+      .values({
+        nome: input.nomeEmpresa.trim(),
+        slug,
+        status: input.status,
+        plano: "starter", // plano de entrada; o operador pode mudar depois
+      })
       .returning({ id: tenants.id });
     const [u] = await tx
       .insert(usuarios)
@@ -225,5 +239,16 @@ export async function mudarStatusTenant(
   await getDb()
     .update(tenants)
     .set({ status, updatedAt: new Date() })
+    .where(eq(tenants.id, tenantId));
+}
+
+/** Muda o plano de assinatura de um tenant. */
+export async function mudarPlanoTenant(
+  tenantId: string,
+  planoSlug: string,
+): Promise<void> {
+  await getDb()
+    .update(tenants)
+    .set({ plano: planoSlug, updatedAt: new Date() })
     .where(eq(tenants.id, tenantId));
 }

@@ -2,7 +2,13 @@ import "dotenv/config";
 import { hash } from "@node-rs/argon2";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "./index";
-import { TENANT0_ID, tenantMemberships, tenants, usuarios } from "./schema";
+import {
+  TENANT0_ID,
+  planos,
+  tenantMemberships,
+  tenants,
+  usuarios,
+} from "./schema";
 
 // Seed idempotente: garante o "tenant 0" (instância atual — Ascender), o usuário
 // administrador inicial e os vínculos usuário↔tenant. Roda em todo boot.
@@ -70,6 +76,36 @@ async function main() {
   console.log(
     `[seed] Operador(es): ${operadores.length}; membro(s) do tenant 0: ${membros.length}.`,
   );
+
+  // 6) Planos de assinatura (idempotente). Faixas do doc de precificação; preços em
+  //    centavos. `interno` = ilimitado (Ascender). A Ascender (tenant 0) fica no interno.
+  const PLANOS = [
+    { slug: "interno", nome: "Interno (Ascender)", maxUsinas: null, maxUsuarios: null, precoMensalCentavos: 0, ordem: 0 },
+    { slug: "starter", nome: "Starter", maxUsinas: 15, maxUsuarios: 5, precoMensalCentavos: 49700, ordem: 1 },
+    { slug: "pro", nome: "Pro", maxUsinas: 50, maxUsuarios: 15, precoMensalCentavos: 129700, ordem: 2 },
+    { slug: "enterprise", nome: "Enterprise", maxUsinas: 150, maxUsuarios: null, precoMensalCentavos: 299700, ordem: 3 },
+  ];
+  for (const p of PLANOS) {
+    await db
+      .insert(planos)
+      .values(p)
+      .onConflictDoUpdate({
+        target: planos.slug,
+        set: {
+          nome: p.nome,
+          maxUsinas: p.maxUsinas,
+          maxUsuarios: p.maxUsuarios,
+          precoMensalCentavos: p.precoMensalCentavos,
+          ordem: p.ordem,
+          updatedAt: new Date(),
+        },
+      });
+  }
+  await db
+    .update(tenants)
+    .set({ plano: "interno", updatedAt: new Date() })
+    .where(eq(tenants.id, TENANT0_ID));
+  console.log(`[seed] ${PLANOS.length} plano(s) garantidos; tenant 0 no plano interno.`);
 }
 
 main()

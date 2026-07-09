@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import {
   acessarEmpresaAction,
   criarEmpresaAction,
+  mudarPlanoAction,
   mudarStatusAction,
 } from "@/lib/auth/platform-actions";
 import type { TenantAdminRow } from "@/lib/auth/platform";
+
+type PlanoOpcao = { slug: string; nome: string; maxUsinas: number | null };
 
 type Acao = { label: string; novo: string; tom: "ok" | "warn" | "bad" };
 
@@ -55,7 +58,13 @@ const FORM_VAZIO = {
   status: "trial",
 };
 
-export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
+export function PlataformaClient({
+  empresas,
+  planos,
+}: {
+  empresas: TenantAdminRow[];
+  planos: PlanoOpcao[];
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(
@@ -91,6 +100,15 @@ export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
       } else {
         setMsg({ tipo: "erro", texto: r.error });
       }
+    });
+  }
+
+  function mudarPlano(tenantId: string, plano: string) {
+    setMsg(null);
+    startTransition(async () => {
+      const r = await mudarPlanoAction({ tenantId, plano });
+      if (r.ok) router.refresh();
+      else setMsg({ tipo: "erro", texto: r.error });
     });
   }
 
@@ -249,9 +267,37 @@ export function PlataformaClient({ empresas }: { empresas: TenantAdminRow[] }) {
                     {t.status}
                   </span>
                 </td>
-                <td>{t.plano}</td>
+                <td>
+                  <select
+                    value={t.plano}
+                    disabled={pending}
+                    onChange={(e) => mudarPlano(t.id, e.target.value)}
+                    aria-label="Plano da empresa"
+                  >
+                    {planos.some((p) => p.slug === t.plano) ? null : (
+                      <option value={t.plano}>{t.plano}</option>
+                    )}
+                    {planos.map((p) => (
+                      <option key={p.slug} value={p.slug}>
+                        {p.nome}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td>{t.usuarios}</td>
-                <td>{t.usinas}</td>
+                <td>
+                  <span
+                    style={
+                      t.limiteUsinas != null && t.usinas > t.limiteUsinas
+                        ? { color: "var(--bad, #dc2626)", fontWeight: 600 }
+                        : undefined
+                    }
+                  >
+                    {t.usinas}
+                    {" / "}
+                    {t.limiteUsinas == null ? "∞" : t.limiteUsinas}
+                  </span>
+                </td>
                 <td>{new Date(t.criadoEm).toLocaleDateString("pt-BR")}</td>
                 <td>
                   <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>

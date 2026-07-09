@@ -102,6 +102,22 @@ export const tenants = pgTable("tenants", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Planos de assinatura (SaaS). Definem os limites/quota por tenant. Sem RLS
+// (config de plataforma). `tenants.plano` referencia `planos.slug` (texto, sem FK
+// rígida — plano desconhecido = sem limite, fail-open). `max_*` nulo = ilimitado.
+export const planos = pgTable("planos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  nome: text("nome").notNull(),
+  maxUsinas: integer("max_usinas"), // null = ilimitado
+  maxUsuarios: integer("max_usuarios"), // null = ilimitado
+  precoMensalCentavos: integer("preco_mensal_centavos").notNull().default(0),
+  ordem: integer("ordem").notNull().default(0),
+  ativo: boolean("ativo").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Um usuário pode pertencer a 1+ tenants, com um papel por tenant.
 export const tenantMemberships = pgTable(
   "tenant_memberships",

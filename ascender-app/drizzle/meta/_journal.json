@@ -183,6 +183,13 @@
       "when": 1783611302937,
       "tag": "0025_gifted_james_howlett",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1783623141354,
+      "tag": "0026_curious_talon",
+      "breakpoints": true
     }
   ]
 }

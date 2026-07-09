@@ -7,6 +7,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getSession } from "@/lib/auth/session";
 import { getSessionTenantId, withSessionTenant } from "@/lib/auth/tenant";
 import { getDb } from "@/lib/db";
+import { quotaUsinas } from "@/lib/plans";
 import {
   clientes,
   contratos,
@@ -389,6 +390,14 @@ export async function saveUsina(input: unknown): Promise<ActionResult> {
         .set({ ...data, updatedAt: new Date() })
         .where(and(eq(usinas.id, id), eq(usinas.tenantId, tenantId)));
     } else {
+      // Quota do plano: bloqueia criar usina acima do limite.
+      const quota = await quotaUsinas(tenantId);
+      if (!quota.temEspaco) {
+        return {
+          ok: false,
+          error: `Limite do plano ${quota.planoNome ?? quota.planoSlug} atingido (${quota.usadas}/${quota.limite} usinas). Faça upgrade do plano para adicionar mais.`,
+        };
+      }
       await getDb()
         .insert(usinas)
         .values({ ...data, tenantId });
