@@ -23,7 +23,7 @@ import {
   HSP_OPCOES,
   MESES,
 } from "@/lib/propostas/constantes";
-import { baixarPropostaPdf, type PdfCenario } from "@/lib/propostas/pdf";
+import { baixarPropostaPdf, cenarioResultadoToPdf } from "@/lib/propostas/pdf";
 import { baixarPropostaExcel } from "@/lib/propostas/excel";
 import type { CenarioResultado, GeradorResultado } from "@/lib/propostas/types";
 
@@ -50,38 +50,79 @@ type TelhadoForm = { largura: string; comprimento: string; aproveitamento: strin
 
 const TELHADO_VAZIO: TelhadoForm = { largura: "", comprimento: "", aproveitamento: "80" };
 
+// Valores iniciais para pré-preencher o formulário no modo edição. Todos os
+// campos são strings/booleanos prontos para os inputs (a página faz a conversão
+// a partir das colunas + snapshot `dadosGerador`).
+export type GeradorInicial = {
+  clienteNome?: string;
+  responsavel?: string;
+  cidade?: string;
+  unidadeConsumidoraId?: string;
+  distribuidoraId?: string;
+  instalacao?: "telhado" | "solo";
+  moduloWp?: string;
+  inversorForcado?: "auto" | "string" | "micro";
+  consumoKwh?: string;
+  compensacaoPct?: string;
+  hsp?: string;
+  tarifa?: string;
+  padrao?: "mono" | "bi" | "tri";
+  adequacaoTrifasica?: boolean;
+  adequacaoValor?: string;
+  observacao?: string;
+  telhados?: TelhadoForm[];
+  status?: string;
+  tarifaAscender?: string;
+};
+
 export function GeradorProposta({
   clientes,
   unidades,
   distribuidoras,
+  propostaId,
+  inicial,
+  resultadoInicial,
 }: {
   clientes: Option[];
   unidades: Option[];
   distribuidoras: Option[];
+  /** Quando presente, a tela edita a proposta existente (UPDATE) em vez de criar. */
+  propostaId?: string;
+  inicial?: GeradorInicial;
+  resultadoInicial?: GeradorResultado | null;
 }) {
-  // Formulário.
-  const [clienteNome, setClienteNome] = useState("");
-  const [responsavel, setResponsavel] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [unidadeConsumidoraId, setUnidade] = useState("");
-  const [distribuidoraId, setDistribuidora] = useState("");
-  const [instalacao, setInstalacao] = useState<"telhado" | "solo">("telhado");
-  const [moduloWp, setModuloWp] = useState("620");
-  const [inversorForcado, setInversor] = useState<"auto" | "string" | "micro">("auto");
-  const [consumoKwh, setConsumo] = useState("");
-  const [compensacaoPct, setCompensacao] = useState("1");
-  const [hsp, setHsp] = useState("5.5");
-  const [tarifa, setTarifa] = useState("");
-  const [padrao, setPadrao] = useState<"mono" | "bi" | "tri">("mono");
-  const [adequacaoTrifasica, setAdequacao] = useState(false);
-  const [adequacaoValor, setAdequacaoValor] = useState("3500");
-  const [observacao, setObservacao] = useState("");
-  const [telhados, setTelhados] = useState<TelhadoForm[]>([
-    { ...TELHADO_VAZIO },
-    { ...TELHADO_VAZIO },
-  ]);
+  const editMode = Boolean(propostaId);
 
-  const [resultado, setResultado] = useState<GeradorResultado | null>(null);
+  // Formulário.
+  const [clienteNome, setClienteNome] = useState(inicial?.clienteNome ?? "");
+  const [responsavel, setResponsavel] = useState(inicial?.responsavel ?? "");
+  const [cidade, setCidade] = useState(inicial?.cidade ?? "");
+  const [unidadeConsumidoraId, setUnidade] = useState(inicial?.unidadeConsumidoraId ?? "");
+  const [distribuidoraId, setDistribuidora] = useState(inicial?.distribuidoraId ?? "");
+  const [instalacao, setInstalacao] = useState<"telhado" | "solo">(inicial?.instalacao ?? "telhado");
+  const [moduloWp, setModuloWp] = useState(inicial?.moduloWp ?? "620");
+  const [inversorForcado, setInversor] = useState<"auto" | "string" | "micro">(
+    inicial?.inversorForcado ?? "auto",
+  );
+  const [consumoKwh, setConsumo] = useState(inicial?.consumoKwh ?? "");
+  const [compensacaoPct, setCompensacao] = useState(inicial?.compensacaoPct ?? "1");
+  const [hsp, setHsp] = useState(inicial?.hsp ?? "5.5");
+  const [tarifa, setTarifa] = useState(inicial?.tarifa ?? "");
+  const [padrao, setPadrao] = useState<"mono" | "bi" | "tri">(inicial?.padrao ?? "mono");
+  const [adequacaoTrifasica, setAdequacao] = useState(inicial?.adequacaoTrifasica ?? false);
+  const [adequacaoValor, setAdequacaoValor] = useState(inicial?.adequacaoValor ?? "3500");
+  const [observacao, setObservacao] = useState(inicial?.observacao ?? "");
+  const [telhados, setTelhados] = useState<TelhadoForm[]>(
+    inicial?.telhados && inicial.telhados.length > 0
+      ? inicial.telhados
+      : [{ ...TELHADO_VAZIO }, { ...TELHADO_VAZIO }],
+  );
+
+  // Campos comerciais — só editáveis no modo edição (seção "Comercial").
+  const [status, setStatus] = useState(inicial?.status ?? "simulacao");
+  const [tarifaAscender, setTarifaAscender] = useState(inicial?.tarifaAscender ?? "");
+
+  const [resultado, setResultado] = useState<GeradorResultado | null>(resultadoInicial ?? null);
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarCusto, setMostrarCusto] = useState(false);
@@ -124,6 +165,10 @@ export function GeradorProposta({
       adequacaoValor: Number(adequacaoValor),
       padrao,
       observacao: observacao || undefined,
+      // Modo edição: atualiza a proposta e grava os campos comerciais.
+      id: propostaId,
+      status: editMode ? status : undefined,
+      tarifaAscender: editMode ? Number(tarifaAscender) || 0 : undefined,
     });
     setBusy(false);
     if (r.ok) {
@@ -145,36 +190,14 @@ export function GeradorProposta({
     if (!resultado) return;
     const clienteLabel = clienteNome.trim() || "Cliente";
     const conc = distribuidoras.find((d) => d.value === distribuidoraId)?.label;
-    const toPdfCenario = (c: CenarioResultado): PdfCenario => ({
-      titulo:
-        c.cenario === "necessario"
-          ? "Sistema Necessário (dimensionado pelo consumo)"
-          : "Telhado Rentável (todo o telhado disponível)",
-      potenciaKwp: c.potenciaKwp,
-      qtdModulos: c.qtdModulos,
-      moduloWp: c.moduloWp,
-      geracaoMensalKwh: c.geracaoMensalKwh,
-      geracaoAnualKwh: c.geracaoAnualKwh,
-      inversorLabel: `${c.inversor.label} · ${c.inversor.disjuntor}`,
-      precoFinal: c.precoFinal,
-      precoPorKwp: c.precoPorKwp,
-      paybackAnos: c.paybackAnos,
-      tirPercent: c.tirPercent,
-      economia25Anos: c.economia25Anos,
-      co2Toneladas: c.co2Toneladas,
-      retornoMensal: c.retornoMensal,
-      retornoLabel: c.cenario === "necessario" ? "Economia mensal" : "Receita mensal",
-      excedenteKwh: c.excedenteKwh,
-      creditoExcedente: c.creditoExcedente,
-    });
     void baixarPropostaPdf({
       cliente: clienteLabel,
       cidade: cidade.trim() || undefined,
       responsavel: responsavel.trim() || undefined,
       concessionaria: conc,
       data: new Date().toLocaleDateString("pt-BR"),
-      necessario: toPdfCenario(resultado.necessario),
-      rentavel: resultado.rentavel ? toPdfCenario(resultado.rentavel) : null,
+      necessario: cenarioResultadoToPdf(resultado.necessario),
+      rentavel: resultado.rentavel ? cenarioResultadoToPdf(resultado.rentavel) : null,
     });
   }
 
@@ -198,6 +221,7 @@ export function GeradorProposta({
     return (
       <Resultado
         resultado={resultado}
+        editMode={editMode}
         mostrarCusto={mostrarCusto}
         onToggleCusto={() => setMostrarCusto((v) => !v)}
         onNova={novaSimulacao}
@@ -435,13 +459,50 @@ export function GeradorProposta({
         </div>
       </section>
 
+      {/* 5 · Comercial — só na edição de uma proposta salva */}
+      {editMode ? (
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>5 · Comercial</h2>
+              <p>Situação da proposta e tarifa ASCENDER (uso interno)</p>
+            </div>
+          </div>
+          <div className="form-grid">
+            <label className="form-field">
+              <span>Status</span>
+              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="simulacao">simulacao</option>
+                <option value="em-analise">em-analise</option>
+                <option value="aprovada">aprovada</option>
+                <option value="recusada">recusada</option>
+              </select>
+            </label>
+            <label className="form-field">
+              <span>Tarifa ASCENDER (R$/kWh)</span>
+              <input
+                type="number"
+                step="0.001"
+                min="0"
+                value={tarifaAscender}
+                onChange={(e) => setTarifaAscender(e.target.value)}
+              />
+            </label>
+          </div>
+        </section>
+      ) : null}
+
       {erro ? (
         <p style={{ color: "var(--danger)", fontWeight: 700, marginBottom: 12 }}>{erro}</p>
       ) : null}
 
       <div className="form-actions">
         <button type="button" className="btn-primary" onClick={gerar} disabled={busy}>
-          {busy ? "Gerando…" : "Gerar proposta"}
+          {busy
+            ? "Salvando…"
+            : editMode
+              ? "Salvar alterações"
+              : "Gerar proposta"}
         </button>
       </div>
     </>
@@ -605,6 +666,7 @@ function CenarioCard({ cenario, titulo }: { cenario: CenarioResultado; titulo: s
 
 function Resultado({
   resultado,
+  editMode,
   mostrarCusto,
   onToggleCusto,
   onNova,
@@ -612,6 +674,7 @@ function Resultado({
   onExcel,
 }: {
   resultado: GeradorResultado;
+  editMode: boolean;
   mostrarCusto: boolean;
   onToggleCusto: () => void;
   onNova: () => void;
@@ -620,6 +683,13 @@ function Resultado({
 }) {
   return (
     <>
+      {editMode ? (
+        <div style={{ marginBottom: 14 }}>
+          <Link href="/propostas" className="btn-link">
+            <ArrowLeft size={14} /> Voltar às propostas
+          </Link>
+        </div>
+      ) : null}
       <div className="form-actions" style={{ marginBottom: 14 }}>
         <button type="button" className="btn-primary" onClick={onPdf}>
           <Download size={16} /> Baixar PDF (cliente)
@@ -628,7 +698,7 @@ function Resultado({
           <FileSpreadsheet size={16} /> Exportar Excel (interno)
         </button>
         <button type="button" className="btn-secondary" onClick={onNova}>
-          <RotateCcw size={16} /> Nova simulação
+          <RotateCcw size={16} /> {editMode ? "Editar dados" : "Nova simulação"}
         </button>
         <button type="button" className="btn-ghost" onClick={onToggleCusto}>
           {mostrarCusto ? "Ocultar" : "Ver"} custos e margem (uso interno)

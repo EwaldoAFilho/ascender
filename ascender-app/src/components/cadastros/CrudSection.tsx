@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { useToast } from "@/components/ToastProvider";
@@ -52,15 +53,29 @@ export type CrudRow = {
   /** Valores por coluna para ordenar/exportar (default: a célula, quando texto). */
   sortValues?: (string | number)[];
   values: Record<string, string>;
+  /** Ações extras por linha (JSX pré-renderizado) na coluna "Ações". */
+  actions?: ReactNode;
 };
 
 type Props = {
   singular: string;
-  fields: CrudField[];
+  fields?: CrudField[];
   columns: string[];
   rows: CrudRow[];
-  onSave: (input: Record<string, unknown>) => Promise<ActionResult>;
+  onSave?: (input: Record<string, unknown>) => Promise<ActionResult>;
   onDelete: (id: string) => Promise<ActionResult>;
+  /**
+   * Quando definido, "Editar" (e `clickableFirstColumn`) NAVEGA para
+   * `${editBasePath}/${row.id}` em vez de abrir o modal de edição. Use quando a
+   * edição acontece numa tela dedicada (ex.: propostas → /propostas/[id]).
+   * String (serializável) — a página é Server Component.
+   */
+  editBasePath?: string;
+  /**
+   * Somente leitura: oculta Editar e Excluir (mantém `row.actions`, ex.: baixar
+   * PDF). Use para o papel "leitura", que não pode mutar.
+   */
+  readOnly?: boolean;
   /**
    * Conteúdo extra renderizado dentro do modal ao EDITAR um registro existente,
    * indexado por id (proveniência, anexos, histórico…). JSX pré-renderizado no
@@ -79,7 +94,7 @@ type Props = {
 
 export function CrudSection({
   singular,
-  fields,
+  fields = [],
   columns,
   rows,
   onSave,
@@ -87,6 +102,8 @@ export function CrudSection({
   extras,
   clickableFirstColumn = false,
   hideAdd = false,
+  editBasePath,
+  readOnly = false,
 }: Props) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -123,6 +140,7 @@ export function CrudSection({
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!onSave) return;
     setError(null);
     setBusy(true);
     const payload: Record<string, unknown> = { ...values };
@@ -174,14 +192,24 @@ export function CrudSection({
       },
       render: (row: CrudRow) =>
         clickableFirstColumn && i === 0 ? (
-          <button
-            type="button"
-            className="crud-link-cell"
-            onClick={() => openEdit(row)}
-            title={`Editar ${singular}`}
-          >
-            {row.cells[i]}
-          </button>
+          editBasePath ? (
+            <Link
+              className="crud-link-cell"
+              href={`${editBasePath}/${row.id}`}
+              title={`Editar ${singular}`}
+            >
+              {row.cells[i]}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="crud-link-cell"
+              onClick={() => openEdit(row)}
+              title={`Editar ${singular}`}
+            >
+              {row.cells[i]}
+            </button>
+          )
         ) : (
           row.cells[i]
         ),
@@ -194,21 +222,30 @@ export function CrudSection({
       value: () => "",
       render: (row: CrudRow) => (
         <div className="table-actions">
-          <button
-            type="button"
-            className="btn-link"
-            onClick={() => openEdit(row)}
-          >
-            <Pencil size={14} /> Editar
-          </button>
-          <button
-            type="button"
-            className="btn-link danger"
-            onClick={() => handleDelete(row.id)}
-            disabled={busy}
-          >
-            <Trash2 size={14} /> Excluir
-          </button>
+          {readOnly ? null : editBasePath ? (
+            <Link className="btn-link" href={`${editBasePath}/${row.id}`}>
+              <Pencil size={14} /> Editar
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="btn-link"
+              onClick={() => openEdit(row)}
+            >
+              <Pencil size={14} /> Editar
+            </button>
+          )}
+          {row.actions}
+          {readOnly ? null : (
+            <button
+              type="button"
+              className="btn-link danger"
+              onClick={() => handleDelete(row.id)}
+              disabled={busy}
+            >
+              <Trash2 size={14} /> Excluir
+            </button>
+          )}
         </div>
       ),
     },

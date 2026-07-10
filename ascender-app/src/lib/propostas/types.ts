@@ -147,3 +147,14 @@ export type GeradorResultado = {
   trifasicoObrigatorio: boolean;
   microForcado: boolean;
 };
+
+// Snapshot persistido em `propostas.dadosGerador` (jsonb) para reimpressão e
+// reedição. É exatamente o que `gerarProposta` grava. Como jsonb é `unknown` no
+// Drizzle, faça cast para este tipo ao ler.
+export type DadosGeradorSnapshot = {
+  input: GeradorInput;
+  resultado: GeradorResultado;
+  padrao: "mono" | "bi" | "tri";
+  responsavel: string | null;
+  cidade: string | null;
+};

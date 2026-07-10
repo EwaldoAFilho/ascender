@@ -43,7 +43,7 @@ async function ensureAuth(): Promise<ActionResult | null> {
 // operador+ — o papel "leitura" é só leitura. Leituras (ex.: getFichaCliente)
 // seguem apenas com ensureAuth.
 async function ensureOperador(): Promise<ActionResult | null> {
-  const auth = await ensureOperador();
+  const auth = await ensureAuth();
   if (auth) return auth;
   return requireRole("operador");
 }

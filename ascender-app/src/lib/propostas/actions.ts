@@ -8,14 +8,25 @@ import { getSessionTenantId, withSessionTenant } from "@/lib/auth/tenant";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { clientes, parametrosProposta, propostas } from "@/lib/db/schema";
+import { getPropostaGerador } from "@/lib/cadastros/queries";
 import { gerarResultado } from "./calcular";
 import { carregarParametros } from "./parametros";
-import type { GeradorInput, GeradorResultado, ModuloWp } from "./types";
+import { cenarioResultadoToPdf, type PdfProposta } from "./pdf";
+import type {
+  DadosGeradorSnapshot,
+  GeradorInput,
+  GeradorResultado,
+  ModuloWp,
+} from "./types";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 export type GerarPropostaResult =
   | { ok: true; id: string; resultado: GeradorResultado }
+  | { ok: false; error: string };
+
+export type PropostaPdfResult =
+  | { ok: true; dados: PdfProposta }
   | { ok: false; error: string };
 
 const optText = z
@@ -52,6 +63,17 @@ const gerarSchema = z.object({
   adequacaoValor: z.coerce.number().default(3500),
   padrao: z.enum(["mono", "bi", "tri"]).default("mono"),
   observacao: optText,
+  // Edição: quando `id` presente, ATUALIZA a proposta em vez de criar outra.
+  id: z.string().min(1).optional(),
+  // Campos comerciais editáveis só no modo edição (na criação usam os defaults
+  // "simulacao"/0). Ausentes → preservam o valor atual da linha.
+  status: z.enum(["simulacao", "em-analise", "aprovada", "recusada"]).optional(),
+  tarifaAscender: z.coerce.number().nonnegative().optional(),
+});
+
+const statusPropostaSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(["simulacao", "em-analise", "aprovada", "recusada"]),
 });
 
 // Postgres double aceita 'Infinity', mas guardamos null para não poluir KPIs.
@@ -108,42 +130,69 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
     const clienteId = existente?.id ?? null;
     const clienteNomeLivre = existente ? null : d.clienteNome;
 
+    // Campos comuns a criar e atualizar (dados achatados + snapshot completo).
+    const comuns = {
+      clienteId,
+      clienteNomeLivre,
+      unidadeConsumidoraId: d.unidadeConsumidoraId,
+      distribuidoraId: d.distribuidoraId,
+      consumoEstimadoKwh: d.consumoKwh,
+      tarifaDistribuidora: d.tarifa,
+      observacao: d.observacao,
+      cenario: nec.cenario,
+      potenciaKwp: nec.potenciaKwp,
+      moduloWp: nec.moduloWp,
+      qtdModulos: nec.qtdModulos,
+      inversorTipo: nec.inversor.tipo,
+      geracaoMensalKwh: nec.geracaoMensalKwh,
+      precoFinal: finito(nec.precoFinal),
+      precoPorKwp: finito(nec.precoPorKwp),
+      paybackAnos: finito(nec.paybackAnos),
+      tirPercent: finito(nec.tirPercent),
+      economia25Anos: finito(nec.economia25Anos),
+      co2Toneladas: finito(nec.co2Toneladas),
+      custoTotal: finito(nec.custo.custoTotal),
+      margemValor: finito(nec.custo.margemValor),
+      margemPercent: finito(nec.custo.margemPercent),
+      // Snapshot para reimpressão/reedição (uso interno; nunca vai ao PDF do cliente).
+      dadosGerador: {
+        input: geradorInput,
+        resultado,
+        padrao: d.padrao,
+        responsavel: d.responsavel,
+        cidade: d.cidade,
+      } satisfies DadosGeradorSnapshot,
+    };
+
+    // Edição: atualiza a proposta existente (escopada por tenant). Status e
+    // tarifa ASCENDER só são sobrescritos se vierem da seção Comercial; senão
+    // preservam o valor atual (undefined é ignorado pelo Drizzle no .set()).
+    if (d.id) {
+      const [row] = await getDb()
+        .update(propostas)
+        .set({
+          ...comuns,
+          // Só sobrescreve status/tarifa ASCENDER quando a seção Comercial os envia;
+          // ausentes → preservam o valor atual (spread condicional).
+          ...(d.status !== undefined ? { status: d.status } : {}),
+          ...(d.tarifaAscender !== undefined ? { tarifaAscender: d.tarifaAscender } : {}),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(propostas.id, d.id), eq(propostas.tenantId, tenantId)))
+        .returning({ id: propostas.id });
+      if (!row) return { ok: false, error: "Proposta não encontrada." };
+      revalidatePath("/propostas");
+      revalidatePath(`/propostas/${row.id}`);
+      return { ok: true, id: row.id, resultado };
+    }
+
     const [row] = await getDb()
       .insert(propostas)
       .values({
         tenantId,
-        clienteId,
-        clienteNomeLivre,
-        unidadeConsumidoraId: d.unidadeConsumidoraId,
-        distribuidoraId: d.distribuidoraId,
-        consumoEstimadoKwh: d.consumoKwh,
-        tarifaDistribuidora: d.tarifa,
+        ...comuns,
         tarifaAscender: 0,
         status: "simulacao",
-        observacao: d.observacao,
-        cenario: nec.cenario,
-        potenciaKwp: nec.potenciaKwp,
-        moduloWp: nec.moduloWp,
-        qtdModulos: nec.qtdModulos,
-        inversorTipo: nec.inversor.tipo,
-        geracaoMensalKwh: nec.geracaoMensalKwh,
-        precoFinal: finito(nec.precoFinal),
-        precoPorKwp: finito(nec.precoPorKwp),
-        paybackAnos: finito(nec.paybackAnos),
-        tirPercent: finito(nec.tirPercent),
-        economia25Anos: finito(nec.economia25Anos),
-        co2Toneladas: finito(nec.co2Toneladas),
-        custoTotal: finito(nec.custo.custoTotal),
-        margemValor: finito(nec.custo.margemValor),
-        margemPercent: finito(nec.custo.margemPercent),
-        // Snapshot para reimpressão (uso interno; nunca vai ao PDF do cliente).
-        dadosGerador: {
-          input: geradorInput,
-          resultado,
-          padrao: d.padrao,
-          responsavel: d.responsavel,
-          cidade: d.cidade,
-        },
       })
       .returning({ id: propostas.id });
 
@@ -151,6 +200,53 @@ export async function gerarProposta(input: unknown): Promise<GerarPropostaResult
     return { ok: true, id: row.id, resultado };
   } catch {
     return { ok: false, error: "Erro ao gerar/salvar a proposta." };
+  }
+}
+
+// Reimpressão do PDF de uma proposta JÁ SALVA. Monta no servidor o DTO
+// client-safe a partir do snapshot `dadosGerador` — custo/margem NUNCA saem daqui.
+export async function getPropostaPdf(id: string): Promise<PropostaPdfResult> {
+  const session = await getSession();
+  if (!session.authenticated) return { ok: false, error: "Não autenticado." };
+  const row = await withSessionTenant(() => getPropostaGerador(id));
+  if (!row) return { ok: false, error: "Proposta não encontrada." };
+  const snap = row.dadosGerador as DadosGeradorSnapshot | null;
+  if (!snap?.resultado?.necessario) {
+    return { ok: false, error: "Esta proposta não tem dados do gerador para gerar o PDF." };
+  }
+  const r = snap.resultado;
+  const dados: PdfProposta = {
+    cliente: row.clienteNome ?? "Cliente",
+    cidade: snap.cidade ?? undefined,
+    responsavel: snap.responsavel ?? undefined,
+    concessionaria: row.distribuidoraNome ?? undefined,
+    data: new Date(row.createdAt).toLocaleDateString("pt-BR"),
+    necessario: cenarioResultadoToPdf(r.necessario),
+    rentavel: r.rentavel ? cenarioResultadoToPdf(r.rentavel) : null,
+  };
+  return { ok: true, dados };
+}
+
+// Troca rápida de status pela lista (não recalcula dimensionamento).
+export async function setStatusProposta(input: unknown): Promise<ActionResult> {
+  const session = await getSession();
+  if (!session.authenticated) return { ok: false, error: "Não autenticado." };
+  const deny = await requireRole("operador");
+  if (deny) return deny;
+  const parsed = statusPropostaSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const tenantId = await getSessionTenantId();
+  try {
+    await getDb()
+      .update(propostas)
+      .set({ status: parsed.data.status, updatedAt: new Date() })
+      .where(and(eq(propostas.id, parsed.data.id), eq(propostas.tenantId, tenantId)));
+    revalidatePath("/propostas");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Erro ao atualizar o status." };
   }
 }
 

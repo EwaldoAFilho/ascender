@@ -27,10 +27,12 @@ Gerador de propostas fotovoltaicas: recebe consumo, tarifa, irradiacao (HSP) e d
 | ascender-app/src/lib/propostas/financeiro.ts | Client-safe (opera sobre preco final): `payback`, `paybackPorFluxo`, `tirPorFluxo`, `projecaoPorFluxo`, `co2Evitado`, `geracaoMensalPorMes`. |
 | ascender-app/src/lib/propostas/calcular.ts | Orquestrador (SENSIVEL, server-only): `gerarResultado`, `fioBPercentual`, `creditoUnitarioReal`, `montarCenario`. Monta os dois cenarios. |
 | ascender-app/src/lib/propostas/actions.ts | Server actions: `gerarProposta` (valida, calcula, persiste) e `salvarParametrosProposta`. |
-| ascender-app/src/lib/propostas/pdf.ts | PDF branded client-side (jspdf + autotable). `baixarPropostaPdf`, `linhasCenario`. So dados client-safe. |
-| ascender-app/src/app/(dashboard)/propostas/gerador/GeradorProposta.tsx | UI "use client" do gerador: formulario, chamada da action, resultado, graficos (recharts), toggle de custos internos, disparo do PDF. |
-| ascender-app/src/app/(dashboard)/propostas/gerador/page.tsx | Server component da rota do gerador; carrega opcoes de cliente/UC/distribuidora. |
-| ascender-app/src/app/(dashboard)/propostas/page.tsx | Lista/CRUD manual de propostas + KPIs; link para o gerador. |
+| ascender-app/src/lib/propostas/pdf.ts | PDF branded client-side (jspdf + autotable). `baixarPropostaPdf`, `linhasCenario`, **`cenarioResultadoToPdf`** (mapper compartilhado cenario rico→PdfCenario). So dados client-safe. |
+| ascender-app/src/app/(dashboard)/propostas/gerador/GeradorProposta.tsx | UI "use client" do gerador: formulario, chamada da action, resultado, graficos (recharts), toggle de custos internos, disparo do PDF. **Modo edição** via props `propostaId`/`inicial`/`resultadoInicial` (tipo `GeradorInicial`) + seção Comercial. |
+| ascender-app/src/app/(dashboard)/propostas/gerador/page.tsx | Server component da rota do gerador (criação); carrega opcoes de cliente/UC/distribuidora. |
+| ascender-app/src/app/(dashboard)/propostas/[id]/page.tsx | **Server component da tela de detalhe/edição** (operador+): `getPropostaGerador(id)`, monta `inicial`/`resultadoInicial` e renderiza `GeradorProposta` em modo edição. |
+| ascender-app/src/app/(dashboard)/propostas/PropostaRowControls.tsx | UI "use client" da lista: `PropostaPdfButton` (reimpressão via `getPropostaPdf`) e `PropostaStatusSelect` (troca de status via `setStatusProposta`). |
+| ascender-app/src/app/(dashboard)/propostas/page.tsx | Lista de propostas + KPIs; "Editar" navega para `/propostas/[id]`, PDF + status inline por linha; link para o gerador. |
 | ascender-app/src/app/(dashboard)/configuracoes/proposta-precos/page.tsx | Server component da config; `carregarParametros()` e renderiza o form. |
 | ascender-app/src/app/(dashboard)/configuracoes/proposta-precos/ParametrosForm.tsx | UI "use client" da tela Precos & Margem (kit, custos, premissas, Fio B). |
 
@@ -45,13 +47,17 @@ Gerador de propostas fotovoltaicas: recebe consumo, tarifa, irradiacao (HSP) e d
 
 ## Endpoints / Server Actions
 Nao ha rotas de API REST. Tudo via Server Actions ("use server"):
-- `gerarProposta(input)` — actions.ts:58. Autentica (`getSession`), valida (`gerarSchema` zod), `carregarParametros()`, `gerarResultado(...)`, resolve cliente livre vs cadastrado, insere em `propostas` (com snapshot `dadosGerador`), `revalidatePath("/propostas")`. Retorna `{ ok, id, resultado }`.
-- `salvarParametrosProposta(input)` — actions.ts:176. Autentica, valida (`parametrosSchema`/`premissasSchema`), ordena `kit` por `kwpMax`, faz upsert (linha unica) em `parametros_proposta`, `revalidatePath` de `/configuracoes/proposta-precos` e `/propostas/gerador`.
-- Cadastro manual de proposta usa `saveProposta`/`deleteProposta` de `src/lib/cadastros/actions.ts` (fora deste modulo, mas consome a tabela `propostas`).
+- `gerarProposta(input)` — actions.ts. Autentica + exige **`operador`**, valida (`gerarSchema` zod), `carregarParametros()`, `gerarResultado(...)`, resolve cliente livre vs cadastrado. **INSERT ou UPDATE:** sem `id` → insere (`status: "simulacao"`, `tarifaAscender: 0`); com `id` → atualiza a proposta existente (escopo por tenant) e grava `status`/`tarifaAscender` da seção Comercial. Sempre regrava o snapshot `dadosGerador`, `revalidatePath("/propostas")` (+ `/propostas/{id}` na edição). Retorna `{ ok, id, resultado }`.
+- `getPropostaPdf(id)` — actions.ts. Autenticado. Le `getPropostaGerador(id)`, monta no servidor o DTO client-safe `PdfProposta` a partir de `dadosGerador.resultado` (via `cenarioResultadoToPdf`) + nome do cliente + label da distribuidora + `createdAt`. Erro se `dadosGerador` nulo (legado). **Nunca retorna custo/margem.**
+- `setStatusProposta(input)` — actions.ts. Exige `operador`. UPDATE so de `status` (+ `updatedAt`), escopo por tenant, `revalidatePath("/propostas")`. Usada pelo seletor inline da lista.
+- `salvarParametrosProposta(input)` — actions.ts. Autentica + exige **`admin`**, valida (`parametrosSchema`/`premissasSchema`), ordena `kit` por `kwpMax`, faz upsert (linha unica) em `parametros_proposta`, `revalidatePath` de `/configuracoes/proposta-precos` e `/propostas/gerador`.
+- Exclusão de proposta usa `deleteProposta` de `src/lib/cadastros/actions.ts` (operador+). `saveProposta` (modal CRUD) não é mais usada pela lista de propostas (a edição migrou para `/propostas/[id]`), mas continua disponível.
+- Leitura: `getPropostaGerador(id)` e `listPropostas` (com `temDadosGerador`) em `src/lib/cadastros/queries.ts`.
 
 ## Telas
-- `/propostas/gerador` — gerador (dimensionamento). Server: `gerador/page.tsx`; client: `GeradorProposta.tsx`.
-- `/propostas` — lista/CRUD de propostas + KPIs (`propostas/page.tsx`).
+- `/propostas/gerador` — gerador (criação por dimensionamento). Server: `gerador/page.tsx`; client: `GeradorProposta.tsx`.
+- `/propostas/[id]` — detalhe/edição de uma proposta salva (reaproveita `GeradorProposta` em modo edição; operador+). Server: `[id]/page.tsx`.
+- `/propostas` — lista de propostas + KPIs; PDF e status inline por linha (`propostas/page.tsx` + `PropostaRowControls.tsx`).
 - `/configuracoes/proposta-precos` — tela "Preços & Margem" (aba em configuracoes/layout.tsx:8). Server: `proposta-precos/page.tsx`; client: `ParametrosForm.tsx`.
 Todas envoltas em `DesktopOnly` (o gerador e a lista sao desktop-only).
 
@@ -111,11 +117,11 @@ Implicitas / inferidas:
 
 ## Pendencias / a investigar
 - Campo `padrao` (mono/bi/tri) nao influencia calculo nem adequacao trifasica automatica — confirmar se e intencional ou feature pendente.
-- Nao ha reimpressao a partir do snapshot `dadosGerador`: a UI so gera PDF na mesma sessao (estado em memoria). Nao existe rota que reidrate uma proposta salva para PDF.
+- ~~Nao ha reimpressao a partir do snapshot `dadosGerador`~~ **RESOLVIDO (2026-07-10):** `/propostas/[id]` reidrata a proposta salva (PDF/Excel) e o botao PDF por linha usa `getPropostaPdf(id)`. Legado sem `dadosGerador` fica com o botao PDF desabilitado.
 - `cronogramaFioB` nao e editavel na tela `ParametrosForm` (so exibido); anoBase/tarifa/ativo sim. Confirmar se editar o array e desejado.
 - `tarifaFioB` default 0 zera o efeito do Fio B; confirmar se a equipe ja tem a TUSD Fio B real para preencher.
 - KPIs da lista `/propostas` usam `tarifaAscender` (modelo de simulacao manual) que o gerador sempre grava 0 — verificar se ha intencao de unificar os dois modelos de economia.
-- Autorizacao: `gerarProposta`/`salvarParametros` so checam `authenticated`, sem papel/role — confirmar se qualquer usuario logado deve ver custo/margem.
+- ~~Autorizacao: `gerarProposta`/`salvarParametros` so checam `authenticated`~~ **DESATUALIZADO:** hoje `gerarProposta` exige `operador` e `salvarParametros` exige `admin` (actions.ts). A tela `/propostas/[id]` exige `operador`; a lista esconde Editar/Excluir/status para `leitura` (so PDF client-safe).
 
 ## Fontes
 - ascender-app/src/lib/propostas/types.ts
@@ -140,4 +146,13 @@ Implicitas / inferidas:
 </invoke>
 
 ## Atualizações
+- **2026-07-10** — **Tela de detalhe/edição por-proposta + reimpressão de PDF de proposta salva.**
+  - Nova rota **`/propostas/[id]`** (`ascender-app/src/app/(dashboard)/propostas/[id]/page.tsx`): reaproveita `GeradorProposta.tsx` em **modo edição** — abre já mostrando o `resultado` salvo (com **Baixar PDF** e Excel) e permite re-dimensionar. Gate **operador+** (expõe custo/margem); `leitura` é redirecionado para `/propostas`.
+  - `GeradorProposta.tsx` ganhou props `propostaId`/`inicial`/`resultadoInicial` (tipo exportado `GeradorInicial`), seção **"5 · Comercial"** (Status + Tarifa ASCENDER, só na edição) e botão "Salvar alterações"/"Editar dados".
+  - `gerarProposta` (actions.ts) agora faz **INSERT ou UPDATE**: com `id` no input, atualiza a proposta existente (escopo por tenant), grava `status`/`tarifaAscender` da seção Comercial e regrava o snapshot `dadosGerador`. Sem `id`, mantém o INSERT (`status: "simulacao"`, `tarifaAscender: 0`).
+  - Novas actions em `actions.ts`: **`getPropostaPdf(id)`** (monta no servidor o DTO client-safe `PdfProposta` a partir de `dadosGerador.resultado` — custo/margem NUNCA saem) e **`setStatusProposta(id, status)`** (troca rápida de status, operador+).
+  - Novo mapper compartilhado **`cenarioResultadoToPdf`** em `pdf.ts` (fonte única do "cenário rico → PdfCenario", sem custo). Novo tipo **`DadosGeradorSnapshot`** em `types.ts` para ler o jsonb tipado.
+  - `queries.ts`: nova **`getPropostaGerador(id)`** (traz `dadosGerador` + nome do cliente + label da distribuidora) e coluna **`temDadosGerador`** (boolean leve) em `listPropostas`.
+  - Lista `/propostas`: "Editar" agora **navega** para `/propostas/[id]` (não mais o modal do CrudSection); cada linha tem botão **PDF** e **seletor de status inline** (`PropostaRowControls.tsx`). `CrudSection` ganhou props `editBasePath`, `readOnly` e `CrudRow.actions`; a lista deixou de usar o modal (`fields`/`onSave`). Para `leitura`, só o botão PDF aparece (`readOnly`).
+  - **Fix de bug (RBAC):** `ensureOperador` em `ascender-app/src/lib/cadastros/actions.ts` chamava a si mesmo (recursão infinita, introduzido no commit `2f9a5b3`) — corrigido para `ensureAuth()`. Afetava `saveProposta`/`deleteProposta` e todas as mutações operador-gated de cadastros.
 - **2026-07-08** — Cliente livre (`clienteId` nullable + `clienteNomeLivre`); autoconsumo = `min(geração, consumo)` no Necessário e Rentável (fix); nova exportação **Excel** (`ascender-app/src/lib/propostas/excel.ts` — abas Resumo, Geração Mensal, Retorno 25 Anos e Custos Internos, uso interno); campos **Responsável** e **Cidade/UF** (vão ao cabeçalho do PDF e ao snapshot `dadosGerador`); tabela de geração mensal (12 meses) na tela.

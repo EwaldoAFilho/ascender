@@ -162,6 +162,8 @@ export function listPropostas() {
       potenciaKwp: propostas.potenciaKwp,
       precoFinal: propostas.precoFinal,
       paybackAnos: propostas.paybackAnos,
+      // Booleano leve (não traz o jsonb) — habilita o botão de PDF por linha.
+      temDadosGerador: sql<boolean>`${propostas.dadosGerador} is not null`,
     })
     .from(propostas)
     .leftJoin(clientes, eq(propostas.clienteId, clientes.id))
@@ -172,6 +174,34 @@ export function listPropostas() {
     .leftJoin(distribuidoras, eq(propostas.distribuidoraId, distribuidoras.id))
     .where(eq(propostas.tenantId, getCurrentTenantId()))
     .orderBy(asc(sql`coalesce(${clientes.nome}, ${propostas.clienteNomeLivre})`));
+}
+
+// Snapshot completo de UMA proposta para a tela de detalhe/edição (reaproveita o
+// gerador). Traz o jsonb `dadosGerador` (input + resultado) + nome do cliente e
+// label da distribuidora resolvidos. `null` se não existir no tenant.
+export async function getPropostaGerador(id: string) {
+  const [row] = await getDb()
+    .select({
+      id: propostas.id,
+      clienteId: propostas.clienteId,
+      clienteNome: sql<string | null>`coalesce(${clientes.nome}, ${propostas.clienteNomeLivre})`,
+      unidadeConsumidoraId: propostas.unidadeConsumidoraId,
+      distribuidoraId: propostas.distribuidoraId,
+      distribuidoraNome: distribuidoras.nome,
+      consumoEstimadoKwh: propostas.consumoEstimadoKwh,
+      tarifaDistribuidora: propostas.tarifaDistribuidora,
+      tarifaAscender: propostas.tarifaAscender,
+      status: propostas.status,
+      observacao: propostas.observacao,
+      createdAt: propostas.createdAt,
+      dadosGerador: propostas.dadosGerador,
+    })
+    .from(propostas)
+    .leftJoin(clientes, eq(propostas.clienteId, clientes.id))
+    .leftJoin(distribuidoras, eq(propostas.distribuidoraId, distribuidoras.id))
+    .where(and(eq(propostas.id, id), eq(propostas.tenantId, getCurrentTenantId())))
+    .limit(1);
+  return row ?? null;
 }
 
 // ===== Histórico de geração (banco) e resumo financeiro =====

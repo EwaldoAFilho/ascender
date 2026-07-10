@@ -3,6 +3,8 @@
 // client-safe: NÃO inclui custo, margem nem tabela de kit — só o preço final e
 // os números de engenharia/financeiro que o cliente pode ver.
 
+import type { CenarioResultado } from "./types";
+
 export type PdfCenario = {
   titulo: string;
   potenciaKwp: number;
@@ -32,6 +34,34 @@ export type PdfProposta = {
   necessario: PdfCenario;
   rentavel?: PdfCenario | null;
 };
+
+// Projeta um CenarioResultado (rico, com custo/margem SENSÍVEL) no DTO client-safe
+// do PDF — descartando tudo que não pode chegar ao cliente. Fonte única de verdade
+// usada tanto na geração ao vivo (gerador) quanto na reimpressão (getPropostaPdf).
+export function cenarioResultadoToPdf(c: CenarioResultado): PdfCenario {
+  return {
+    titulo:
+      c.cenario === "necessario"
+        ? "Sistema Necessário (dimensionado pelo consumo)"
+        : "Telhado Rentável (todo o telhado disponível)",
+    potenciaKwp: c.potenciaKwp,
+    qtdModulos: c.qtdModulos,
+    moduloWp: c.moduloWp,
+    geracaoMensalKwh: c.geracaoMensalKwh,
+    geracaoAnualKwh: c.geracaoAnualKwh,
+    inversorLabel: `${c.inversor.label} · ${c.inversor.disjuntor}`,
+    precoFinal: c.precoFinal,
+    precoPorKwp: c.precoPorKwp,
+    paybackAnos: c.paybackAnos,
+    tirPercent: c.tirPercent,
+    economia25Anos: c.economia25Anos,
+    co2Toneladas: c.co2Toneladas,
+    retornoMensal: c.retornoMensal,
+    retornoLabel: c.cenario === "necessario" ? "Economia mensal" : "Receita mensal",
+    excedenteKwh: c.excedenteKwh,
+    creditoExcedente: c.creditoExcedente,
+  };
+}
 
 const NAVY: [number, number, number] = [11, 31, 58];
 const GOLD: [number, number, number] = [200, 155, 60];
