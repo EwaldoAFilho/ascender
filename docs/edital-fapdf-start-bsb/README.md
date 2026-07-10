@@ -18,6 +18,7 @@ conformidade** (não técnicas) a encaminhar antes da inscrição.
 | [`01-analise-edital.md`](01-analise-edital.md) | O que o edital exige: objeto, elegibilidade, eixos e valores, áreas estratégicas, critérios de avaliação, itens financiáveis, cronograma, PI, prestação de contas e **LGPD** |
 | [`02-aderencia-ascender.md`](02-aderencia-ascender.md) | Se e como a ASCENDER se encaixa: checklist de elegibilidade, mapa **critérios × evidências do produto**, decisões estruturantes, gaps/riscos e rascunho de plano de aplicação dos R$ 200 mil |
 | [`03-documentacao-tecnica.md`](03-documentacao-tecnica.md) | **Memorial técnico** — o que a aplicação faz hoje: arquitetura, módulos, integrações, dados, segurança/LGPD, SaaS multi-tenant e maturidade |
+| [`04-precificacao-licenciamento.md`](04-precificacao-licenciamento.md) | **Estratégia de preços** do licenciamento (SaaS): custo-para-servir, método em 6 passos, régua de metering, planos/faixas e projeção MRR/ARR para o **critério F** |
 
 ## Números-chave do edital
 
