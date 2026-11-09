@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Propostas de Melhoria ASCENDER</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: documento de leitura em coluna única (~70ch), faixa de capa no azul da marca,
+   cartões de achado com selo de prioridade e quadro de campos; apêndice técnico ao final. */
+:root {
+  --bg: #f6f7f5;
+  --paper: #ffffff;
+  --ink: #142433;
+  --muted: #546575;
+  --line: #d9dee2;
+  --brand: #0b1f3a;        /* azul-marinho ASCENDER */
+  --brand-ink: #f4f7f8;
+  --gold: #b9811a;         /* dourado da marca, escurecido p/ texto no claro */
+  --gold-soft: #fbf1db;
+  --crit: #b42318;  --crit-bg: #fdecea;
+  --high: #a15c07;  --high-bg: #fdf2e1;
+  --med:  #1f5f8b;  --med-bg:  #e7f1f8;
+  --org:  #3f6b4f;  --org-bg:  #e9f3ec;
+  --code-bg: #eef1f3;
+  --font-body: Lato, "Segoe UI", Aptos, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Segoe UI Semibold", "Segoe UI", Lato, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #071923; --paper: #0d2433; --ink: #eef3f5; --muted: #a9bac4; --line: #24485c;
+    --brand: #05131c; --brand-ink: #f4f7f8; --gold: #f5b700; --gold-soft: #2a2610;
+    --crit: #ff8a7f; --crit-bg: #3a1714; --high: #f5b75a; --high-bg: #362611;
+    --med: #7cc0ec; --med-bg: #0f2c40; --org: #8fd1a6; --org-bg: #12301f; --code-bg: #0a1d29;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #071923; --paper: #0d2433; --ink: #eef3f5; --muted: #a9bac4; --line: #24485c;
+  --brand: #05131c; --brand-ink: #f4f7f8; --gold: #f5b700; --gold-soft: #2a2610;
+  --crit: #ff8a7f; --crit-bg: #3a1714; --high: #f5b75a; --high-bg: #362611;
+  --med: #7cc0ec; --med-bg: #0f2c40; --org: #8fd1a6; --org-bg: #12301f; --code-bg: #0a1d29;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.6 var(--font-body);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.wrap {
+  max-width: 980px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.25; text-wrap: balance; margin: 0; }
+h2 { font-size: 1.55rem; }
+h3 { font-size: 1.12rem; }
+p { margin: 0; }
+a { color: var(--gold); }
+a:focus-visible, input:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: .86em; }
+code { background: var(--code-bg); padding: .08em .35em; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { text-transform: uppercase; letter-spacing: .09em; font-size: .74rem; font-weight: 700; color: var(--gold); }
+.muted { color: var(--muted); }
+.prose { max-width: 70ch; display: grid; gap: .8rem; }
+
+/* ---------- Capa ---------- */
+.capa { background: var(--brand); color: var(--brand-ink); }
+.capa .wrap { padding-block: 2.6rem 2.2rem; display: grid; gap: 1.1rem; }
+.capa h1 { font-size: clamp(1.8rem, 4.5vw, 2.6rem); }
+.capa .eyebrow { color: #f5b700; }
+.capa p { max-width: 68ch; color: #cbd6dd; }
+.capa .meta { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; font-size: .9rem; color: #cbd6dd; }
+.capa .meta b { color: #fff; }
+
+/* ---------- Navegação ---------- */
+nav.indice { background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+nav.indice .wrap { display: flex; gap: .3rem 1.2rem; flex-wrap: wrap; padding-block: .65rem; font-size: .9rem; }
+nav.indice a { color: var(--ink); text-decoration: none; font-weight: 600; }
+nav.indice a:hover { color: var(--gold); }
+
+main .wrap > section { padding-block: 2.4rem; border-bottom: 1px solid var(--line); display: grid; gap: 1.2rem; }
+main .wrap > section:last-child { border-bottom: 0; }
+
+/* ---------- Resumo ---------- */
+.placar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
+.placar div { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; display: grid; gap: .15rem; }
+.placar strong { font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; font-family: var(--font-display); }
+.placar span { font-size: .85rem; color: var(--muted); }
+.placar .c strong { color: var(--crit); } .placar .a strong { color: var(--high); }
+.placar .m strong { color: var(--med); }  .placar .o strong { color: var(--org); }
+.destaques { display: grid; gap: .6rem; margin: 0; padding-left: 1.2rem; }
+.chave { background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); border-radius: 10px; padding: 1rem 1.1rem; display: grid; gap: .5rem; }
+.chave ol { margin: 0; padding-left: 1.2rem; display: grid; gap: .35rem; }
+
+/* ---------- Legenda ---------- */
+.legenda { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1.4rem; }
+.legenda > div { display: grid; grid-template-columns: auto 1fr; gap: .2rem .7rem; align-items: start; }
+.selo { display: inline-flex; align-items: center; gap: .35rem; font-size: .74rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; border-radius: 999px; padding: .22rem .6rem; white-space: nowrap; }
+.selo.crit { color: var(--crit); background: var(--crit-bg); }
+.selo.alto { color: var(--high); background: var(--high-bg); }
+.selo.med  { color: var(--med);  background: var(--med-bg); }
+.selo.org  { color: var(--org);  background: var(--org-bg); }
+.selo.neutro { color: var(--muted); background: var(--code-bg); }
+
+/* ---------- Feito ---------- */
+.feito { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin: 0; padding: 0; list-style: none; }
+.feito li { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: .8rem 1rem; display: grid; gap: .25rem; min-width: 0; }
+.feito b { font-size: .98rem; }
+.feito span { font-size: .9rem; color: var(--muted); }
+
+/* ---------- Achados ---------- */
+.grupo { display: grid; gap: .9rem; }
+.grupo > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .9rem; padding-top: .6rem; }
+.grupo > header p { color: var(--muted); font-size: .95rem; }
+.achado { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .85rem; }
+.achado .topo { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; }
+.achado .num { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.achado h3 { flex: 1 1 22rem; min-width: 0; }
+.campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1.4rem; margin: 0; }
+.campos > div { display: grid; gap: .2rem; min-width: 0; }
+.campos dt { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.campos dd { margin: 0; font-size: .95rem; }
+.campos .largo { grid-column: 1 / -1; }
+.rodape-achado { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; font-size: .88rem; padding-top: .6rem; border-top: 1px dashed var(--line); }
+.rodape-achado b { font-weight: 700; }
+
+/* ---------- Roteiro ---------- */
+.ondas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; counter-reset: onda; }
+.onda { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; display: grid; gap: .5rem; align-content: start; min-width: 0; }
+.onda .quando { font-size: .8rem; color: var(--muted); }
+.onda ul { margin: 0; padding-left: 1.05rem; display: grid; gap: .3rem; font-size: .92rem; }
+.onda:first-child { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+
+/* ---------- Decisões ---------- */
+.decisoes { display: grid; gap: .7rem; margin: 0; padding: 0; list-style: none; counter-reset: dec; }
+.decisao { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1.1rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1.2rem; align-items: center; }
+.decisao .q { display: grid; gap: .2rem; min-width: 0; }
+.decisao .q b::before { counter-increment: dec; content: counter(dec) ". "; color: var(--gold); }
+.decisao .q span { font-size: .9rem; color: var(--muted); }
+.opcoes { display: flex; gap: .35rem; flex-wrap: wrap; }
+.opcoes label { cursor: pointer; }
+.opcoes input { position: absolute; opacity: 0; pointer-events: none; }
+.opcoes span { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: .3rem .75rem; font-size: .85rem; font-weight: 700; color: var(--muted); }
+.opcoes input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+.opcoes input[value="aprovar"]:checked + span { color: var(--org); background: var(--org-bg); border-color: var(--org); }
+.opcoes input[value="ajustar"]:checked + span { color: var(--high); background: var(--high-bg); border-color: var(--high); }
+.opcoes input[value="adiar"]:checked + span { color: var(--muted); background: var(--code-bg); border-color: var(--muted); }
+.contagem { font-size: .92rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.btn { font: inherit; font-size: .85rem; font-weight: 700; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: .3rem .7rem; cursor: pointer; }
+
+/* ---------- Glossário e apêndice ---------- */
+.glossario { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1.6rem; margin: 0; }
+.glossario > div { min-width: 0; }
+.glossario dt { font-weight: 800; }
+.glossario dd { margin: .1rem 0 0; color: var(--muted); font-size: .94rem; }
+.tabela { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .88rem; }
+th, td { text-align: left; padding: .55rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--code-bg); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+pre { background: var(--code-bg); border-radius: 10px; padding: .9rem 1rem; overflow-x: auto; margin: 0; font: .85rem/1.55 var(--font-mono); }
+
+footer.fim { padding-block: 2rem 3rem; color: var(--muted); font-size: .85rem; }
+
+@media (max-width: 760px) {
+  .placar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ondas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .campos, .feito, .legenda, .glossario { grid-template-columns: 1fr; }
+  .decisao { grid-template-columns: 1fr; }
+}
+@media (max-width: 460px) { .ondas { grid-template-columns: 1fr; } }
+
+@media print {
+  nav.indice, .btn { display: none; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .capa { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .achado, .onda, .decisao, .feito li { break-inside: avoid; }
+  main .wrap > section { padding-block: 1.2rem; }
+  a { color: inherit; text-decoration: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="capa">
+  <div class="wrap">
+    <span class="eyebrow">ASCENDER · Gestão de usinas e propostas</span>
+    <h1>Propostas de melhoria da plataforma</h1>
+    <p>Análise geral do sistema ASCENDER: segurança, confiabilidade, dados, qualidade do
+      código, infraestrutura, documentação e experiência de uso. Cada ponto traz o risco para
+      o negócio, a evidência encontrada, a proposta de correção e se precisa da sua aprovação.</p>
+    <div class="meta">
+      <span>Data: <b>09/11/2026</b></span>
+      <span>Escopo: <b>repositório completo + ambiente de testes local</b></span>
+      <span>Status: <b>para validação com o dono do projeto</b></span>
+    </div>
+  </div>
+</header>
+
+<nav class="indice" aria-label="Seções">
+  <div class="wrap">
+    <a href="#resumo">Resumo</a>
+    <a href="#como-ler">Como ler</a>
+    <a href="#feito">Já corrigido</a>
+    <a href="#achados">Achados</a>
+    <a href="#roteiro">Roteiro</a>
+    <a href="#decisoes">Decisões</a>
+    <a href="#glossario">Glossário</a>
+    <a href="#apendice">Apêndice técnico</a>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ================= RESUMO ================= -->
+<section id="resumo">
+  <span class="eyebrow">Resumo executivo</span>
+  <h2>O sistema está funcional e bem estruturado. Há quatro pontos que pedem ação imediata.</h2>
+  <div class="placar" role="list">
+    <div class="c" role="listitem"><strong>4</strong><span>críticos</span></div>
+    <div class="a" role="listitem"><strong>5</strong><span>altos</span></div>
+    <div class="m" role="listitem"><strong>6</strong><span>médios</span></div>
+    <div class="o" role="listitem"><strong>5</strong><span>de organização</span></div>
+  </div>
+  <div class="prose">
+    <p>A base técnica é boa: as telas leem do banco de dados (e não das APIs externas), há
+      isolamento entre empresas clientes, cálculos de proposta protegidos no servidor e testes
+      automáticos para as regras de negócio. Os problemas encontrados são, em sua maioria,
+      de <b>operação e proteção</b>, e não de funcionalidade.</p>
+    <p>Os quatro pontos críticos, em linguagem direta:</p>
+    <ul class="destaques">
+      <li><b>A sincronização automática em produção provavelmente está parada.</b> Dados de
+        geração, alarmes, faturas e rateio podem estar desatualizados. A correção já está pronta.</li>
+      <li><b>Bibliotecas usadas pelo sistema têm falhas de segurança conhecidas</b>, duas delas
+        classificadas como críticas. Precisam ser atualizadas.</li>
+      <li><b>Usuários com perfil "somente leitura" conseguem ver a tabela de preços, custos e
+        margem</b> das propostas.</li>
+      <li><b>Um usuário desativado ou uma empresa suspensa continua com acesso por até 8 horas</b>,
+        até a sessão expirar.</li>
+    </ul>
+  </div>
+  <div class="chave">
+    <span class="eyebrow">O que precisamos de você</span>
+    <ol>
+      <li>Autorizar a publicação das correções já prontas (inclui reativar a sincronização).</li>
+      <li>Definir quem pode ver custos e margem: só administradores ou também operadores.</li>
+      <li>Definir a regra da "Tarifa ASCENDER" e o valor real da tarifa Fio B nas propostas,
+        porque isso muda números apresentados ao cliente.</li>
+    </ol>
+    <p class="muted">A lista completa de decisões, com espaço para marcar, está na seção
+      <a href="#decisoes">Decisões</a>.</p>
+  </div>
+</section>
+
+<!-- ================= COMO LER ================= -->
+<section id="como-ler">
+  <span class="eyebrow">Como ler este documento</span>
+  <h2>Prioridade, esforço e evidência</h2>
+  <div class="legenda">
+    <div><span class="selo crit">Crítico</span><span>Risco atual para dados, segurança ou operação. Resolver primeiro.</span></div>
+    <div><span class="selo alto">Alto</span><span>Risco relevante ou que cresce com o número de clientes. Próximas semanas.</span></div>
+    <div><span class="selo med">Médio</span><span>Melhora qualidade, custo ou experiência. Planejar.</span></div>
+    <div><span class="selo org">Organização</span><span>Documentação, testes e arrumação. Reduz erros futuros.</span></div>
+  </div>
+  <div class="prose">
+    <p><b>Esforço</b> é uma estimativa de desenvolvimento: <b>P</b> até meio dia, <b>M</b> de 1 a 3
+      dias, <b>G</b> uma semana ou mais.</p>
+    <p><b>Verificado</b> significa que o ponto foi confirmado no código ou testado no ambiente
+      local com <b>dados fictícios</b> (clientes, usinas e usuários inventados, que não existem no
+      repositório nem em produção). Nenhum teste foi feito com dados reais.</p>
+  </div>
+</section>
+
+<!-- ================= JÁ FEITO ================= -->
+<section id="feito">
+  <span class="eyebrow">Já corrigido nesta rodada</span>
+  <h2>Seis correções prontas, aguardando autorização para publicar</h2>
+  <ul class="feito">
+    <li><b>Sincronização automática voltou a iniciar</b><span>O serviço que busca dados da SolisCloud e do Digital Grid falhava ao iniciar. Corrigido e testado localmente.</span></li>
+    <li><b>Sistema sobe em computadores Windows</b><span>Ajuste de formato de arquivo que impedia o sistema de iniciar no Docker do Windows.</span></li>
+    <li><b>PDF da proposta dentro da margem</b><span>Símbolos como "≤" e "CO₂" deformavam linhas inteiras do PDF. Agora o texto sai limpo e nomes longos quebram linha.</span></li>
+    <li><b>Lista de status legível no tema escuro</b><span>As opções de status em Propostas apareciam em branco no tema escuro.</span></li>
+    <li><b>Gráfico "Dia" em Geração</b><span>Leituras isoladas não apareciam no gráfico, só ao passar o mouse.</span></li>
+    <li><b>README do projeto</b><span>Página inicial do repositório explicando o sistema, como rodar e como contribuir.</span></li>
+  </ul>
+</section>
+
+<!-- ================= ACHADOS ================= -->
+<section id="achados">
+  <span class="eyebrow">Achados</span>
+  <h2>Vinte pontos de melhoria, por prioridade</h2>
+
+  <!-- CRÍTICOS -->
+  <div class="grupo">
+    <header><span class="selo crit">Crítico</span><p>Resolver primeiro.</p></header>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#01</span><h3>Sincronização automática parada em produção</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>O serviço que atualiza sozinho os dados de usinas, alarmes, faturas e rateio passou a falhar logo ao iniciar, depois da entrega de "planos e limite de usinas".</dd></div>
+        <div><dt>Por que importa</dt><dd>As telas mostram o que está no banco. Sem o serviço, os números param no tempo e alarmes novos não aparecem.</dd></div>
+        <div><dt>Evidência</dt><dd>Reproduzido no ambiente local: o serviço reiniciava em ciclo com erro de módulo não encontrado. Corrigido e validado.</dd></div>
+        <div><dt>Proposta</dt><dd>Publicar a correção pronta e conferir na VPS que o serviço está ativo e gravando execuções.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P (pronto)</span><span><b>Aval:</b> autorizar a publicação</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#02</span><h3>Bibliotecas com falhas de segurança conhecidas</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>A verificação automática de segurança apontou 8 vulnerabilidades em componentes de terceiros (2 críticas, 6 altas), incluindo o próprio framework do site e a biblioteca de PDF.</dd></div>
+        <div><dt>Por que importa</dt><dd>Falhas públicas são as primeiras exploradas por ataques automatizados. O sistema é acessível pela internet.</dd></div>
+        <div><dt>Evidência</dt><dd>Resultado do <code>npm audit</code> em 09/11/2026. A biblioteca de planilhas (exportar Excel) não tem correção publicada no canal usado hoje.</dd></div>
+        <div><dt>Proposta</dt><dd>Atualizar as bibliotecas para versões corrigidas e trocar a de planilhas pela distribuição oficial corrigida ou por uma alternativa equivalente. Testar exportação Excel e PDF.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#03</span><h3>Perfil "somente leitura" vê custos e margem</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>A tela Configurações › Preços de proposta mostra a tabela de kits, custos e margem para qualquer usuário logado. Apenas a alteração exige administrador.</dd></div>
+        <div><dt>Por que importa</dt><dd>Custo e margem são informação estratégica. A regra do projeto é que só circulem internamente, com acesso controlado.</dd></div>
+        <div><dt>Evidência</dt><dd>Testado com um usuário fictício de perfil "leitura": a tela abriu e trouxe a tabela de preços e o percentual de margem.</dd></div>
+        <div><dt>Proposta</dt><dd>Bloquear a tela pelo perfil (mesmo controle já usado no detalhe da proposta) e ocultar o item de menu para quem não tem acesso.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P</span><span><b>Aval:</b> sim, definir quais perfis podem ver</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#04</span><h3>Acesso continua após desativar usuário ou suspender empresa</h3><span class="selo neutro">Verificado no código</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>O sistema só confere se o usuário está ativo e se a empresa está em dia no momento do login. Quem já estava logado continua acessando.</dd></div>
+        <div><dt>Por que importa</dt><dd>Um ex-funcionário desligado, ou uma empresa suspensa por falta de pagamento, mantém acesso por até 8 horas.</dd></div>
+        <div><dt>Evidência</dt><dd>As verificações de sessão e de perfil não consultam a situação do usuário nem da empresa.</dd></div>
+        <div><dt>Proposta</dt><dd>Conferir usuário ativo e empresa ativa a cada acesso, encerrando a sessão na hora quando não estiverem.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> confirmar bloqueio imediato</span></div>
+    </article>
+  </div>
+
+  <!-- ALTOS -->
+  <div class="grupo">
+    <header><span class="selo alto">Alto</span><p>Próximas semanas.</p></header>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#05</span><h3>Ninguém é avisado quando algo para</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>O sistema registra quando a sincronização falha, mas não envia alerta. O problema #01 ficou invisível por isso.</dd></div>
+        <div><dt>Por que importa</dt><dd>Falhas só são percebidas quando um cliente reclama de dado errado.</dd></div>
+        <div><dt>Evidência</dt><dd>Não há notificação configurada. Há 59 pontos no código que tratam erros sem registrá-los.</dd></div>
+        <div><dt>Proposta</dt><dd>Monitor externo que verifica o sistema a cada poucos minutos e avisa por e-mail ou mensagem; alerta de "sincronização atrasada" no painel da plataforma; registrar todos os erros.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> escolher serviço e quem recebe os alertas</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#06</span><h3>Verificação automática antes de publicar é incompleta</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>A cada envio de código rodam testes de regras de negócio, mas não se testa se o sistema realmente monta e inicia.</dd></div>
+        <div><dt>Por que importa</dt><dd>Os dois defeitos que impediam o sistema de subir nesta rodada passariam despercebidos e iriam direto para produção.</dd></div>
+        <div><dt>Evidência</dt><dd>A rotina atual executa só testes e checagem de tipos. Há divergência de versão do Node entre testes (22) e servidor (20).</dd></div>
+        <div><dt>Proposta</dt><dd>Incluir montagem do site, montagem da imagem Docker e teste de inicialização do serviço de sincronização; alinhar a versão do Node.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#07</span><h3>PDF de outras empresas sai com a marca ASCENDER</h3><span class="selo neutro">Verificado no código</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>O PDF de proposta tem "ASCENDER SOLAR" fixo no cabeçalho e no rodapé.</dd></div>
+        <div><dt>Por que importa</dt><dd>Com o modelo de assinatura para outras integradoras, os clientes delas receberiam propostas com a marca da Ascender.</dd></div>
+        <div><dt>Evidência</dt><dd>Texto fixo no gerador do PDF.</dd></div>
+        <div><dt>Proposta</dt><dd>Usar o nome (e depois o logotipo) da empresa que emitiu a proposta.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> sim, definir identidade no PDF</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#08</span><h3>Proteções do servidor podem ser reforçadas</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>As senhas internas do banco de dados estão escritas nos arquivos de configuração do repositório; faltam alguns cabeçalhos de proteção do navegador; o sistema roda com privilégios máximos dentro do contêiner.</dd></div>
+        <div><dt>Por que importa</dt><dd>Cada item reduz o estrago caso alguma outra falha seja explorada.</dd></div>
+        <div><dt>Evidência</dt><dd>Arquivos de configuração do Docker e do proxy HTTPS.</dd></div>
+        <div><dt>Proposta</dt><dd>Mover senhas para o arquivo de segredos do servidor, adicionar os cabeçalhos de segurança e rodar o sistema com usuário sem privilégios.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> não (exige janela curta de manutenção)</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#09</span><h3>Backup fica no mesmo servidor</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Há backup diário automático, guardado por 7 dias, mas no próprio servidor.</dd></div>
+        <div><dt>Por que importa</dt><dd>Se o servidor for perdido (falha do provedor, invasão, exclusão), sistema e backups se perdem juntos.</dd></div>
+        <div><dt>Evidência</dt><dd>Configuração de produção do serviço de backup.</dd></div>
+        <div><dt>Proposta</dt><dd>Enviar uma cópia diária para um armazenamento externo e testar a restauração periodicamente.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P a M</span><span><b>Aval:</b> sim, provedor e custo mensal (pequeno)</span></div>
+    </article>
+  </div>
+
+  <!-- MÉDIOS -->
+  <div class="grupo">
+    <header><span class="selo med">Médio</span><p>Planejar.</p></header>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#10</span><h3>Histórico de telemetria cresce sem limite</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Cada usina gera cerca de 144 leituras por dia, guardadas para sempre em detalhe.</dd></div>
+        <div><dt>Por que importa</dt><dd>Com mais usinas e empresas, o banco fica lento e o backup pesado.</dd></div>
+        <div><dt>Evidência</dt><dd>Tabelas de telemetria só recebem inclusões, sem rotina de limpeza.</dd></div>
+        <div><dt>Proposta</dt><dd>Manter o detalhe por um período (ex.: 90 dias) e guardar resumos por hora e por dia para sempre.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> sim, por quanto tempo guardar o detalhe</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#11</span><h3>Arquivos anexados ficam dentro do banco</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Anexos de clientes (até 25 MB) e PDFs de contas de energia são gravados no banco de dados.</dd></div>
+        <div><dt>Por que importa</dt><dd>Aumenta o tamanho do banco e de cada backup. Hoje é aceitável; vira problema com volume.</dd></div>
+        <div><dt>Evidência</dt><dd>Estrutura das tabelas de anexos e contas.</dd></div>
+        <div><dt>Proposta</dt><dd>Quando o volume crescer, mover os arquivos para um armazenamento próprio de arquivos.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> G (futuro)</span><span><b>Aval:</b> não agora</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#12</span><h3>Telas de erro e de carregamento genéricas</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Quando algo falha, o usuário vê a página de erro padrão do framework, sem orientação.</dd></div>
+        <div><dt>Por que importa</dt><dd>Passa impressão de sistema quebrado e gera chamados de suporte.</dd></div>
+        <div><dt>Evidência</dt><dd>Nenhuma tela de erro, "não encontrado" ou "carregando" personalizada.</dd></div>
+        <div><dt>Proposta</dt><dd>Criar essas telas com a identidade do sistema e um botão "tentar novamente".</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#13</span><h3>Números das propostas precisam de regra única</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Propostas criadas pelo gerador gravam "Tarifa ASCENDER" igual a zero, e os indicadores da lista misturam dois modelos de cálculo de economia. A tarifa Fio B (Lei 14.300) está zerada por padrão, o que anula seu efeito. Os status aparecem sem acento ("Simulacao", "Em-Analise").</dd></div>
+        <div><dt>Por que importa</dt><dd>O cliente pode ver economia e retorno diferentes do real, e a tela passa descuido.</dd></div>
+        <div><dt>Evidência</dt><dd>Lista de propostas com "R$ 0,000" na coluna Tarifa ASCENDER; parâmetro de Fio B com valor padrão zero.</dd></div>
+        <div><dt>Proposta</dt><dd>Definir a regra comercial com a gestão, cadastrar a tarifa Fio B real e corrigir os rótulos. Mudança de fórmula só com aval.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> sim, regra comercial e valores</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#14</span><h3>Modelos de IA desatualizados na leitura de contas</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>A lista de modelos de IA usados para ler contas de energia em PDF está desatualizada.</dd></div>
+        <div><dt>Por que importa</dt><dd>Modelos mais novos costumam ser mais precisos e, em alguns casos, mais baratos. Modelos antigos podem ser descontinuados.</dd></div>
+        <div><dt>Evidência</dt><dd>Lista fixa no módulo de provedores de IA.</dd></div>
+        <div><dt>Proposta</dt><dd>Atualizar a lista e o padrão recomendado, validando com contas reais antes.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#15</span><h3>Preparação para mais de um servidor</h3><span class="selo neutro">Já registrado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Alguns controles (limite de tentativas de login e cache) ficam na memória de um único servidor.</dd></div>
+        <div><dt>Por que importa</dt><dd>Funciona bem hoje. Só limita quando for preciso dividir a carga entre servidores.</dd></div>
+        <div><dt>Evidência</dt><dd>Documentado na base de conhecimento do projeto.</dd></div>
+        <div><dt>Proposta</dt><dd>Nenhuma ação agora; tratar quando houver necessidade de escalar.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> G (futuro)</span><span><b>Aval:</b> não</span></div>
+    </article>
+  </div>
+
+  <!-- ORGANIZAÇÃO -->
+  <div class="grupo">
+    <header><span class="selo org">Organização</span><p>Reduz erros e retrabalho.</p></header>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#16</span><h3>Documentação desatualizada em relação ao sistema</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>O guia do projeto e a base de conhecimento descrevem coisas que já mudaram (número de serviços, perfis de acesso, porta, versões) e listam como pendente o que já foi feito.</dd></div>
+        <div><dt>Por que importa</dt><dd>Quem vai evoluir o sistema, pessoa ou IA, parte de informação errada e pode introduzir defeitos.</dd></div>
+        <div><dt>Evidência</dt><dd>Comparação direta entre os documentos e o código atual.</dd></div>
+        <div><dt>Proposta</dt><dd>Revisar o guia, a base de conhecimento e o README do app; atualizar a documentação junto com cada entrega daqui em diante.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> M</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#17</span><h3>Pasta principal com 51 relatórios antigos</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Planos, relatórios e revisões de fases anteriores estão misturados com os arquivos do sistema. Há também material legado (protótipo antigo e uma pasta com espaço no nome).</dd></div>
+        <div><dt>Por que importa</dt><dd>Dificulta encontrar o que é atual.</dd></div>
+        <div><dt>Evidência</dt><dd>Listagem da pasta do aplicativo.</dd></div>
+        <div><dt>Proposta</dt><dd>Mover para uma pasta de histórico dentro de <code>docs/</code> e arquivar o material legado.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#18</span><h3>Alguns arquivos de código muito grandes</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>O gerador de propostas e a tela SolisCloud têm mais de 650 linhas cada.</dd></div>
+        <div><dt>Por que importa</dt><dd>Arquivos grandes são mais difíceis de alterar sem quebrar algo.</dd></div>
+        <div><dt>Evidência</dt><dd>Contagem de linhas por arquivo.</dd></div>
+        <div><dt>Proposta</dt><dd>Dividir aos poucos, apenas quando houver mudança nesses arquivos.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> contínuo</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#19</span><h3>Faltam testes do sistema funcionando por inteiro</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Os 128 testes atuais cobrem as regras de cálculo, mas não testam o sistema com banco de dados (isolamento entre empresas, permissões por perfil).</dd></div>
+        <div><dt>Por que importa</dt><dd>Um teste desse tipo teria detectado o problema #03 automaticamente.</dd></div>
+        <div><dt>Evidência</dt><dd>7 arquivos de teste, todos de funções de cálculo.</dd></div>
+        <div><dt>Proposta</dt><dd>Criar testes com banco de dados para isolamento entre empresas e permissões, rodando a cada envio de código.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> G</span><span><b>Aval:</b> não</span></div>
+    </article>
+
+    <article class="achado">
+      <div class="topo"><span class="num">#20</span><h3>Configurações pessoais de editor no repositório</h3><span class="selo neutro">Verificado</span></div>
+      <dl class="campos">
+        <div><dt>O que é</dt><dd>Uma pasta de configuração do editor de código apareceu no projeto sem decisão se deve ser versionada.</dd></div>
+        <div><dt>Por que importa</dt><dd>Evita conflitos entre configurações pessoais de quem desenvolve.</dd></div>
+        <div><dt>Evidência</dt><dd>Pasta <code>.vscode/</code> não rastreada.</dd></div>
+        <div><dt>Proposta</dt><dd>Decidir entre ignorar ou versionar só as configurações comuns ao time.</dd></div>
+      </dl>
+      <div class="rodape-achado"><span><b>Esforço:</b> P</span><span><b>Aval:</b> não</span></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= ROTEIRO ================= -->
+<section id="roteiro">
+  <span class="eyebrow">Roteiro sugerido</span>
+  <h2>Quatro ondas de trabalho</h2>
+  <p class="prose muted">A documentação do projeto é atualizada em cada onda, junto com o código. Cada onda termina com testes e publicação.</p>
+  <div class="ondas">
+    <div class="onda">
+      <span class="selo crit">Onda 1</span>
+      <span class="quando">Imediata</span>
+      <ul>
+        <li>Publicar as 6 correções prontas (#01)</li>
+        <li>Bloquear custos e margem por perfil (#03)</li>
+        <li>Encerrar acesso de desativados e suspensos (#04)</li>
+        <li>Atualizar bibliotecas vulneráveis (#02)</li>
+      </ul>
+    </div>
+    <div class="onda">
+      <span class="selo alto">Onda 2</span>
+      <span class="quando">Próximas 2 semanas</span>
+      <ul>
+        <li>Verificação automática completa (#06)</li>
+        <li>Alertas e monitoramento (#05)</li>
+        <li>Reforço do servidor (#08)</li>
+        <li>Backup externo (#09)</li>
+        <li>Marca de cada empresa no PDF (#07)</li>
+      </ul>
+    </div>
+    <div class="onda">
+      <span class="selo med">Onda 3</span>
+      <span class="quando">Mês seguinte</span>
+      <ul>
+        <li>Telas de erro e carregamento (#12)</li>
+        <li>Regra única de números das propostas (#13)</li>
+        <li>Modelos de IA atualizados (#14)</li>
+        <li>Retenção da telemetria (#10)</li>
+      </ul>
+    </div>
+    <div class="onda">
+      <span class="selo org">Onda 4</span>
+      <span class="quando">Contínua</span>
+      <ul>
+        <li>Documentação em dia (#16)</li>
+        <li>Organização de pastas (#17, #20)</li>
+        <li>Testes com banco de dados (#19)</li>
+        <li>Divisão de arquivos grandes (#18)</li>
+        <li>Futuro: #11 e #15</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DECISÕES ================= -->
+<section id="decisoes">
+  <span class="eyebrow">Para a reunião</span>
+  <h2>Decisões pendentes</h2>
+  <div class="prose">
+    <p class="muted">Marque cada item durante a conversa. As marcações ficam salvas apenas neste
+      navegador e servem como apoio; registre o resultado final por escrito.</p>
+  </div>
+  <ol class="decisoes" id="lista-decisoes">
+    <li class="decisao" data-id="d1"><div class="q"><b>Publicar as correções já prontas</b><span>Inclui reativar a sincronização automática (#01).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 1"></div></li>
+    <li class="decisao" data-id="d2"><div class="q"><b>Quem pode ver custos e margem</b><span>Recomendado: apenas proprietário e administradores. Operadores veem só o preço final (#03).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 2"></div></li>
+    <li class="decisao" data-id="d3"><div class="q"><b>Bloqueio imediato de desativados e empresas suspensas</b><span>Recomendado: encerrar a sessão no próximo clique (#04).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 3"></div></li>
+    <li class="decisao" data-id="d4"><div class="q"><b>Serviço de monitoramento e destinatários dos alertas</b><span>Há opções gratuitas. Definir e-mail ou telefone de quem recebe (#05).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 4"></div></li>
+    <li class="decisao" data-id="d5"><div class="q"><b>Backup fora do servidor</b><span>Escolher provedor e aprovar o custo mensal, que é baixo para o volume atual (#09).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 5"></div></li>
+    <li class="decisao" data-id="d6"><div class="q"><b>Identidade no PDF de cada empresa</b><span>Nome e logotipo da empresa emissora; Ascender aparece apenas como plataforma, se desejado (#07).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 6"></div></li>
+    <li class="decisao" data-id="d7"><div class="q"><b>Regra da Tarifa ASCENDER e valor da tarifa Fio B</b><span>Muda números mostrados ao cliente; precisa de definição comercial (#13).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 7"></div></li>
+    <li class="decisao" data-id="d8"><div class="q"><b>Tempo de guarda da telemetria detalhada</b><span>Sugestão: 90 dias em detalhe e resumos permanentes (#10).</span></div><div class="opcoes" role="radiogroup" aria-label="Decisão 8"></div></li>
+  </ol>
+  <div style="display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center">
+    <span class="contagem" id="contagem" aria-live="polite">Nenhuma decisão marcada.</span>
+    <button type="button" class="btn" id="limpar">Limpar marcações</button>
+  </div>
+</section>
+
+<!-- ================= GLOSSÁRIO ================= -->
+<section id="glossario">
+  <span class="eyebrow">Glossário</span>
+  <h2>Termos usados neste documento</h2>
+  <dl class="glossario">
+    <div><dt>Sincronização (worker)</dt><dd>Serviço que roda em segundo plano buscando dados na SolisCloud e no Digital Grid a cada 10 ou 15 minutos.</dd></div>
+    <div><dt>Empresa (tenant)</dt><dd>Cada integradora que usa a plataforma. Os dados de uma empresa não são visíveis para outra.</dd></div>
+    <div><dt>Perfil de acesso</dt><dd>Proprietário, administrador, operador ou leitura. Define o que cada usuário pode ver e alterar.</dd></div>
+    <div><dt>Sessão</dt><dd>O período em que o usuário fica logado sem digitar a senha de novo. Hoje dura até 8 horas.</dd></div>
+    <div><dt>Vulnerabilidade (CVE)</dt><dd>Falha de segurança conhecida publicamente em um componente de software.</dd></div>
+    <div><dt>Verificação automática (CI)</dt><dd>Testes que rodam sozinhos toda vez que o código é enviado ao repositório.</dd></div>
+    <div><dt>Telemetria</dt><dd>Leituras periódicas das usinas: potência, energia do dia, estado dos inversores.</dd></div>
+    <div><dt>Fio B</dt><dd>Parcela da tarifa de distribuição que passou a ser cobrada sobre a energia compensada, conforme a Lei 14.300/2022.</dd></div>
+    <div><dt>Rateio</dt><dd>Divisão dos créditos de energia de uma usina entre as unidades consumidoras beneficiárias.</dd></div>
+    <div><dt>VPS</dt><dd>O servidor na nuvem onde o sistema de produção está instalado.</dd></div>
+  </dl>
+</section>
+
+<!-- ================= APÊNDICE ================= -->
+<section id="apendice">
+  <span class="eyebrow">Apêndice técnico · para o time de desenvolvimento</span>
+  <h2>Onde está cada ponto no código</h2>
+  <div class="tabela">
+    <table>
+      <thead><tr><th>#</th><th>Arquivos</th><th>Ação técnica</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td><code>ascender-app/src/lib/plans.ts</code>, <code>cadastros/sync.ts</code></td><td>Sem <code>import "server-only"</code> em módulos que o worker (tsx) importa. Já corrigido; publicar e conferir <code>docker compose logs worker</code>.</td></tr>
+        <tr><td>02</td><td><code>package.json</code>, <code>components/DataTable.tsx</code>, <code>lib/propostas/excel.ts</code></td><td>Atualizar <code>next</code> (patch 15.5.x), <code>jspdf</code>, <code>zod</code>; substituir <code>xlsx</code> (tarball oficial SheetJS ou <code>exceljs</code>).</td></tr>
+        <tr><td>03</td><td><code>app/(dashboard)/configuracoes/proposta-precos/page.tsx</code></td><td>Gate com <code>getSessionRole()</code> + <code>roleAtLeast()</code> de <code>lib/auth/rbac.ts</code>, como em <code>propostas/[id]/page.tsx</code>.</td></tr>
+        <tr><td>04</td><td><code>lib/auth/guard.ts</code>, <code>lib/auth/rbac.ts</code>, <code>lib/auth/users.ts</code></td><td>Revalidar <code>usuarios.ativo</code> e <code>tenants.status</code> por requisição; destruir a sessão quando inválida.</td></tr>
+        <tr><td>05</td><td><code>app/api/health</code>, <code>sync_runs</code>, worker heartbeat</td><td>Health com frescor de sync; monitor externo; logar erros nos <code>catch {}</code>.</td></tr>
+        <tr><td>06</td><td><code>.github/workflows/testes.yml</code>, <code>Dockerfile</code></td><td>Adicionar <code>next build</code>, <code>docker build</code>, smoke do worker; <code>node:22-alpine</code>.</td></tr>
+        <tr><td>07</td><td><code>lib/propostas/pdf.ts</code>, <code>getPropostaPdf</code> em <code>propostas/actions.ts</code></td><td>Nome/logo do tenant no DTO do PDF.</td></tr>
+        <tr><td>08</td><td><code>docker-compose*.yml</code>, <code>Caddyfile</code>, <code>Dockerfile</code></td><td>Senhas do Postgres no <code>.env</code>; CSP, <code>frame-ancestors</code>, <code>Permissions-Policy</code>; <code>USER node</code>.</td></tr>
+        <tr><td>09</td><td><code>docker-compose.prod.yml</code> (serviço <code>backup</code>)</td><td>Cópia offsite (ex.: rclone) + teste de restore (ver <code>docs/kb/runbooks/backup-restore.md</code>).</td></tr>
+        <tr><td>10</td><td><code>telemetria_estacao/inversor/coletor</code></td><td>Rollup horário/diário + retenção do bruto ou particionamento mensal.</td></tr>
+        <tr><td>12</td><td><code>app/(dashboard)</code></td><td>Criar <code>error.tsx</code>, <code>loading.tsx</code>, <code>not-found.tsx</code>.</td></tr>
+        <tr><td>13</td><td><code>propostas/page.tsx</code>, <code>PropostaRowControls.tsx</code>, <code>parametros.ts</code></td><td>Mapa de rótulos de status; unificar modelo de economia; Fio B real (com aval).</td></tr>
+        <tr><td>14</td><td><code>lib/ai/providers.ts</code></td><td>Atualizar IDs de modelos e o padrão.</td></tr>
+        <tr><td>16</td><td><code>CLAUDE.md</code>, <code>docs/kb/*</code>, <code>ascender-app/README.md</code></td><td><code>python3 scripts/kb/drift.py</code>; corrigir workers, RBAC, porta, versões, scripts.</td></tr>
+        <tr><td>19</td><td><code>.github/workflows</code></td><td>Postgres como service container; testes de RLS e de papéis.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>Como verificar cada onda</h3>
+<pre>cd ascender-app
+npm test                                           # testes unitários
+./node_modules/.bin/tsc --noEmit -p tsconfig.json  # tipos
+npm run build                                      # montagem do site
+npm audit --omit=dev                               # meta: zero críticas
+docker compose up -d --build && docker compose logs worker</pre>
+  <p class="muted">Testes manuais no ambiente local usam usuários e dados fictícios gerados fora
+    do repositório (perfis owner, admin, operador, leitura, inativo e empresas ativa, pendente e
+    suspensa).</p>
+</section>
+
+</div>
+</main>
+
+<footer class="fim">
+  <div class="wrap">Documento interno · ASCENDER Solar Tech / Moreira Camargo Eng. · 09/11/2026</div>
+</footer>
+
+<script>
+(function () {
+  var CHAVE = "ascender-melhorias-decisoes";
+  var OPCOES = [["aprovar", "Aprovar"], ["ajustar", "Ajustar"], ["adiar", "Adiar"]];
+  var estado = {};
+  try { estado = JSON.parse(localStorage.getItem(CHAVE) || "{}") || {}; } catch (e) { estado = {}; }
+
+  function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {} }
+
+  function atualizarContagem() {
+    var n = { aprovar: 0, ajustar: 0, adiar: 0 }, total = 0;
+    Object.keys(estado).forEach(function (k) { if (n[estado[k]] !== undefined) { n[estado[k]]++; total++; } });
+    document.getElementById("contagem").textContent = total === 0
+      ? "Nenhuma decisão marcada."
+      : total + " de 8 marcadas · " + n.aprovar + " aprovadas · " + n.ajustar + " a ajustar · " + n.adiar + " adiadas";
+  }
+
+  document.querySelectorAll(".decisao").forEach(function (li) {
+    var id = li.getAttribute("data-id");
+    var grupo = li.querySelector(".opcoes");
+    OPCOES.forEach(function (o) {
+      var label = document.createElement("label");
+      var input = document.createElement("input");
+      input.type = "radio"; input.name = id; input.value = o[0]; input.id = id + "-" + o[0];
+      if (estado[id] === o[0]) input.checked = true;
+      input.addEventListener("change", function () { estado[id] = o[0]; salvar(); atualizarContagem(); });
+      var span = document.createElement("span"); span.textContent = o[1];
+      label.appendChild(input); label.appendChild(span); grupo.appendChild(label);
+    });
+  });
+
+  document.getElementById("limpar").addEventListener("click", function () {
+    estado = {}; salvar();
+    document.querySelectorAll(".decisao input").forEach(function (i) { i.checked = false; });
+    atualizarContagem();
+  });
+
+  atualizarContagem();
+})();
+</script>
+</body>
+</html>

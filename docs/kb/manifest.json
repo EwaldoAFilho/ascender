@@ -1,6 +1,6 @@
 {
   "gerado_em": "2026-07-08",
-  "total_documentos": 35,
+  "total_documentos": 36,
   "documentos": [
     {
       "doc": "docs/kb/README.md",
@@ -49,8 +49,8 @@
     },
     {
       "doc": "docs/kb/modulos/financeiro-faturas.md",
-      "hash": "902b08664c92",
-      "atualizado_em": "2026-07-08"
+      "hash": "df42ebc7867a",
+      "atualizado_em": "2026-11-09"
     },
     {
       "doc": "docs/kb/modulos/infra-e-deploy.md",
@@ -79,13 +79,13 @@
     },
     {
       "doc": "docs/kb/modulos/propostas-gerador.md",
-      "hash": "prop-2026-07-10-detalhe-edicao-pdf",
-      "atualizado_em": "2026-07-10"
+      "hash": "bd441de43aa8",
+      "atualizado_em": "2026-11-09"
     },
     {
       "doc": "docs/kb/modulos/rateio-e-auditoria.md",
-      "hash": "f6eb2e22f96f",
-      "atualizado_em": "2026-07-08"
+      "hash": "b0960f3321b0",
+      "atualizado_em": "2026-11-09"
     },
     {
       "doc": "docs/kb/runbooks/deploy.md",
@@ -109,8 +109,8 @@
     },
     {
       "doc": "docs/kb/runbooks/rodar-local.md",
-      "hash": "8611dc542097",
-      "atualizado_em": "2026-07-08"
+      "hash": "33d5e698ec52",
+      "atualizado_em": "2026-11-09"
     },
     {
       "doc": "docs/kb/riscos/README.md",
@@ -119,8 +119,8 @@
     },
     {
       "doc": "docs/kb/pendencias/README.md",
-      "hash": "c6eddd5ddc73",
-      "atualizado_em": "2026-07-08"
+      "hash": "3c68bb783207",
+      "atualizado_em": "2026-11-09"
     },
     {
       "doc": "docs/kb/telas/README.md",
@@ -176,6 +176,11 @@
       "doc": "docs/kb/adr/ADR-0007-multi-tenancy-shared-db-rls.md",
       "hash": "a1b2-fase6-completa",
       "atualizado_em": "2026-07-09"
+    },
+    {
+      "doc": "docs/propostas-de-melhorias.html",
+      "hash": "c6c5979e5951",
+      "atualizado_em": "2026-11-09"
     }
   ],
   "codigo_analisado": [
