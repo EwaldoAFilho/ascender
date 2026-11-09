@@ -66,6 +66,21 @@ export function GenerationChart({ series }: { series: GenerationSeries }) {
               stroke={BRAND}
               strokeWidth={2}
               fill="url(#genFill)"
+              // A grade é de 15 min e buckets sem leitura ficam null (lacuna). Uma
+              // leitura cercada de lacunas não forma segmento de área — ficava
+              // invisível (só aparecia no tooltip). Desenha um ponto nesses casos.
+              dot={(props: { cx?: number; cy?: number; index?: number }) => {
+                const i = props.index ?? -1;
+                const isolado =
+                  data[i]?.value != null &&
+                  data[i - 1]?.value == null &&
+                  data[i + 1]?.value == null;
+                return isolado && props.cx != null && props.cy != null ? (
+                  <circle key={`dot-${i}`} cx={props.cx} cy={props.cy} r={3} fill={BRAND} />
+                ) : (
+                  <g key={`dot-${i}`} />
+                );
+              }}
             />
           </AreaChart>
         ) : (

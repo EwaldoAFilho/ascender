@@ -97,7 +97,8 @@ Implicitas / HIPOTESE:
 ## Pendencias / a investigar
 - Nao existe reconciliacao financeira automatica em runtime entre o `valor` da conta e o `valor_total`/`raw` da fatura DG — so o script offline. Confirmar se ha intencao de promover alguma formula (f1..f5) para validacao em producao.
 - Autenticidade/limites: nao ha antivirus/validacao de conteudo do PDF alem de mime/extensao/tamanho; investigar se e requisito.
-- Nao ha teste automatizado localizado para `parse-conta.ts`/`conciliarBoleto` (nao encontrado neste mapeamento) — verificar cobertura.
+- Testes: `parse-conta.ts` coberto por `src/lib/financeiro/parse-conta.test.ts` (textos sinteticos dos layouts A e B; `npm test`). `conciliarBoleto`/`conta.ts` (com I/O) seguem sem teste. Ao calibrar o parser com uma conta real, acrescentar o trecho anonimizado como caso de teste.
+- parse-conta.ts:163 faz `raw.replace(/ /g, " ")` (espaco por espaco, no-op). Parece que o NBSP (U+00A0) que deveria ser normalizado se perdeu; `\s` das regex ja cobre NBSP, mas `[ \t]*` em extractCliente nao. Confirmar intencao antes de mudar.
 - `textoExtraido` e persistido mas nao aparece na UI; investigar uso (debug? reprocessamento futuro?).
 - Comportamento quando a IA retorna campos parciais e o regex tambem falha: conta e salva com varios null (editaveis?). A UI (`ContaEnergiaModal`) exibe mas nao parece permitir edicao manual dos campos — confirmar se ha edicao em outro ponto (comentario em parse-conta.ts:6 fala em "editaveis manualmente na tela", mas nao foi encontrada a edicao).
 

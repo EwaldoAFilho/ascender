@@ -1,4 +1,6 @@
-import "server-only";
+// Somente servidor (usa o banco). Sem `import "server-only"`: este módulo é
+// importado pelo worker (tsx, fora do Next) via cadastros/sync.ts, onde o pacote
+// não resolve e derrubava o worker com ERR_MODULE_NOT_FOUND.
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { planos, tenantMemberships, tenants, usinas } from "@/lib/db/schema";

@@ -249,7 +249,7 @@
       ],
       "status": "completo",
       "confianca": "alta",
-      "ultima_analise": "2026-07-08",
+      "ultima_analise": "2026-11-09",
       "entidades": [
         "faturas_dg",
         "contas_energia",
@@ -591,7 +591,7 @@
       ],
       "status": "completo",
       "confianca": "alta",
-      "ultima_analise": "2026-07-10",
+      "ultima_analise": "2026-11-09",
       "entidades": [
         "propostas",
         "parametros_proposta",
@@ -645,7 +645,7 @@
       ],
       "status": "completo",
       "confianca": "alta",
-      "ultima_analise": "2026-07-08",
+      "ultima_analise": "2026-11-09",
       "entidades": [
         "rateios_dg",
         "faturas_dg",

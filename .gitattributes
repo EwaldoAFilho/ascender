@@ -1,0 +1,3 @@
+# Scripts shell precisam de LF: com CRLF o "#!/bin/sh" quebra o container
+# ("exec ./docker-entrypoint.sh: no such file or directory") em checkouts no Windows.
+*.sh text eol=lf

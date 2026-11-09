@@ -998,6 +998,16 @@ th {
   color: var(--danger);
 }
 
+/* Select de status (ex.: lista de Propostas). As <option> herdavam a cor clara
+   do .status e o navegador desenha a lista aberta com fundo branco — no tema
+   escuro ficavam "em branco". Fundo/cor explícitos pelos tokens do tema. */
+.status-select option {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
 .positive-value {
   color: var(--success);
   font-weight: 900;

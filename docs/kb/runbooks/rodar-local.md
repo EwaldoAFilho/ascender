@@ -22,8 +22,22 @@ npm run db:migrate && npm run db:seed
 npm run dev
 ```
 
+## Testes unitários
+```bash
+cd ascender-app
+npm test        # node:test + tsx; não precisa de banco nem de .env (Node 22+)
+```
+- Arquivos `*.test.ts` ficam ao lado do código (`src/lib/**`). Cobrem as funções
+  puras: propostas (`dimensionamento`, `precificacao`, `financeiro`, `calcular` com
+  Fio B), auditoria (`auditoria/rules.ts`) e o parser de contas
+  (`financeiro/parse-conta.ts`).
+- Testes de precificação usam `PARAMETROS_PADRAO` (custo/margem). Rodam só no
+  Node e nunca são importados pelo app, então não entram no bundle do cliente.
+- A CI roda os testes + typecheck em [`.github/workflows/testes.yml`](../../../.github/workflows/testes.yml).
+
 ## Checagens rápidas
 ```bash
+npm test                                            # testes unitários
 ./node_modules/.bin/tsc --noEmit -p tsconfig.json   # typecheck
 docker ps --filter name=ascender-app                # estado dos containers
 docker exec ascender-app-db-1 psql -U ascender -d ascender -c "\dt"
