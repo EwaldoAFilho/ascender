@@ -38,7 +38,8 @@
 ## Financeiro & Faturas de Energia — [`modulos/financeiro-faturas.md`](../modulos/financeiro-faturas.md)
 
 - [ ] Confirmar se ha intencao de promover alguma formula (f1..f5) de reconciliar-fatura.ts para validacao financeira em producao (hoje so offline/leitura)
-- [ ] Nao ha teste automatizado localizado para parse-conta.ts / conciliarBoleto — verificar cobertura
+- [x] Testes de parse-conta.ts (layouts A e B, sinteticos) em `financeiro/parse-conta.test.ts` (2026-11-09). `conciliarBoleto`/`conta.ts` (I/O) seguem sem teste.
+- [ ] parse-conta.ts:163 faz `raw.replace(/ /g, " ")` (espaco por espaco, no-op). Parece que o NBSP (U+00A0) que deveria ser normalizado se perdeu; `\s` das regex ja cobre NBSP, mas `[ \t]*` em extractCliente nao. Confirmar intencao antes de mudar.
 - [ ] textoExtraido e persistido mas nao aparece na UI — investigar uso (debug/reprocessamento futuro)
 - [ ] Comentario em parse-conta.ts:6 diz que campos ficam editaveis manualmente na tela, mas a edicao manual nao foi encontrada na UI (ContaEnergiaModal apenas exibe) — confirmar
 - [ ] Nao ha validacao de conteudo/antivirus do PDF alem de mime/extensao/tamanho — verificar se e requisito
@@ -100,7 +101,7 @@
 - [ ] Confirmar se/como os scripts db:sync-rateio-dg e db:auditar-rateio sao disparados por cron/deploy na VPS (commit recente cita polling/cron, mas o agendamento nao esta nestes arquivos)
 - [ ] Origem/justificativa do fator 0.15 no impacto de uc_sem_rateio (HIPOTESE) precisa ser documentada ou parametrizada
 - [ ] Fase 2 (persistencia dos achados / tela de auditoria) prevista nos comentarios mas inexistente: sem tabela de findings, sem historico, sem UI
-- [ ] Nao ha testes automatizados das funcoes puras de rules.ts, apesar de projetadas para serem 100% testaveis
+- [x] Testes das funcoes puras de rules.ts em `auditoria/rules.test.ts` (2026-11-09), incluindo as regras desativadas.
 - [ ] Confirmar aderencia de mesesExpiracaoScee=60 a Lei 14.300 (prazo/condicoes de expiracao do saldo SCEE) no cenario real dos clientes
 - [ ] Vinculo Lei 14.300 aparece so indiretamente (residuo fio B na base de desconto + expiracao SCEE 60m); nao ha modulo dedicado a Fio B dentro deste subsistema
 

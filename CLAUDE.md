@@ -71,6 +71,7 @@ docs/kb/
 # Dev
 npm run dev                         # next dev
 ./node_modules/.bin/tsc --noEmit -p tsconfig.json   # typecheck (rápido)
+npm test                            # testes unitários (node:test + tsx; sem banco; Node 22+)
 npm run build                       # next build
 
 # Banco (Drizzle)

@@ -110,7 +110,7 @@ Regras do sync do rateio (sync.ts):
 - Confirmar se/como os scripts (`db:sync-rateio-dg`, `db:auditar-rateio`) sao disparados por cron/deploy na VPS (o commit recente cita polling/cron, mas nao foi encontrado o agendamento nestes arquivos).
 - Origem/justificativa do fator 0.15 no impacto de `uc_sem_rateio` (marcado HIPOTESE) — precisa ser documentado ou parametrizado.
 - A "Fase 2" (persistencia dos achados / tela de auditoria) esta prevista nos comentarios mas nao existe: sem tabela de findings, sem historico, sem UI.
-- Nao ha testes automatizados das funcoes puras de `rules.ts` (nenhum `*.test.ts` no projeto), apesar de projetadas para serem 100% testaveis.
+- Testes: `src/lib/auditoria/rules.test.ts` cobre todas as regras puras de `rules.ts` (inclusive as desativadas e o fato de `rodarRegras` nao executa-las); `npm test`. `queries.ts`/`run.ts` (I/O) nao sao testados.
 - `mesesExpiracaoScee = 60` e citado como regra ANEEL; confirmar aderencia a Lei 14.300 (prazo/condicoes de expiracao do saldo SCEE) para o cenario real dos clientes.
 - Vinculo "Lei 14.300" no codigo aparece so indiretamente (residuo fio B na base de desconto + expiracao SCEE 60m); nao ha modulo dedicado a Fio B dentro deste subsistema (o Fio B do gerador de propostas e outro modulo).
 

@@ -146,6 +146,7 @@ Implicitas / inferidas:
 </invoke>
 
 ## Atualizações
+- **2026-11-09** — **Testes unitários** (`npm test`, node:test + tsx, sem banco): `dimensionamento.test.ts`, `precificacao.test.ts`, `financeiro.test.ts` e `calcular.test.ts` em `ascender-app/src/lib/propostas/`. Cobrem dimensionamento/empacotamento/inversor, faixas de kit, composição de custo (imposto não incide no kit; margem markup × % do preço), payback/TIR/projeção, os dois cenários, a regra "só o consumo vale tarifa cheia" e o Fio B (cronograma, ano-base, clamp em 0, desativado). Usam `PARAMETROS_PADRAO`; rodam só no Node (não entram no bundle). Nenhuma fórmula foi alterada.
 - **2026-07-10** — **Tela de detalhe/edição por-proposta + reimpressão de PDF de proposta salva.**
   - Nova rota **`/propostas/[id]`** (`ascender-app/src/app/(dashboard)/propostas/[id]/page.tsx`): reaproveita `GeradorProposta.tsx` em **modo edição** — abre já mostrando o `resultado` salvo (com **Baixar PDF** e Excel) e permite re-dimensionar. Gate **operador+** (expõe custo/margem); `leitura` é redirecionado para `/propostas`.
   - `GeradorProposta.tsx` ganhou props `propostaId`/`inicial`/`resultadoInicial` (tipo exportado `GeradorInicial`), seção **"5 · Comercial"** (Status + Tarifa ASCENDER, só na edição) e botão "Salvar alterações"/"Editar dados".
