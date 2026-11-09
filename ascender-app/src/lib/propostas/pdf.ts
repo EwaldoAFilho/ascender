@@ -63,6 +63,43 @@ export function cenarioResultadoToPdf(c: CenarioResultado): PdfCenario {
   };
 }
 
+// As fontes padrão do jsPDF (helvetica) só cobrem Latin-1. Um único caractere
+// fora disso (ex.: "≤" no rótulo do inversor, "₂" em CO₂, "—" num nome livre)
+// faz o jsPDF codificar a linha inteira em UTF-16: o texto sai com letras
+// espaçadas, glifos trocados e estoura a margem. Todo texto do PDF passa aqui.
+const SUBSTITUICOES_PDF: Record<string, string> = {
+  "≤": "até ",
+  "≥": "a partir de ",
+  "—": "-",
+  "–": "-",
+  "“": '"',
+  "”": '"',
+  "‘": "'",
+  "’": "'",
+  "…": "...",
+  "•": "·",
+  "€": "EUR",
+};
+
+export function textoPdf(s: string): string {
+  let out = "";
+  for (const ch of s) {
+    if (ch.codePointAt(0)! <= 0xff) {
+      out += ch;
+      continue;
+    }
+    const sub = SUBSTITUICOES_PDF[ch];
+    if (sub !== undefined) {
+      out += sub;
+      continue;
+    }
+    // Compatibilidade Unicode resolve subscritos/ligaduras/espaços finos (₂→2, ﬁ→fi).
+    const norm = ch.normalize("NFKC");
+    out += [...norm].every((c) => c.codePointAt(0)! <= 0xff) ? norm : "";
+  }
+  return out;
+}
+
 const NAVY: [number, number, number] = [11, 31, 58];
 const GOLD: [number, number, number] = [200, 155, 60];
 
@@ -93,7 +130,7 @@ function linhasCenario(c: PdfCenario): [string, string][] {
     linhas.splice(5, 0, ["Excedente injetado", `${num(c.excedenteKwh)} kWh/mês`]);
     linhas.splice(6, 0, ["Crédito do excedente", `${brl(c.creditoExcedente ?? 0)}/mês`]);
   }
-  return linhas;
+  return linhas.map(([a, b]) => [textoPdf(a), textoPdf(b)]);
 }
 
 export async function baixarPropostaPdf(dados: PdfProposta): Promise<void> {
@@ -115,14 +152,17 @@ export async function baixarPropostaPdf(dados: PdfProposta): Promise<void> {
   doc.text("Proposta de Sistema Fotovoltaico", 14, 23);
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
-  doc.text(dados.data, w - 14, 15, { align: "right" });
+  doc.text(textoPdf(dados.data), w - 14, 15, { align: "right" });
 
   // Dados do cliente.
   let y = 42;
   doc.setTextColor(...NAVY);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(dados.cliente, 14, y);
+  // Nome livre pode ser longo: quebra em linhas dentro da margem.
+  const nomeLinhas: string[] = doc.splitTextToSize(textoPdf(dados.cliente), w - 28);
+  doc.text(nomeLinhas, 14, y);
+  y += (nomeLinhas.length - 1) * 5;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(90, 90, 90);
@@ -135,7 +175,9 @@ export async function baixarPropostaPdf(dados: PdfProposta): Promise<void> {
     .join("  ·  ");
   if (sub) {
     y += 6;
-    doc.text(sub, 14, y);
+    const subLinhas: string[] = doc.splitTextToSize(textoPdf(sub), w - 28);
+    doc.text(subLinhas, 14, y);
+    y += (subLinhas.length - 1) * 4;
   }
   y += 8;
 
@@ -145,7 +187,7 @@ export async function baixarPropostaPdf(dados: PdfProposta): Promise<void> {
     doc.setTextColor(...NAVY);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text(c.titulo, 17, startY + 5.5);
+    doc.text(textoPdf(c.titulo), 17, startY + 5.5);
     autoTable(doc, {
       startY: startY + 10,
       body: linhasCenario(c),
@@ -179,7 +221,7 @@ export async function baixarPropostaPdf(dados: PdfProposta): Promise<void> {
     "Valores estimados. A geração real depende de irradiação, sombreamento e condições da " +
     "instalação. Créditos de energia (SCEE) são compensados em kWh conforme a Lei 14.300/2022. " +
     "Proposta gerada pelo sistema ASCENDER — validade sujeita a confirmação técnica.";
-  doc.text(doc.splitTextToSize(obs, w - 28), 14, 285);
+  doc.text(doc.splitTextToSize(textoPdf(obs), w - 28), 14, 285);
 
   const nome = dados.cliente.replace(/\s+/g, "_") || "cliente";
   doc.save(`Proposta_Ascender_${nome}.pdf`);
